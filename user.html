@@ -1,0 +1,3093 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - Einstein Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ============================================
+           COLOR SYSTEM — brown / light brown / #caa171
+           ============================================ */
+        :root {
+            --maroon: #5E3A21;
+            /* deep brown — headers, primary buttons, nav */
+            --dark: #3D2414;
+            /* darkest brown — hover states */
+            --gold: #CAA171;
+            /* accent gold-brown (as requested) */
+            --light-gold: #E7CFA8;
+            /* lighter gold for gradients */
+            --light-brown: #D9C3A3;
+            /* light brown — borders, secondary accents */
+            --cream: #F7F0E4;
+            /* page background tint */
+            --muted: #8A7360;
+            /* muted brown-gray for secondary text */
+            --text: #4A3728;
+            /* main body text, warm dark brown */
+        }
+
+        .user-info-card {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .user-info-card h4 {
+            font-size: 0.95rem;
+            color: #fff;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-info-card span {
+            display: block;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.66);
+            text-transform: uppercase;
+            margin-top: 0.2rem;
+        }
+
+        .sidebar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar-icon-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.72);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .logout-btn {
+            padding: 0;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.72);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: color 0.2s;
+            font-family: inherit;
+        }
+
+        .logout-btn:hover,
+        .sidebar-icon-btn:hover {
+            color: #fff;
+        }
+
+        /* MAIN AREA */
+        .main-area {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, var(--cream) 0%, #F2E8DB 100%);
+            overflow-y: auto;
+        }
+
+        .topbar {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(94, 58, 33, 0.1);
+            min-height: 76px;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .topbar h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--dark);
+            font-size: 2.1rem;
+            line-height: 1.1;
+        }
+
+        .topbar-subtitle {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+        }
+
+        .topbar-right {
+            color: var(--muted);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .topbar-pill {
+            background: var(--light-gold);
+            color: var(--maroon);
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .content-wrap {
+            padding: 1.75rem 1.75rem 2.5rem;
+        }
+
+        .content-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        main {
+            margin: 0;
+        }
+
+        /* MAIN CONTAINER */
+        main {
+            margin-top: 80px;
+            padding: 3rem 2rem;
+            max-width: 1380px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* HEADER SECTION */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--maroon) 0%, var(--dark) 100%);
+            color: #fff;
+            padding: 1.25rem 1.6rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 14px rgba(94, 58, 33, 0.12);
+        }
+
+        .dashboard-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            margin-bottom: 0.25rem;
+            line-height: 1.25;
+            font-weight: 700;
+        }
+
+        .dashboard-header p {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin: 0;
+        }
+
+        /* PROGRAMS SECTION */
+        .programs-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--maroon);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-subtitle {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        /* PROGRAM CARDS — Matched to main.html layout */
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .programs-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .programs-grid { grid-template-columns: 1fr; }
+        }
+
+        .program-card {
+            border: 1px solid rgba(94, 58, 33, 0.12);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: box-shadow 0.25s, transform 0.25s;
+            cursor: pointer;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .program-card:hover {
+            box-shadow: 0 12px 40px rgba(94, 58, 33, 0.14);
+            transform: translateY(-4px);
+            border-color: var(--gold);
+        }
+
+        .program-card-header {
+            background: var(--maroon);
+            padding: 1.4rem 1.5rem;
+        }
+
+        .program-card-header h3 {
+            font-family: 'Playfair Display', serif;
+            color: #fff;
+            font-size: 1.25rem;
+            margin-bottom: 0.3rem;
+            font-weight: 700;
+        }
+
+        .program-card-header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+        }
+
+        .program-card-body {
+            padding: 1.4rem 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tag {
+            display: inline-block;
+            align-self: flex-start;
+            background: var(--light-gold);
+            color: var(--maroon);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
+            margin-bottom: 0.8rem;
+        }
+
+        .program-card-body ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            margin: 0;
+            padding: 0;
+        }
+
+        .program-card-body ul li {
+            font-size: 0.85rem;
+            color: var(--text);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .program-card-body ul li::before {
+            content: '•';
+            color: var(--gold);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px dashed var(--light-brown);
+        }
+
+        .empty-state h2 {
+            color: var(--maroon);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state .btn-primary {
+            padding: 12px 24px;
+            background: var(--maroon);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        .empty-state .btn-primary:hover {
+            background: var(--dark);
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--maroon);
+            color: #fff;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            font-size: 0.85rem;
+        }
+
+        footer p {
+            margin: 0.3rem 0;
+        }
+
+        /* MODAL - LOADING STATE */
+        .modal-loading {
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 10, 4, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--light-brown);
+            border-top-color: var(--maroon);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .programs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-right {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid var(--light-brown);
+            border-radius: 10px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            box-shadow: 0 4px 12px rgba(94, 58, 33, 0.06);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: rgba(202, 161, 113, 0.18);
+            color: var(--maroon);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-info h3 {
+            font-size: 1.8rem;
+            color: var(--maroon);
+            line-height: 1.2;
+        }
+
+        .stat-info p {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* TWO-COLUMN LAYOUT */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1.15fr 0.95fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .dashboard-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .dashboard-panel {
+            background: #fff;
+            border: 1px solid rgba(94, 58, 33, 0.12);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(94, 58, 33, 0.06);
+        }
+
+        .dashboard-panel.feature-panel {
+            background: linear-gradient(180deg, #fff 0%, #FCF6EE 100%);
+            border-color: var(--gold);
+            box-shadow: 0 12px 28px rgba(94, 58, 33, 0.1);
+        }
+
+        .dashboard-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(94, 58, 33, 0.1);
+        }
+
+        .dashboard-panel-header h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--maroon);
+            font-size: 1.15rem;
+        }
+
+        .dashboard-panel-header p {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+        }
+
+        .announcement-card,
+        .renewal-card,
+        .re-enroll-card {
+            border: 1px solid var(--light-brown);
+            border-radius: 10px;
+            padding: 1rem;
+            background: linear-gradient(180deg, #fff, #FCF8F3);
+        }
+
+        .announcement-card+.announcement-card,
+        .renewal-card+.renewal-card,
+        .re-enroll-card+.re-enroll-card {
+            margin-top: 0.85rem;
+        }
+
+        .announcement-meta,
+        .renewal-meta,
+        .re-enroll-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 0.65rem;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .announcement-card h4,
+        .renewal-card h4,
+        .re-enroll-card h4 {
+            color: var(--dark);
+            font-size: 1rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .announcement-card p,
+        .renewal-card p,
+        .re-enroll-card p {
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .panel-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.28rem 0.65rem;
+            border-radius: 999px;
+            background: var(--light-gold);
+            color: var(--maroon);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+            margin-top: 0.9rem;
+        }
+
+        .panel-btn {
+            padding: 0.72rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        .panel-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .panel-btn-primary {
+            background: linear-gradient(135deg, var(--gold), #B5933F);
+            color: var(--maroon);
+            box-shadow: 0 8px 18px rgba(202, 161, 113, 0.28);
+        }
+
+        .panel-btn-secondary {
+            background: var(--cream);
+            color: var(--text);
+            border: 1px solid var(--light-brown);
+        }
+
+        .panel-btn-secondary:hover {
+            background: var(--light-brown);
+        }
+
+        .panel-empty {
+            font-size: 0.85rem;
+            color: var(--muted);
+            padding: 0.75rem 0;
+        }
+
+        .vip-renewal-summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.85rem;
+        }
+
+        .vip-renewal-summary div {
+            background: var(--cream);
+            border-radius: 8px;
+            padding: 0.85rem;
+            border: 1px solid var(--light-brown);
+        }
+
+        .vip-renewal-summary span {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.2rem;
+        }
+
+        .vip-renewal-summary strong {
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        .announcement-body {
+            white-space: pre-line;
+        }
+
+        .renewal-expiry {
+            font-weight: 700;
+            color: var(--maroon);
+        }
+
+        /* ENROLLMENTS SECTION */
+        .enrollments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(94, 58, 33, 0.1);
+            padding-bottom: 0.75rem;
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid var(--light-brown);
+            color: var(--text);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--maroon);
+            color: #fff;
+            border-color: var(--maroon);
+        }
+
+        .enrollment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .enrollment-card {
+            background: #fff;
+            border: 1px solid rgba(94, 58, 33, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(94, 58, 33, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .enrollment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(94, 58, 33, 0.1);
+        }
+
+        .enrollment-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .enrollment-program {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            color: var(--maroon);
+            font-weight: 700;
+        }
+
+        .enrollment-meta {
+            font-size: 0.85rem;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .enrollment-meta span strong {
+            color: var(--maroon);
+        }
+
+        .enrollment-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-pending {
+            background: #FFF3E0;
+            color: #B5762A;
+            border: 1px solid var(--light-gold);
+        }
+
+        .status-confirmed {
+            background: #F1F6EA;
+            color: #5A7A2E;
+            border: 1px solid #DCE7C8;
+        }
+
+        .status-cancelled {
+            background: #FBECE7;
+            color: #A6432A;
+            border: 1px solid #F0D6CB;
+        }
+
+        .enrollment-ref {
+            font-size: 0.72rem;
+            color: var(--muted);
+            font-family: monospace;
+            background: var(--cream);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* SIDEBAR SECTIONS */
+        .sidebar-panel {
+            background: #fff;
+            border: 1px solid rgba(94, 58, 33, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(94, 58, 33, 0.06);
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            color: var(--maroon);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(94, 58, 33, 0.1);
+            padding-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .activity-item {
+            position: relative;
+            padding-left: 1.25rem;
+            padding-bottom: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 6px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+        }
+
+        .activity-item::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 12px;
+            bottom: 0;
+            width: 1px;
+            background: var(--light-brown);
+        }
+
+        .activity-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .activity-item:last-child::after {
+            display: none;
+        }
+
+        .activity-time {
+            color: var(--muted);
+            font-size: 0.7rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .activity-text {
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .activity-text strong {
+            color: var(--maroon);
+        }
+
+        /* AVAILED SERVICES */
+        .availed-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--cream);
+        }
+
+        .availed-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .availed-icon {
+            font-size: 1.25rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .availed-info h4 {
+            font-size: 0.85rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .availed-info p {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .vip-renewal-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 2rem 1rem;
+            }
+
+            .dashboard-header {
+                padding: 2rem 1.5rem;
+            }
+
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================================================
+           DRAWER / SIDEBAR
+           ============================================================ */
+        #user-drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 10, 4, 0.45);
+            backdrop-filter: blur(2px);
+            z-index: 199;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #user-drawer-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #user-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background: linear-gradient(180deg, var(--dark) 0%, #2A160A 100%);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 32px rgba(0, 0, 0, 0.35);
+        }
+
+        #user-drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-header {
+            padding: 1.5rem 1.25rem 1rem;
+            border-bottom: 1px solid rgba(202, 161, 113, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .drawer-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .drawer-brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--gold);
+        }
+
+        .drawer-brand-text h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .drawer-brand-text span {
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .drawer-close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .drawer-close-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .drawer-nav-section-label {
+            padding: 1.25rem 1.25rem 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(202, 161, 113, 0.55);
+        }
+
+        .drawer-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            width: 100%;
+            padding: 0.78rem 1.25rem;
+            background: none;
+            border: none;
+            border-left: 3px solid transparent;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+
+        .drawer-nav-item:hover {
+            background: rgba(202, 161, 113, 0.12);
+            color: var(--light-gold);
+            border-left-color: var(--gold);
+        }
+
+        .drawer-nav-item.active {
+            background: rgba(202, 161, 113, 0.16);
+            color: var(--light-gold);
+            border-left-color: var(--gold);
+            font-weight: 600;
+        }
+
+        .drawer-nav-item .drawer-icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+           SIDEBAR FOOTER & USER CARD (Matching Admin UI)
+           ============================================================ */
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(201, 168, 76, 0.15);
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), #8A5A36);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        .user-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .user-info h4 {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+            line-height: 1.25;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .user-info span {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            display: block;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        .sidebar-footer .logout-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            line-height: 1;
+        }
+
+        .sidebar-footer .logout-btn:hover {
+            color: var(--gold);
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(1.1);
+        }
+
+        /* Hamburger button in nav */
+        .nav-hamburger {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 7px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .nav-hamburger:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        /* Restore original top-nav dashboard styling */
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--maroon);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .nav-logo img {
+            height: 45px;
+            width: auto;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .user-info strong {
+            color: #fff;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-home-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--gold), var(--light-gold));
+            border: none;
+            border-radius: 6px;
+            color: var(--dark);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-home-btn:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+        main {
+            margin-top: 80px;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ============================================================
+           PAGE SWITCHING & USER PORTAL VIEWS
+           ============================================================ */
+        .user-page {
+            display: none;
+        }
+
+        .user-page.active {
+            display: block;
+            animation: fadeInPage 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInPage {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-banner-header {
+            background: linear-gradient(135deg, var(--maroon) 0%, var(--dark) 100%);
+            color: #fff;
+            padding: 1.25rem 1.6rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 14px rgba(94, 58, 33, 0.12);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .page-banner-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            margin-bottom: 0.25rem;
+            line-height: 1.25;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .page-banner-header p {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 0;
+        }
+
+        .page-banner-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--gold), var(--light-gold));
+            border: none;
+            border-radius: 8px;
+            color: var(--dark);
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .page-banner-btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(202, 161, 113, 0.4);
+        }
+
+        .drawer-nav-badge {
+            margin-left: auto;
+            background: var(--gold);
+            color: var(--dark);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            line-height: 1.2;
+        }
+
+        .drawer-enrollments-mini {
+            margin: 0.2rem 1.25rem 0.6rem;
+            padding: 0.6rem 0.75rem;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(202, 161, 113, 0.2);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .drawer-mini-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.76rem;
+            color: rgba(255, 255, 255, 0.85);
+            cursor: pointer;
+            padding: 5px 6px;
+            border-radius: 5px;
+            transition: background 0.15s;
+        }
+
+        .drawer-mini-item:hover {
+            background: rgba(202, 161, 113, 0.15);
+            color: var(--light-gold);
+        }
+
+        .drawer-mini-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .drawer-mini-dot.confirmed {
+            background: #4ade80;
+            box-shadow: 0 0 6px rgba(74, 222, 128, 0.6);
+        }
+
+        .drawer-mini-dot.pending {
+            background: #fbbf24;
+            box-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+        }
+
+        .drawer-mini-link {
+            font-size: 0.72rem;
+            color: var(--gold);
+            text-align: right;
+            cursor: pointer;
+            padding-top: 2px;
+            text-decoration: underline;
+        }
+
+        .drawer-mini-link:hover {
+            color: #fff;
+        }
+
+        .dashboard-quick-banner {
+            background: #fff;
+            border: 1px solid var(--light-brown);
+            border-radius: 12px;
+            padding: 1.25rem 1.6rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.25rem;
+            box-shadow: 0 2px 10px rgba(94, 58, 33, 0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dashboard-quick-banner:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(94, 58, 33, 0.1);
+        }
+
+        .dashboard-quick-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dashboard-quick-banner-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: rgba(202, 161, 113, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: var(--maroon);
+            flex-shrink: 0;
+        }
+
+        .dashboard-quick-banner h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            color: var(--maroon);
+            margin-bottom: 0.15rem;
+        }
+
+        .dashboard-quick-banner p {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .enrollments-count-pill {
+            background: var(--light-gold);
+            color: var(--maroon);
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .vip-perks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .vip-perk-card {
+            background: #fff;
+            border: 1px solid var(--light-brown);
+            border-radius: 10px;
+            padding: 1.4rem;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .vip-perk-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--gold);
+            box-shadow: 0 8px 20px rgba(94, 58, 33, 0.08);
+        }
+
+        .vip-perk-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .vip-perk-card h4 {
+            font-family: 'Playfair Display', serif;
+            color: var(--maroon);
+            font-size: 1.05rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .vip-perk-card p {
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .stat-card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(94, 58, 33, 0.12);
+        }
+
+        /* ── NOTIFICATION BELL ── */
+        .user-notif-btn {
+            position: relative;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #fff;
+            transition: background 0.2s, transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .user-notif-btn:hover {
+            background: rgba(255,255,255,0.28);
+            transform: scale(1.08);
+        }
+
+        .user-notif-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            background: var(--gold);
+            color: var(--dark);
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--maroon);
+        }
+
+        .user-notif-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(94,58,33,0.08);
+            cursor: default;
+            transition: background 0.15s;
+        }
+
+        .user-notif-item:last-child { border-bottom: none; }
+
+        .user-notif-item.unread {
+            background: rgba(202,161,113,0.08);
+            border-left: 3px solid var(--gold);
+        }
+
+        .user-notif-item:hover {
+            background: rgba(202,161,113,0.12);
+        }
+
+        .user-notif-item h4 {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin: 0 0 0.2rem;
+        }
+
+        .user-notif-item p {
+            font-size: 0.8rem;
+            color: var(--text);
+            margin: 0 0 0.3rem;
+        }
+
+        .user-notif-item time {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══════════ DRAWER OVERLAY ══════════ -->
+    <div id="user-drawer-overlay" onclick="closeUserDrawer()"></div>
+
+    <!-- ══════════ DRAWER SIDEBAR ══════════ -->
+    <aside id="user-drawer" role="navigation" aria-label="User menu">
+        <!-- Header -->
+        <div class="drawer-header">
+            <div class="drawer-brand">
+                <img src="images/logo2.jpg" alt="Einstein Logo" onerror="this.style.display='none'">
+                <div class="drawer-brand-text">
+                    <h3>Einstein</h3>
+                    <span>My Account</span>
+                </div>
+            </div>
+            <button class="drawer-close-btn" onclick="closeUserDrawer()" aria-label="Close menu">✕</button>
+        </div>
+
+        <!-- Scrollable Nav Area -->
+        <div style="flex: 1; overflow-y: auto; padding-right: 2px;">
+            <div class="drawer-nav-section-label">Navigation</div>
+
+            <button class="drawer-nav-item active" id="drawer-nav-dashboard" onclick="showUserPage('dashboard', this)">
+                Programs
+            </button>
+
+            <button class="drawer-nav-item" id="drawer-nav-enrollments"
+                onclick="showUserPage('enrollments', this)">
+                My Enrollments
+                <span class="drawer-nav-badge" id="drawer-badge-enrollments" style="display:none;">0</span>
+            </button>
+            <div id="drawer-enrollments-mini" class="drawer-enrollments-mini" style="display:none;"></div>
+
+            <button class="drawer-nav-item" id="drawer-nav-vip" onclick="showUserPage('vip', this)">
+                VIP Section
+            </button>
+
+            <button class="drawer-nav-item" id="drawer-nav-balance" onclick="showUserPage('balance', this)">
+                My Balance
+                <span class="drawer-nav-badge" id="drawer-badge-balance" style="display:none;background:#c62828;color:#fff;">0</span>
+            </button>
+
+            <button class="drawer-nav-item" id="drawer-nav-announcements" onclick="showUserPage('announcements', this)">
+                Announcements
+            </button>
+
+            <button class="drawer-nav-item" id="drawer-nav-profile" onclick="showUserPage('profile', this)">
+                My Profile
+            </button>
+        </div>
+
+        <!-- Sidebar Footer: User Card (Same as Admin) -->
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar" id="drawer-avatar-initials">U</div>
+                <div class="user-info">
+                    <h4 id="drawer-user-name">Member</h4>
+                    <span id="drawer-user-role">MEMBER</span>
+                </div>
+                <button class="logout-btn" onclick="logoutUser()" title="Logout" aria-label="Logout">⏻</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ══════════ USER NOTIFICATION PANEL ══════════ -->
+    <div id="user-notif-panel" style="
+        position:fixed;top:0;right:-360px;height:100%;width:340px;max-width:95vw;
+        background:#fff;z-index:9998;box-shadow:-4px 0 32px rgba(61,36,20,0.18);
+        display:flex;flex-direction:column;
+        transition:right 0.35s cubic-bezier(0.4,0,0.2,1);
+        border-left:1px solid rgba(94,58,33,0.1);
+    ">
+        <div style="
+            display:flex;align-items:center;justify-content:space-between;
+            padding:1.25rem 1.5rem;border-bottom:1px solid rgba(94,58,33,0.1);
+            background:linear-gradient(135deg,var(--maroon),var(--dark));color:#fff;
+        ">
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin:0;">Notifications</h3>
+            </div>
+            <button onclick="toggleUserNotif()" style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+        </div>
+        <div id="user-notif-list" style="overflow-y:auto;flex:1;padding:0.5rem 0;">
+            <div style="padding:2.5rem 1.5rem;text-align:center;color:var(--muted);font-size:0.85rem;">No notifications yet.<br>Your enrollment updates will appear here.</div>
+        </div>
+    </div>
+    <div id="user-notif-overlay" onclick="toggleUserNotif()" style="display:none;position:fixed;inset:0;z-index:9997;background:rgba(20,10,4,0.3);"></div>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="nav-logo">
+            <button class="nav-hamburger" onclick="openUserDrawer()" aria-label="Open menu" id="nav-hamburger-btn">
+                ☰
+            </button>
+            <img src="images/logo2.jpg" alt="Einstein Logo">
+            <span>Center For Modern Education</span>
+        </div>
+        <div class="nav-right">
+            <div class="user-info" id="userEmail"></div>
+            <!-- Notification Bell -->
+            <button class="user-notif-btn" onclick="toggleUserNotif()" aria-label="Notifications" id="userNotifBellBtn">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="user-notif-dot" id="userNotifDot" style="display:none;"></span>
+            </button>
+            <a href="main.html" class="nav-home-btn">View Website</a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- ════════════════ PAGE: DASHBOARD (PROGRAMS) ════════════════ -->
+        <div id="user-page-dashboard" class="user-page">
+            <!-- HEADER -->
+            <div class="dashboard-header">
+                <h1 id="welcomeMsg">Welcome back! Ready to enroll?</h1>
+                <p>Choose from our comprehensive programs below and get started with enrollment.</p>
+            </div>
+
+            <p id="dashboardSyncStatus"
+                style="font-size: 0.75rem; color: var(--muted); margin: -1.5rem 0 1.5rem; text-align: right;">Updating•
+            </p>
+
+
+            <!-- QUICK SHORTCUT TO ENROLLMENTS -->
+            <div class="dashboard-quick-banner" onclick="showUserPage('enrollments')">
+                <div class="dashboard-quick-banner-content">
+                    <div class="dashboard-quick-banner-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                    </div>
+                    <div>
+                        <h4>My Enrollments</h4>
+                        <p id="dashboardEnrollmentsPreviewText">View your active schedule, child details, and
+                            application review status.</p>
+                    </div>
+                </div>
+                <button class="page-banner-btn" type="button">Open My Enrollments →</button>
+            </div>
+
+            <!-- PROGRAMS SECTION -->
+            <div class="programs-section" id="programsContainer">
+                <h2 class="section-title">Available Programs</h2>
+                <p class="section-subtitle">Click any program below to begin your enrollment.</p>
+                <div class="programs-grid" id="programsGrid">
+                    <!-- Programs will be loaded here -->
+                </div>
+            </div>
+
+            <!-- EMPTY STATE (shown when no programs) -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <h2>No Programs Available</h2>
+                <p>Please check back later for available enrollment opportunities.</p>
+            </div>
+
+        </div>
+
+        <!-- ════════════════ PAGE: MY ENROLLMENTS ════════════════ -->
+        <div id="user-page-enrollments" class="user-page">
+            <div class="page-banner-header">
+                <div>
+                    <h1>My Enrollments</h1>
+                    <p>Track your registered classes, child details, schedules, and approval status.</p>
+                </div>
+                <button class="page-banner-btn" onclick="showUserPage('dashboard')">+ Enroll In Another Program</button>
+            </div>
+
+            <div class="enrollments-header">
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterEnrollments('all')">All</button>
+                    <button class="filter-btn" onclick="filterEnrollments('confirmed')">Active</button>
+                    <button class="filter-btn" onclick="filterEnrollments('pending')">Pending</button>
+                </div>
+                <div class="enrollments-count-pill" id="enrollmentsCountPill">0 Total</div>
+            </div>
+
+            <div class="enrollment-list" id="enrollmentList">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- ════════════════ PAGE: VIP SECTION ════════════════ -->
+        <div id="user-page-vip" class="user-page">
+            <div class="page-banner-header">
+                <div>
+                    <h1>VIP Section & Membership</h1>
+                    <p>Unlock priority tutor scheduling, 10% discounts on all programs, and exclusive center privileges.
+                    </p>
+                </div>
+                <button class="page-banner-btn" onclick="handleEnroll('VIP Club Membership')">Join / Renew VIP</button>
+            </div>
+
+            <div class="dashboard-panel feature-panel" style="margin-bottom: 2rem;">
+                <div class="dashboard-panel-header">
+                    <div>
+                        <h3>VIP Membership & Renewal</h3>
+                        <p>See your VIP status, expiry date, and renewal options.</p>
+                    </div>
+                    <span class="panel-tag">VIP</span>
+                </div>
+                <div id="vipMembershipList">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ════════════════ PAGE: MY BALANCE ════════════════ -->
+        <div id="user-page-balance" class="user-page">
+            <div class="page-banner-header">
+                <div>
+                    <h1>My Balance & Unpaid Fees</h1>
+                    <p>Track your remaining tuition balances, slot reservation payments, and payment methods.</p>
+                </div>
+                <button class="page-banner-btn" type="button" onclick="openBalancePaymentInfoModal()">How to Settle Balance →</button>
+            </div>
+
+            <!-- SUMMARY STAT CARDS -->
+            <div class="stats-overview" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;margin-bottom:2rem;">
+                <div class="stat-card" style="background:#fff;border:1px solid rgba(94,58,33,0.12);border-radius:12px;padding:1.4rem;box-shadow:0 4px 12px rgba(94,58,33,0.05);position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#c62828;"></div>
+                    <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Total Remaining Balance</div>
+                    <div style="font-size:1.9rem;font-weight:800;color:#c62828;margin:0.35rem 0;" id="user-balance-total-due">₱0</div>
+                    <div style="font-size:0.8rem;color:var(--muted);">Outstanding fees across enrollments</div>
+                </div>
+
+                <div class="stat-card" style="background:#fff;border:1px solid rgba(94,58,33,0.12);border-radius:12px;padding:1.4rem;box-shadow:0 4px 12px rgba(94,58,33,0.05);position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#2e7d32;"></div>
+                    <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Total Amount Paid</div>
+                    <div style="font-size:1.9rem;font-weight:800;color:#2e7d32;margin:0.35rem 0;" id="user-balance-total-paid">₱0</div>
+                    <div style="font-size:0.8rem;color:var(--muted);">Reservation & settled tuition</div>
+                </div>
+
+                <div class="stat-card" style="background:#fff;border:1px solid rgba(94,58,33,0.12);border-radius:12px;padding:1.4rem;box-shadow:0 4px 12px rgba(94,58,33,0.05);position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:var(--gold);"></div>
+                    <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Account Status</div>
+                    <div style="font-size:1.35rem;font-weight:800;color:var(--maroon);margin:0.5rem 0;" id="user-balance-status-badge">All Settled ✓</div>
+                    <div style="font-size:0.8rem;color:var(--muted);" id="user-balance-program-count">0 Programs with balance</div>
+                </div>
+            </div>
+
+            <!-- PAYMENT POLICY NOTICE BANNER -->
+            <div style="background:linear-gradient(135deg, #fdf8f0, #fff7ea);border:1px solid rgba(218,181,92,0.45);border-radius:12px;padding:1.1rem 1.4rem;margin-bottom:2rem;display:flex;align-items:flex-start;gap:1rem;">
+                <div style="font-size:1.5rem;line-height:1;">💳</div>
+                <div style="font-size:0.85rem;color:#5e3a21;line-height:1.55;">
+                    <strong>Payment Reminder & Policy:</strong> Your ₱1,000 reservation fee reserves and confirms your child's slot in the program. Any remaining tuition balance can be settled at the center cashier or via GCash / bank transfer before or during the start of classes. Always quote your <strong>Reference Number</strong> for hassle-free payment verification.
+                </div>
+            </div>
+
+            <!-- FILTER BUTTONS -->
+            <div class="enrollments-header">
+                <div class="filters">
+                    <button class="filter-btn active" id="bal-filter-all" onclick="filterMyBalance('all')">All Programs</button>
+                    <button class="filter-btn" id="bal-filter-unpaid" onclick="filterMyBalance('unpaid')">Has Balance</button>
+                    <button class="filter-btn" id="bal-filter-settled" onclick="filterMyBalance('settled')">Fully Settled</button>
+                </div>
+                <div class="enrollments-count-pill" id="balanceCountPill">0 Total</div>
+            </div>
+
+            <!-- BALANCE LIST CONTAINER -->
+            <div class="enrollment-list" id="myBalanceList">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- ════════════════ PAGE: ANNOUNCEMENTS ════════════════ -->
+        <div id="user-page-announcements" class="user-page">
+            <div class="page-banner-header">
+                <div>
+                    <h1>Announcements & Updates</h1>
+                    <p>Center bulletins, holiday breaks, schedules, and learning announcements.</p>
+                </div>
+                <button class="page-banner-btn" onclick="showUserPage('dashboard')">View Programs</button>
+            </div>
+
+            <div class="dashboard-panel" style="margin-bottom: 2rem;">
+                <div class="dashboard-panel-header">
+                    <div>
+                        <h3>Center Notices</h3>
+                        <p>Latest bulletins for parents and guardians.</p>
+                    </div>
+                    <span class="panel-tag">News</span>
+                </div>
+                <div id="announcementsList">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p><strong>Einstein Child Care & Learning Center</strong></p>
+        <p>2nd Floor, ARDC Building • CPG North Avenue • Tagbilaran • Bohol</p>
+        <p>0919-004-4939 • facebook.com/einsteincenter.ph</p>
+        <p style="margin-top: 1rem; font-size: 0.75rem;">•2018 by Einstein - Center for Modern Education - ECME.</p>
+    </footer>
+
+    <!-- Profile Modal (Drawer → My Profile) -->
+    <div id="user-profile-modal" style="
+        display:none; position:fixed; inset:0; z-index:9999;
+        background:rgba(20,10,4,0.55); backdrop-filter:blur(4px);
+        align-items:center; justify-content:center;
+    ">
+        <div style="
+            background:#fff; border-radius:16px; padding:2rem;
+            max-width:440px; width:90%; box-shadow:0 24px 60px rgba(61,36,20,0.25);
+            animation: fadeInUp .3s ease;
+        ">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                <h2 style="font-family:'Playfair Display',serif;color:var(--dark);font-size:1.4rem">My Profile</h2>
+                <button onclick="document.getElementById('user-profile-modal').style.display='none';"
+                    style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);">✕</button>
+            </div>
+            <div
+                style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--light-brown);">
+                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#B5933F);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:var(--dark);flex-shrink:0;"
+                    id="profile-modal-avatar">U</div>
+                <div>
+                    <h3 style="color:var(--dark);font-size:1rem;font-weight:700;" id="profile-modal-name">—</h3>
+                    <p style="font-size:0.8rem;color:var(--muted);" id="profile-modal-email">—</p>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;">
+                <div style="background:var(--cream);border-radius:8px;padding:0.9rem;">
+                    <span
+                        style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;">Active
+                        Programs</span>
+                    <strong style="display:block;font-size:1.4rem;color:var(--maroon);margin-top:0.2rem;"
+                        id="profile-modal-active">—</strong>
+                </div>
+                <div style="background:var(--cream);border-radius:8px;padding:0.9rem;">
+                    <span
+                        style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;">Total
+                        Enrollments</span>
+                    <strong style="display:block;font-size:1.4rem;color:var(--maroon);margin-top:0.2rem;"
+                        id="profile-modal-total">—</strong>
+                </div>
+            </div>
+            <button onclick="document.getElementById('user-profile-modal').style.display='none';" style="
+                margin-top:1.5rem;width:100%;padding:0.75rem;
+                background:linear-gradient(135deg,var(--gold),#B5933F);
+                border:none;border-radius:9px;color:var(--dark);
+                font-family:inherit;font-size:0.9rem;font-weight:700;
+                cursor:pointer;transition:filter .2s;
+            " onmouseover="this.style.filter='brightness(1.07)'" onmouseout="this.style.filter=''">Close</button>
+        </div>
+    </div>
+
+    <!-- Balance Payment Instructions Modal -->
+    <div id="modal-balance-payment-info" style="
+        display:none; position:fixed; inset:0; z-index:9999;
+        background:rgba(20,10,4,0.6); backdrop-filter:blur(5px);
+        align-items:center; justify-content:center;
+    ">
+        <div style="
+            background:#fff; border-radius:16px; padding:2rem;
+            max-width:520px; width:92%; max-height:90vh; overflow-y:auto;
+            box-shadow:0 24px 60px rgba(61,36,20,0.3);
+            animation: fadeInUp .3s ease;
+        ">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;border-bottom:1px solid #f0e6d2;padding-bottom:0.75rem;">
+                <div>
+                    <h2 style="font-family:'Playfair Display',serif;color:var(--dark);font-size:1.3rem;margin:0">How to Settle Balance</h2>
+                    <p style="font-size:0.8rem;color:var(--muted);margin:3px 0 0">Einstein Child Care & Learning Center Payment Channels</p>
+                </div>
+                <button onclick="closeBalancePaymentInfoModal()"
+                    style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1;">✕</button>
+            </div>
+
+            <div id="modal-balance-ref-box" style="display:none;background:#fef6eb;border:1px dashed #dab55c;border-radius:10px;padding:0.9rem 1rem;margin-bottom:1.25rem;">
+                <div style="font-size:0.75rem;font-weight:700;color:#8B6914;text-transform:uppercase;">Enrolled Student & Reference</div>
+                <div style="font-size:1rem;font-weight:800;color:#5e3a21;margin-top:2px" id="modal-balance-ref-name">—</div>
+                <div style="font-size:0.85rem;color:#8B6914;margin-top:2px">Ref: <strong id="modal-balance-ref-num">—</strong> &bull; Balance Due: <strong style="color:#c62828" id="modal-balance-ref-due">₱0</strong></div>
+            </div>
+
+            <!-- PAYMENT OPTIONS -->
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+                <!-- OPTION 1: GCASH -->
+                <div style="border:1px solid #e5d9ce;border-radius:12px;padding:1.1rem;background:#faf7f2;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.6rem;">
+                        <span style="font-size:1.2rem">📱</span>
+                        <strong style="color:var(--dark);font-size:0.95rem">Option 1: GCash Transfer</strong>
+                        <span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:700;margin-left:auto;">Instant</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;">
+                        <div style="font-size:0.82rem;color:#555;line-height:1.5;">
+                            <div>Account Name: <strong style="color:var(--dark)">Einstein Child Care</strong></div>
+                            <div>GCash Mobile: <strong style="color:#005ce6;font-size:0.95rem">0919-004-4939</strong></div>
+                            <div style="margin-top:4px;color:#888;font-size:0.78rem">Note: Put student name & reference number in the GCash message.</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=09190044939" alt="GCash QR" style="width:80px;height:80px;border-radius:8px;border:1px solid #d4c3a3;display:block;">
+                            <span style="font-size:0.65rem;color:#888">Scan QR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OPTION 2: CASHIER WALK-IN -->
+                <div style="border:1px solid #e5d9ce;border-radius:12px;padding:1.1rem;background:#faf7f2;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.6rem;">
+                        <span style="font-size:1.2rem">🏢</span>
+                        <strong style="color:var(--dark);font-size:0.95rem">Option 2: Center Cashier (Walk-in Cash)</strong>
+                    </div>
+                    <div style="font-size:0.82rem;color:#555;line-height:1.5;">
+                        <div>Address: <strong style="color:var(--dark)">2nd Floor of ARDC Building, CPG North Avenue, Tagbilaran City, Bohol</strong></div>
+                        <div>Cashier Hours: <strong>Monday to Saturday, 8:00 AM – 5:30 PM</strong></div>
+                        <div style="margin-top:4px;color:#888;font-size:0.78rem">Present your Reference Number at the front desk to receive an official receipt.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:1.5rem;text-align:right;">
+                <button type="button" onclick="closeBalancePaymentInfoModal()"
+                    style="padding:0.65rem 1.4rem;background:var(--maroon);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer;">
+                    Got It, Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="validation.js"></script>
+    <!-- NSFWJS: client-side nudity / inappropriate content detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
+    <script src="enrollment-flow.js?v=6"></script>
+    <script>
+        'use strict';
+
+        // Programs data
+        const PROGRAMS = [
+            {
+                name: 'Academic Tutorial',
+                subtitle: 'For school-age children',
+                category: 'Tutoring',
+                features: ['One-on-one expert tutors', 'All subjects & modules covered', 'Flexible scheduling options', 'Online booking available'],
+                page: 'academic_tutorial.html'
+            },
+            {
+                name: 'Weekend Workshop',
+                subtitle: 'Saturdays • Aug to Jan',
+                category: 'Enrichment',
+                features: ['Music, arts, and sports', 'Group & 1-on-1 options', 'Grand Recital at Island City Mall', 'Pool fee not yet included for swimming'],
+                page: 'workshop.html'
+            },
+            {
+                name: 'PlaySchool',
+                subtitle: 'Ages 2.6 to 4.5 years old',
+                category: 'Early Education',
+                features: ['Caterpillar & Butterfly classes', 'Arts, literacy, numeracy', 'Morning & afternoon sessions', 'Mon • Fri schedule'],
+                page: 'playschool.html'
+            },
+            {
+                name: 'Child Care Program',
+                subtitle: 'Ages 1.6 to 4.5 years old',
+                category: 'Daycare',
+                features: ['Up to 12 hrs nanny care (7am-7pm)', 'Breakfast & lunch included', 'Life skills & play-based learning', 'Everyday except Sundays'],
+                page: 'childcare_program.html'
+            },
+            {
+                name: 'M.A.D. Studio',
+                subtitle: 'Fitness & After-school Programs',
+                category: 'Our Services',
+                features: ['Fitness Training • Hiphop Aerobics, Kickboxing', 'After School Program • Ballet, Taekwondo, Gymnastics, Pop Dancing', 'Studio Rental'],
+                page: 'mad.html'
+            },
+            {
+                name: 'Summer Blast',
+                subtitle: 'Year 14 • April to May',
+                category: 'Summer Program',
+                features: ['Academics, Music, Arts & Sports', 'Choose 1 or 2 courses plus free academics', 'Grand Recital at Island City Mall', 'Reserve your slot for only ₱1,000'],
+                page: 'summerblast.html'
+            }
+        ];
+
+        // ── DRAWER & PAGE NAVIGATION ────────────────────────────────
+        function openUserDrawer() {
+            document.getElementById('user-drawer').classList.add('open');
+            document.getElementById('user-drawer-overlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeUserDrawer() {
+            document.getElementById('user-drawer').classList.remove('open');
+            document.getElementById('user-drawer-overlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeUserDrawer();
+        });
+
+        function showUserPage(pageId, btn) {
+            if (pageId === 'profile') {
+                openProfileModal();
+                closeUserDrawer();
+                return;
+            }
+
+            const validPages = ['dashboard', 'enrollments', 'vip', 'balance', 'announcements'];
+            if (!validPages.includes(pageId)) pageId = 'dashboard';
+
+            // Hide all pages
+            document.querySelectorAll('.user-page').forEach(p => {
+                p.classList.remove('active');
+                p.style.display = 'none';
+            });
+
+            // Show target page
+            const targetPage = document.getElementById('user-page-' + pageId);
+            if (targetPage) {
+                targetPage.style.display = 'block';
+                void targetPage.offsetWidth; // trigger reflow for smooth animation
+                targetPage.classList.add('active');
+            }
+
+            // Update drawer active highlight
+            document.querySelectorAll('.drawer-nav-item').forEach(b => b.classList.remove('active'));
+            const activeBtn = btn || document.getElementById('drawer-nav-' + pageId);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            if (pageId === 'announcements') {
+                renderAnnouncements(allEnrollments);
+            } else if (pageId === 'vip') {
+                renderVipMembership(allEnrollments);
+            } else if (pageId === 'balance') {
+                renderMyBalance(allEnrollments);
+            }
+
+            // Close drawer
+            closeUserDrawer();
+
+            // Smooth scroll to top of content
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            try {
+                history.replaceState(null, '', '#' + pageId);
+            } catch (e) { }
+        }
+
+        function drawerNavigate(section, btn) {
+            showUserPage(section, btn);
+        }
+
+        function openProfileModal() {
+            const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail') || '';
+            const name = email.split('@')[0] || 'User';
+            const initials = name.charAt(0).toUpperCase();
+
+            const avatarEl = document.getElementById('profile-modal-avatar');
+            const nameEl = document.getElementById('profile-modal-name');
+            const emailEl = document.getElementById('profile-modal-email');
+            const activeEl = document.getElementById('profile-modal-active');
+            const totalEl = document.getElementById('profile-modal-total');
+
+            if (avatarEl) avatarEl.textContent = initials;
+            if (nameEl) nameEl.textContent = name;
+            if (emailEl) emailEl.textContent = email;
+            if (activeEl) activeEl.textContent = document.getElementById('statActive')?.textContent || '0';
+            if (totalEl) totalEl.textContent = document.getElementById('statTotal')?.textContent || '0';
+
+            const modal = document.getElementById('user-profile-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function initDrawerUserInfo() {
+            const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail') || '';
+            let rawName = email.split('@')[0] || 'Member';
+            let formattedName = rawName.replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const initials = formattedName.charAt(0).toUpperCase() || 'M';
+
+            const nameEl = document.getElementById('drawer-user-name');
+            const avatarEl = document.getElementById('drawer-avatar-initials');
+            const roleEl = document.getElementById('drawer-user-role');
+
+            if (nameEl) nameEl.textContent = formattedName;
+            if (avatarEl) avatarEl.textContent = initials;
+            if (roleEl) roleEl.textContent = 'MEMBER';
+        }
+
+        function renderDrawerMiniEnrollments(list) {
+            const container = document.getElementById('drawer-enrollments-mini');
+            if (!container) return;
+            if (!list || list.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+            const topItems = list.slice(0, 3);
+            container.innerHTML = topItems.map(e => `
+                <div class="drawer-mini-item" onclick="showUserPage('enrollments')" title="${escapeHTML(e.program)}">
+                    <span class="drawer-mini-dot ${e.status === 'confirmed' ? 'confirmed' : 'pending'}"></span>
+                    <div style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(e.program)}</strong>
+                        <span style="display:block;font-size:0.68rem;opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(e.child_name || 'Student')}</span>
+                    </div>
+                </div>
+            `).join('') + `
+                <div class="drawer-mini-link" onclick="showUserPage('enrollments')">
+                    View All (${list.length}) →
+                </div>
+            `;
+        }
+        // ── END DRAWER & PAGE NAVIGATION ─────────────────────────────
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializePage();
+            initDrawerUserInfo();
+
+            // Check URL hash or default to Programs (dashboard)
+            const hash = window.location.hash ? window.location.hash.substring(1) : '';
+            if (hash && ['dashboard', 'enrollments', 'vip', 'balance', 'announcements'].includes(hash)) {
+                showUserPage(hash);
+            } else {
+                showUserPage('dashboard');
+            }
+        });
+
+        let allEnrollments = [];
+        let enrollmentPollTimer = null;
+        let lastEnrollmentSnapshot = '';
+        const ENROLLMENT_POLL_MS = 20000;
+
+        async function initializePage() {
+            const isLoggedIn = await checkLoginStatus();
+
+            if (!isLoggedIn) {
+                window.location.href = 'login.html?return=dashboard';
+                return;
+            }
+
+            const userEmail = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail') || 'User';
+            const userEmailEl = document.getElementById('userEmail');
+            if (userEmailEl) userEmailEl.textContent = `Logged in as: ${userEmail}`;
+            document.getElementById('welcomeMsg').textContent = `Welcome back, ${userEmail.split('@')[0]}! Ready to enroll?`;
+
+            await loadEnrollments();
+            loadPrograms();
+            startEnrollmentPolling();
+        }
+
+        function enrollmentSnapshot(list) {
+            return JSON.stringify((list || []).map(e => ({
+                id: e.id,
+                status: e.status,
+                package_selected: e.package_selected,
+                updated_at: e.updated_at,
+                created_at: e.created_at
+            })));
+        }
+
+        function setSyncStatus(text) {
+            const el = document.getElementById('dashboardSyncStatus');
+            if (el) el.textContent = text;
+        }
+
+        function startEnrollmentPolling() {
+            stopEnrollmentPolling();
+            enrollmentPollTimer = setInterval(() => loadEnrollments(true), ENROLLMENT_POLL_MS);
+        }
+
+        function stopEnrollmentPolling() {
+            if (enrollmentPollTimer) {
+                clearInterval(enrollmentPollTimer);
+                enrollmentPollTimer = null;
+            }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopEnrollmentPolling();
+            } else {
+                loadEnrollments(true);
+                startEnrollmentPolling();
+            }
+        });
+
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('check_session.php', { credentials: 'include' });
+                const data = await response.json();
+
+                if (data.logged_in) {
+                    if (data.email) {
+                        localStorage.setItem('userEmail', data.email);
+                        sessionStorage.setItem('userId', data.user_id);
+                    }
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error('Session check failed:', e);
+                return false;
+            }
+        }
+
+        async function loadEnrollments(silent = false) {
+            try {
+                const response = await fetch('get_enrollments.php', { cache: 'no-store', credentials: 'include' });
+                const data = await response.json();
+
+                if (!data.success) {
+                    if (!silent) setSyncStatus('Could not refresh enrollments.');
+                    return;
+                }
+
+                const list = data.enrollments || [];
+                const snapshot = enrollmentSnapshot(list);
+                const changed = snapshot !== lastEnrollmentSnapshot;
+
+                if (silent && !changed) {
+                    setSyncStatus('Live • last checked ' + new Date().toLocaleTimeString());
+                    return;
+                }
+
+                lastEnrollmentSnapshot = snapshot;
+                allEnrollments = list;
+
+                const activeCount = data.stats.active || 0;
+                const pendingCount = data.stats.pending || 0;
+                const totalCount = allEnrollments.length;
+
+                const sAct = document.getElementById('statActive');
+                if (sAct) sAct.textContent = activeCount;
+                const sPend = document.getElementById('statPending');
+                if (sPend) sPend.textContent = pendingCount;
+                const sTot = document.getElementById('statTotal');
+                if (sTot) sTot.textContent = totalCount;
+
+                // Update drawer badge
+                const drawerBadge = document.getElementById('drawer-badge-enrollments');
+                if (drawerBadge) {
+                    drawerBadge.textContent = totalCount;
+                    drawerBadge.style.display = totalCount > 0 ? 'inline-block' : 'none';
+                }
+
+                // Update notification bell badge
+                const userNotifDot = document.getElementById('userNotifDot');
+                if (userNotifDot) {
+                    const notifCount = allEnrollments.filter(e => e.status === 'confirmed' || e.status === 'cancelled').length;
+                    userNotifDot.textContent = notifCount;
+                    userNotifDot.style.display = notifCount > 0 ? 'flex' : 'none';
+                }
+
+                // Update enrollments count pill
+                const countPill = document.getElementById('enrollmentsCountPill');
+                if (countPill) {
+                    countPill.textContent = `${totalCount} Total`;
+                }
+
+                // Update dashboard preview banner text
+                const previewText = document.getElementById('dashboardEnrollmentsPreviewText');
+                if (previewText) {
+                    previewText.textContent = totalCount > 0
+                        ? `You have ${activeCount} active program(s) and ${pendingCount} pending review. Click to view full details.`
+                        : 'No active enrollments yet. Choose a program below to enroll today!';
+                }
+
+                const activeFilter = document.querySelector('.filter-btn.active');
+                const filterLabel = activeFilter ? activeFilter.textContent.toLowerCase() : 'all';
+                if (filterLabel.includes('active')) {
+                    filterEnrollments('confirmed');
+                } else if (filterLabel.includes('pending')) {
+                    filterEnrollments('pending');
+                } else {
+                    renderEnrollments(allEnrollments);
+                }
+
+                renderVipMembership(allEnrollments);
+                renderMyBalance(allEnrollments);
+                renderAnnouncements();
+                renderReEnrollments(allEnrollments);
+                renderDrawerMiniEnrollments(allEnrollments);
+
+                setSyncStatus('Live • updated ' + new Date().toLocaleTimeString());
+            } catch (e) {
+                console.error('Failed to load enrollments:', e);
+                if (!silent) setSyncStatus('Could not refresh enrollments.');
+            }
+        }
+
+        // Expose loadEnrollments globally for enrollment-flow.js to trigger refresh on success
+        window.loadEnrollments = loadEnrollments;
+
+        function renderEnrollments(list) {
+            const listContainer = document.getElementById('enrollmentList');
+            if (list.length === 0) {
+                listContainer.innerHTML = `<div style="text-align: center; padding: 2.5rem; background: #fff; border-radius: 10px; color: var(--muted); border: 1px dashed rgba(94, 58, 33, 0.2)">No enrollments found for this status.</div>`;
+                return;
+            }
+
+            listContainer.innerHTML = list.map(e => {
+                const dateStr = new Date(e.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                let statusClass = 'status-pending';
+                let statusText = 'Pending Review';
+                if (e.status === 'confirmed') {
+                    statusClass = 'status-confirmed';
+                    statusText = 'Active / Confirmed';
+                } else if (e.status === 'cancelled') {
+                    statusClass = 'status-cancelled';
+                    statusText = 'Cancelled';
+                }
+
+                const pkg = e.package_selected ? `<span>Package: <strong>${escapeHTML(e.package_selected)}</strong></span>` : '';
+                const schedule = e.timeslot ? `<span>Schedule: <strong>${escapeHTML(e.timeslot)}</strong></span>` : '';
+                const start = e.start_date ? `<span>Preferred Start: <strong>${e.start_date}</strong></span>` : '';
+
+                return `
+                    <div class="enrollment-card">
+                        <div class="enrollment-details">
+                            <div class="enrollment-program">${escapeHTML(e.program)}</div>
+                            <div class="enrollment-meta">
+                                <span>Child: <strong>${escapeHTML(e.child_name)}</strong> (Age: ${escapeHTML(e.child_age)})</span>
+                                ${pkg}
+                                ${schedule}
+                                ${start}
+                                <span>Date Enrolled: <strong>${dateStr}</strong></span>
+                            </div>
+                        </div>
+                        <div class="enrollment-status">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            <span class="enrollment-ref">Ref: ${escapeHTML(e.reference_no)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getAnnouncements() {
+            try {
+                return JSON.parse(localStorage.getItem('einstein_announcements_v1') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function renderAnnouncements(enrollments) {
+            const listData = Array.isArray(enrollments) ? enrollments : (allEnrollments || []);
+            const isConfirmed = listData.some(e => e.status === 'confirmed');
+            const isVIP = listData.some(e =>
+                e.status === 'confirmed' &&
+                String(e.program || '').toLowerCase().includes('vip')
+            );
+
+            const container = document.getElementById('announcementsList');
+            if (!container) return;
+
+            const list = getAnnouncements().filter(item => {
+                const audience = String(item.audience || item.target || 'all').toLowerCase().trim();
+                if (audience === 'all' || audience === 'parent' || audience === 'parents' || audience === 'user' || audience === 'users') {
+                    return true;
+                }
+                if (audience === 'confirmed' || audience === 'student' || audience === 'students') {
+                    return isConfirmed;
+                }
+                if (audience === 'vip' || audience === 'member' || audience === 'members') {
+                    return isVIP;
+                }
+                return true;
+            });
+
+            if (!list.length) {
+                container.innerHTML = `<div class="panel-empty" style="text-align: center; padding: 2.5rem; background: #fff; border-radius: 10px; color: var(--muted); border: 1px dashed rgba(94, 58, 33, 0.2)">No announcements available for your current account status right now.</div>`;
+                return;
+            }
+
+            const sorted = list.slice().sort((a, b) => new Date(b.created_at || b.date || 0) - new Date(a.created_at || a.date || 0));
+
+            const catColors = {
+                'Urgent': { bg: '#fee2e2', color: '#b91c1c', border: '#fca5a5' },
+                'Holiday': { bg: '#dbeafe', color: '#1d4ed8', border: '#bfdbfe' },
+                'Payment Reminder': { bg: '#ffedd5', color: '#c2410c', border: '#fed7aa' },
+                'Event': { bg: '#dcfce7', color: '#15803d', border: '#bbf7d0' },
+                'Schedule Change': { bg: '#f3e8ff', color: '#7e22ce', border: '#e9d5ff' },
+                'General': { bg: '#f5efe6', color: '#5e3a21', border: '#dfd5c6' }
+            };
+
+            container.innerHTML = sorted.map(item => {
+                const title = escapeHTML(item.title || 'Announcement');
+                const body = escapeHTML(item.content || item.message || item.body || '');
+                const date = new Date(item.created_at || item.date || Date.now()).toLocaleDateString('en-US', {
+                    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+
+                const aud = String(item.audience || 'all').toLowerCase();
+                let audienceBadge = '';
+                if (aud === 'vip') {
+                    audienceBadge = `<span class="panel-tag" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-weight:700;">VIP Members Only</span>`;
+                } else if (aud === 'confirmed') {
+                    audienceBadge = `<span class="panel-tag" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;font-weight:700;">Confirmed Students Only</span>`;
+                } else {
+                    audienceBadge = `<span class="panel-tag" style="background:#fdf8f3;color:#5e3a21;border:1px solid #e0d4c8;">All Parents</span>`;
+                }
+
+                const catName = item.category || 'General';
+                const catStyle = catColors[catName] || catColors['General'];
+                const catTag = `<span class="panel-tag" style="background:${catStyle.bg};color:${catStyle.color};border:1px solid ${catStyle.border};font-weight:600;">${escapeHTML(catName)}</span>`;
+
+                return `
+                    <div class="announcement-card" style="margin-bottom:1.25rem;background:#fff;border-radius:12px;padding:1.5rem;box-shadow:var(--shadow-sm);border:1px solid rgba(94,58,33,0.08);">
+                        <div class="announcement-meta" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0.75rem;">
+                            ${audienceBadge}
+                            ${catTag}
+                            <span style="margin-left:auto;font-size:0.8rem;color:var(--muted);">${date}</span>
+                        </div>
+                        <h4 style="margin:0 0 0.5rem 0;color:var(--dark);font-size:1.15rem;font-family:'Playfair Display',serif;">${title}</h4>
+                        <p class="announcement-body" style="margin:0;color:#555;font-size:0.95rem;line-height:1.6;white-space:pre-line;">${body}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderReEnrollments(enrollments) {
+            const container = document.getElementById('reEnrollmentList');
+            const confirmed = enrollments.filter(e => e.status === 'confirmed');
+
+            if (!confirmed.length) {
+                container.innerHTML = `
+                    <div class="panel-empty">Your active enrollments will appear here for quick re-enrollment.</div>
+                    <div class="panel-actions">
+                        <button class="panel-btn panel-btn-primary" onclick="loadPrograms()">Browse Programs</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = confirmed.slice(0, 4).map(e => `
+                <div class="re-enroll-card">
+                    <div class="re-enroll-meta">
+                        <span class="panel-tag">Active</span>
+                        <span>${escapeHTML(e.reference_no || '')}</span>
+                    </div>
+                    <h4>${escapeHTML(e.program)}</h4>
+                    <p>Re-enroll the same child or continue with this program with one tap.</p>
+                    <div class="panel-actions">
+                        <button class="panel-btn panel-btn-primary" onclick='handleReEnroll(${JSON.stringify(e.program)})'>Re-enroll</button>
+                        <button class="panel-btn panel-btn-secondary" onclick='handleEnroll(${JSON.stringify(e.program)})'>New Enrollment</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderVipMembership(enrollments) {
+            const container = document.getElementById('vipMembershipList');
+            const vipEntry = enrollments
+                .filter(e => e.status === 'confirmed' && String(e.program || '').toLowerCase().includes('vip'))
+                .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))[0];
+
+            if (!vipEntry) {
+                window.isUserVip = false;
+                sessionStorage.setItem('isVip', 'false');
+                localStorage.setItem('isVip', 'false');
+                container.innerHTML = `
+                    <div class="renewal-card">
+                        <div class="renewal-meta">
+                            <span class="panel-tag">Not enrolled</span>
+                            <span>Join VIP to unlock discounts</span>
+                        </div>
+                        <h4>VIP Membership</h4>
+                        <p>Get center-wide discounts and faster re-enrollment. VIP membership is valid for two years.</p>
+                        <div class="panel-actions">
+                            <button class="panel-btn panel-btn-primary" onclick="handleEnroll('VIP Club Membership')">Join VIP</button>
+                            <button class="panel-btn panel-btn-secondary" onclick="handleRenewVip()">Renew VIP</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const createdAt = new Date(vipEntry.created_at || vipEntry.updated_at || Date.now());
+            const expiryDate = new Date(createdAt);
+            expiryDate.setFullYear(expiryDate.getFullYear() + 2);
+            const now = new Date();
+            const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+            const isStillActive = daysLeft > 0;
+            window.isUserVip = isStillActive;
+            sessionStorage.setItem('isVip', isStillActive ? 'true' : 'false');
+            localStorage.setItem('isVip', isStillActive ? 'true' : 'false');
+            const renewalLabel = daysLeft > 0 ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} left` : 'Renew now';
+
+            container.innerHTML = `
+                <div class="renewal-card">
+                    <div class="renewal-meta">
+                        <span class="panel-tag">Active VIP</span>
+                        <span class="renewal-expiry">${renewalLabel}</span>
+                    </div>
+                    <h4>VIP Membership</h4>
+                    <p>You are enrolled in VIP Club Membership and can renew before expiry to keep your benefits active.</p>
+                    <div class="vip-renewal-summary">
+                        <div>
+                            <span>Joined</span>
+                            <strong>${createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                        </div>
+                        <div>
+                            <span>Expires</span>
+                            <strong>${expiryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                        </div>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="panel-btn panel-btn-primary" onclick="handleRenewVip()">Renew VIP</button>
+                        <button class="panel-btn panel-btn-secondary" onclick="handleEnroll('VIP Club Membership')">Add Another VIP</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           MY BALANCE MODULE (Parent Unpaid Balances View)
+           ══════════════════════════════════════════════════════════ */
+        let currentBalanceFilter = 'all';
+
+        function parsePackageFee(e) {
+            if (!e) return 3000;
+            const prog = String(e.program || '').toLowerCase();
+            const pkg = String(e.package_selected || '').toLowerCase();
+
+            // VIP Membership is always 500
+            if (prog.includes('vip')) return 500;
+
+            // First check if package_selected has price in parentheses or formatted currency (e.g. ₱3,300 or 5,500)
+            const feeMatch = (e.package_selected || '').match(/[₱P]?\s*([0-9]{1,2},[0-9]{3})/);
+            if (feeMatch) {
+                const parsed = parseInt(feeMatch[1].replace(/,/g, ''), 10);
+                if (!isNaN(parsed) && parsed > 0) return parsed;
+            }
+
+            // Fallback price resolution by program & package keywords
+            if (prog.includes('tutor') || prog.includes('academic')) {
+                if (pkg.includes('daily double')) return 9900;
+                if (pkg.includes('daily')) return 5500;
+                if (pkg.includes('double')) return 5500;
+                return 3300;
+            }
+            if (prog.includes('child') || prog.includes('care')) {
+                if (pkg.includes('weekly')) return 3500;
+                if (pkg.includes('daily')) return 800;
+                return 12000;
+            }
+            if (prog.includes('playschool')) return 3500;
+            if (prog.includes('workshop')) {
+                if (pkg.includes('piano')) return 8500;
+                if (pkg.includes('guitar')) return 7500;
+                if (pkg.includes('art')) return 6000;
+                if (pkg.includes('dance')) return 5000;
+                return 6000;
+            }
+            if (prog.includes('mad') || prog.includes('m.a.d')) return 2500;
+            if (prog.includes('summer')) return 3500;
+
+            return 3300;
+        }
+
+        function calculateEnrollmentBalance(e) {
+            const isVip = String(e.program || '').toLowerCase().includes('vip');
+            const totalFee = parsePackageFee(e);
+
+            // Check if admin notes has recorded balance or settlement
+            let adminRecorded = null;
+            if (e.admin_notes) {
+                try {
+                    adminRecorded = JSON.parse(e.admin_notes);
+                } catch(err) {
+                    if (String(e.admin_notes).includes('PAID_SETTLED') || String(e.admin_notes).includes('balance_settled')) {
+                        adminRecorded = { balance_settled: true };
+                    }
+                }
+            }
+
+            // Check localStorage for offline / reactive admin updates
+            if (!adminRecorded) {
+                try {
+                    const localRecords = JSON.parse(localStorage.getItem('einsteinBalanceRecords') || '{}');
+                    if (localRecords[e.id]) adminRecorded = localRecords[e.id];
+                } catch(err){}
+            }
+
+            let isSettled = false;
+            let paidAmount = 0;
+            let balanceDue = 0;
+            let status = 'partial'; // 'settled', 'partial', 'pending', 'cancelled'
+
+            if (e.status === 'cancelled') {
+                status = 'cancelled';
+                isSettled = true;
+                paidAmount = 0;
+                balanceDue = 0;
+            } else if (adminRecorded && adminRecorded.balance_settled) {
+                isSettled = true;
+                status = 'settled';
+                paidAmount = adminRecorded.paid_amount || totalFee;
+                balanceDue = Math.max(0, totalFee - paidAmount);
+            } else if (isVip) {
+                if (e.status === 'confirmed' || e.payment_status === 'confirmed') {
+                    isSettled = true;
+                    status = 'settled';
+                    paidAmount = 500;
+                    balanceDue = 0;
+                } else {
+                    isSettled = false;
+                    status = 'pending';
+                    paidAmount = 0;
+                    balanceDue = 500;
+                }
+            } else {
+                // Standard program:
+                // When confirmed, reservation deposit is ₱1,000 (or totalFee if totalFee <= 1000)
+                if (e.status === 'confirmed' || e.payment_status === 'confirmed') {
+                    const deposit = Math.min(1000, totalFee);
+                    paidAmount = (adminRecorded && adminRecorded.paid_amount) ? adminRecorded.paid_amount : deposit;
+                    balanceDue = Math.max(0, totalFee - paidAmount);
+                    isSettled = balanceDue === 0;
+                    status = isSettled ? 'settled' : 'partial';
+                } else {
+                    // Pending approval
+                    status = 'pending';
+                    paidAmount = 0; // Deposit pending
+                    balanceDue = totalFee;
+                    isSettled = false;
+                }
+            }
+
+            return {
+                totalFee,
+                paidAmount,
+                balanceDue,
+                isSettled,
+                status,
+                adminRecorded
+            };
+        }
+
+        function filterMyBalance(type) {
+            currentBalanceFilter = type;
+            document.querySelectorAll('#user-page-balance .filters .filter-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById('bal-filter-' + type);
+            if (activeBtn) activeBtn.classList.add('active');
+            renderMyBalance(allEnrollments);
+        }
+
+        function renderMyBalance(enrollments) {
+            const list = Array.isArray(enrollments) ? enrollments : (allEnrollments || []);
+            const container = document.getElementById('myBalanceList');
+            if (!container) return;
+
+            let totalOutstanding = 0;
+            let totalPaid = 0;
+            let withBalanceCount = 0;
+
+            const itemsWithBalance = list.map(e => {
+                const bal = calculateEnrollmentBalance(e);
+                if (e.status !== 'cancelled') {
+                    totalOutstanding += bal.balanceDue;
+                    totalPaid += bal.paidAmount;
+                    if (bal.balanceDue > 0) withBalanceCount++;
+                }
+                return { enrollment: e, ...bal };
+            });
+
+            // Update Header Stats
+            const dueEl = document.getElementById('user-balance-total-due');
+            if (dueEl) dueEl.textContent = '₱' + totalOutstanding.toLocaleString();
+
+            const paidEl = document.getElementById('user-balance-total-paid');
+            if (paidEl) paidEl.textContent = '₱' + totalPaid.toLocaleString();
+
+            const statBadge = document.getElementById('user-balance-status-badge');
+            if (statBadge) {
+                if (withBalanceCount === 0) {
+                    statBadge.textContent = 'All Settled ✓';
+                    statBadge.style.color = '#2e7d32';
+                } else {
+                    statBadge.textContent = `${withBalanceCount} Due`;
+                    statBadge.style.color = '#c62828';
+                }
+            }
+
+            const pCountEl = document.getElementById('user-balance-program-count');
+            if (pCountEl) {
+                pCountEl.textContent = withBalanceCount > 0 ? `${withBalanceCount} program(s) have pending balance` : 'All enrolled programs are fully paid';
+            }
+
+            // Update Drawer Badge
+            const drawerBadge = document.getElementById('drawer-badge-balance');
+            if (drawerBadge) {
+                drawerBadge.textContent = withBalanceCount;
+                drawerBadge.style.display = withBalanceCount > 0 ? 'inline-block' : 'none';
+            }
+
+            // Filter items for list display
+            let filtered = itemsWithBalance;
+            if (currentBalanceFilter === 'unpaid') {
+                filtered = itemsWithBalance.filter(item => item.balanceDue > 0 && item.status !== 'cancelled');
+            } else if (currentBalanceFilter === 'settled') {
+                filtered = itemsWithBalance.filter(item => item.isSettled || item.balanceDue === 0);
+            }
+
+            const countPill = document.getElementById('balanceCountPill');
+            if (countPill) countPill.textContent = `${filtered.length} Displayed`;
+
+            if (filtered.length === 0) {
+                if (list.length === 0) {
+                    container.innerHTML = `<div style="text-align:center;padding:3rem 1.5rem;background:#fff;border-radius:12px;color:var(--muted);border:1px dashed rgba(94,58,33,0.2);">
+                        <div style="font-size:2.5rem;margin-bottom:0.75rem;">📋</div>
+                        <strong style="color:var(--maroon);font-size:1.1rem;">No enrollments found.</strong>
+                        <p style="font-size:0.85rem;margin-top:0.35rem;">Choose a program from the dashboard to enroll and start learning!</p>
+                        <button class="page-banner-btn" style="margin-top:1rem;" onclick="showUserPage('dashboard')">Browse Programs</button>
+                    </div>`;
+                } else if (currentBalanceFilter === 'unpaid') {
+                    container.innerHTML = `<div style="text-align:center;padding:3rem 1.5rem;background:#fff;border-radius:12px;color:#2e7d32;border:1px dashed #bbf7d0;">
+                        <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎉</div>
+                        <strong style="font-size:1.15rem;">No remaining balances!</strong>
+                        <p style="font-size:0.85rem;color:var(--muted);margin-top:0.35rem;">All your enrolled programs are fully settled or have no outstanding payments.</p>
+                    </div>`;
+                } else {
+                    container.innerHTML = `<div style="text-align:center;padding:2.5rem;background:#fff;border-radius:12px;color:var(--muted);border:1px dashed rgba(94,58,33,0.2)">No programs found matching this filter.</div>`;
+                }
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => {
+                const e = item.enrollment;
+                const dateStr = new Date(e.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric'
+                });
+
+                let statusBadgeHtml = '';
+                let borderHighlight = '';
+
+                if (item.status === 'cancelled') {
+                    statusBadgeHtml = `<span class="status-badge status-cancelled">Cancelled</span>`;
+                } else if (item.isSettled || item.balanceDue === 0) {
+                    statusBadgeHtml = `<span class="status-badge" style="background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;font-weight:700;">✓ Fully Settled</span>`;
+                } else if (item.status === 'pending') {
+                    statusBadgeHtml = `<span class="status-badge" style="background:#fffbeb;color:#b45309;border:1px solid #fde68a;font-weight:700;">⏳ Pending Approval</span>`;
+                    borderHighlight = 'border-left: 4px solid #f59e0b;';
+                } else {
+                    statusBadgeHtml = `<span class="status-badge" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;font-weight:700;">Remaining Balance Due</span>`;
+                    borderHighlight = 'border-left: 4px solid #c62828;';
+                }
+
+                const childDisplay = e.child_name ? `Child: <strong>${escapeHTML(e.child_name)}</strong>` : 'Member';
+                const pkgDisplay = e.package_selected ? `<span>Package: <strong>${escapeHTML(e.package_selected)}</strong></span>` : '';
+                const scheduleDisplay = e.timeslot ? `<span>Schedule: <strong>${escapeHTML(e.timeslot)}</strong></span>` : '';
+
+                // Pay note
+                let noteText = '';
+                if (item.isSettled) {
+                    noteText = `<span style="color:#2e7d32;font-weight:600;">✓ Payment fully settled and verified.</span>`;
+                } else if (item.status === 'pending') {
+                    noteText = `<span style="color:#b45309;">Initial payment submitted with reference. Pending administrator confirmation.</span>`;
+                } else {
+                    noteText = `<span style="color:#8b6f47;">Slot reserved with ₱${item.paidAmount.toLocaleString()} payment. Balance of <strong>₱${item.balanceDue.toLocaleString()}</strong> is due upon class start or via GCash/cashier.</span>`;
+                }
+
+                const refSafe = (e.reference_no || '').replace(/'/g, "\\'");
+                const progSafe = (e.program || '').replace(/'/g, "\\'");
+                const childSafe = (e.child_name || '').replace(/'/g, "\\'");
+
+                return `
+                    <div class="enrollment-card" style="${borderHighlight}display:block;padding:1.4rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
+                            <div>
+                                <div class="enrollment-program" style="font-size:1.15rem;margin-bottom:0.35rem;">${escapeHTML(e.program)}</div>
+                                <div class="enrollment-meta" style="margin-bottom:0.5rem;">
+                                    <span>${childDisplay}</span>
+                                    ${pkgDisplay}
+                                    ${scheduleDisplay}
+                                    <span>Enrolled: <strong>${dateStr}</strong></span>
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                ${statusBadgeHtml}
+                                <div class="enrollment-ref" style="margin-top:0.4rem;">Ref: ${escapeHTML(e.reference_no || '—')}</div>
+                            </div>
+                        </div>
+
+                        <!-- FINANCIAL BREAKDOWN BOX -->
+                        <div style="background:#fdfaf6;border:1px solid #ebdccb;border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;align-items:center;">
+                            <div>
+                                <span style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;font-weight:700;">Total Package Fee</span>
+                                <div style="font-size:1.15rem;font-weight:800;color:var(--maroon);margin-top:2px;">₱${item.totalFee.toLocaleString()}</div>
+                            </div>
+                            <div>
+                                <span style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;font-weight:700;">Amount Paid</span>
+                                <div style="font-size:1.15rem;font-weight:800;color:#2e7d32;margin-top:2px;">₱${item.paidAmount.toLocaleString()}</div>
+                            </div>
+                            <div>
+                                <span style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;font-weight:700;">Remaining Balance</span>
+                                <div style="font-size:1.35rem;font-weight:900;color:${item.balanceDue > 0 ? '#c62828' : '#2e7d32'};margin-top:2px;">₱${item.balanceDue.toLocaleString()}</div>
+                            </div>
+                        </div>
+
+                        <!-- FOOTER ROW: Note & Action Button -->
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;padding-top:0.5rem;border-top:1px solid rgba(94,58,33,0.08);font-size:0.83rem;">
+                            <div style="flex:1;min-width:240px;">${noteText}</div>
+                            <div>
+                                ${item.balanceDue > 0 ? `
+                                    <button type="button" class="page-banner-btn" style="padding:0.45rem 1rem;font-size:0.8rem;"
+                                        onclick="openBalancePaymentInfoModal('${refSafe}', '${progSafe} - ${childSafe}', ${item.balanceDue})">
+                                        💳 How to Pay Balance →
+                                    </button>
+                                ` : `
+                                    <button type="button" class="panel-btn panel-btn-secondary" style="padding:0.45rem 0.9rem;font-size:0.8rem;"
+                                        onclick="openBalancePaymentInfoModal('${refSafe}', '${progSafe}', 0)">
+                                        Payment Info
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openBalancePaymentInfoModal(refNo, name, due) {
+            const modal = document.getElementById('modal-balance-payment-info');
+            const refBox = document.getElementById('modal-balance-ref-box');
+            if (refNo) {
+                const nameEl = document.getElementById('modal-balance-ref-name');
+                const numEl = document.getElementById('modal-balance-ref-num');
+                const dueEl = document.getElementById('modal-balance-ref-due');
+                if (nameEl) nameEl.textContent = name || 'Student Program';
+                if (numEl) numEl.textContent = refNo;
+                if (dueEl) dueEl.textContent = '₱' + (due || 0).toLocaleString();
+                if (refBox) refBox.style.display = 'block';
+            } else {
+                if (refBox) refBox.style.display = 'none';
+            }
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeBalancePaymentInfoModal() {
+            const modal = document.getElementById('modal-balance-payment-info');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        function filterEnrollments(status) {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            const btnTextMap = { 'all': 'all', 'confirmed': 'active', 'pending': 'pending' };
+            const currentButton = Array.from(buttons).find(btn => btn.textContent.toLowerCase().includes(btnTextMap[status]));
+            if (currentButton) currentButton.classList.add('active');
+
+            if (status === 'all') {
+                renderEnrollments(allEnrollments);
+            } else {
+                const filtered = allEnrollments.filter(e => e.status === status);
+                renderEnrollments(filtered);
+            }
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g,
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
+        function loadPrograms() {
+            const grid = document.getElementById('programsGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (PROGRAMS.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            grid.innerHTML = PROGRAMS.map((prog, i) => `
+                <div class="program-card" onclick='handleEnroll(${JSON.stringify(prog.name)})' title="Click to Enroll in ${escapeHTML(prog.name)}">
+                    <div class="program-card-header">
+                        <h3>${prog.name}</h3>
+                        <p>${prog.subtitle}</p>
+                    </div>
+                    <div class="program-card-body">
+                        ${prog.category ? `<span class="tag">${prog.category}</span>` : ''}
+                        <ul>
+                            ${prog.features.map(f => `<li>${f}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleEnroll(programName) {
+            // Already logged in on user.html — skip auth screen, go directly to enrollment form
+            window.openEnrollmentFlowLoggedIn(programName);
+        }
+
+        function handleReEnroll(programName) {
+            window.openEnrollmentFlowLoggedIn(programName);
+        }
+
+        function handleRenewVip() {
+            window.openEnrollmentFlowLoggedIn('VIP Club Membership');
+        }
+
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function logoutUser() {
+            if (confirm('Are you sure you want to logout?')) {
+                stopEnrollmentPolling();
+                localStorage.removeItem('userEmail');
+                sessionStorage.removeItem('userId');
+
+                fetch('logout.php', { method: 'POST', credentials: 'include' })
+                    .then(() => {
+                        window.location.href = 'main.html';
+                    })
+                    .catch(() => {
+                        window.location.href = 'main.html';
+                    });
+            }
+        }
+
+        /* ── USER NOTIFICATIONS ─────────────────────────────── */
+        let userNotifOpen = false;
+
+        function toggleUserNotif() {
+            const panel = document.getElementById('user-notif-panel');
+            const overlay = document.getElementById('user-notif-overlay');
+            userNotifOpen = !userNotifOpen;
+            if (panel) panel.style.right = userNotifOpen ? '0' : '-360px';
+            if (overlay) overlay.style.display = userNotifOpen ? 'block' : 'none';
+            if (userNotifOpen) renderUserNotifications();
+        }
+
+        function timeAgoUser(iso) {
+            if (!iso) return '—';
+            const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+            if (diff < 60) return diff + 's ago';
+            if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + ' hr ago';
+            return Math.floor(diff / 86400) + ' days ago';
+        }
+
+        function renderUserNotifications() {
+            const container = document.getElementById('user-notif-list');
+            const dot = document.getElementById('userNotifDot');
+            if (!container) return;
+
+            const list = allEnrollments || [];
+            if (!list.length) {
+                container.innerHTML = '<div style="padding:2.5rem 1.5rem;text-align:center;color:var(--muted);font-size:0.85rem;">No notifications yet.<br>Your enrollment updates will appear here.</div>';
+                if (dot) dot.style.display = 'none';
+                return;
+            }
+
+            // Show notifications for confirmed and cancelled enrollments
+            const notifs = list
+                .filter(e => e.status === 'confirmed' || e.status === 'cancelled' || e.status === 'pending')
+                .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+                .slice(0, 15);
+
+            const newCount = list.filter(e => e.status === 'confirmed' || e.status === 'cancelled').length;
+            if (dot) {
+                dot.textContent = newCount;
+                dot.style.display = newCount > 0 ? 'flex' : 'none';
+            }
+
+            container.innerHTML = notifs.map(e => {
+                let statusLabel = 'Submitted';
+                let isUnread = false;
+                if (e.status === 'confirmed') {
+                    statusLabel = 'Confirmed'; isUnread = true;
+                } else if (e.status === 'cancelled') {
+                    statusLabel = 'Rejected'; isUnread = true;
+                }
+                const when = timeAgoUser(e.updated_at || e.created_at);
+                return `<div class="user-notif-item${isUnread ? ' unread' : ''}">
+                    <h4>${escapeHTML(e.program)}</h4>
+                    <p>${escapeHTML(e.child_name || 'Student')} &mdash; <strong>${statusLabel}</strong></p>
+                    <time>${when}</time>
+                </div>`;
+            }).join('');
+        }
+    </script>
+    <script src="security.js"></script>
+</body>
+
+</html>
