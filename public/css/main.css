@@ -1,0 +1,1665 @@
+/* Hide Microsoft Edge / IE native password reveal & clear buttons to prevent duplicate eye icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
+        :root {
+            --maroon: #7A5136;
+            --gold: #B08A63;
+            --cream: #F4E2D2;
+            --dark: #402914;
+            --text: #3D2A1D;
+            --light-gold: #D9B78E;
+            --muted: #8D6B56;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: transparent;
+            color: var(--text);
+            position: relative;
+        }
+
+
+        /* MOBILE HAMBURGER NAV */
+        .nav-hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+            background: none;
+            border: none;
+            z-index: 101
+        }
+
+        .nav-hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: rgba(255, 255, 255, .8);
+            border-radius: 2px;
+            transition: all .25s
+        }
+
+        .nav-hamburger.open span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg)
+        }
+
+        .nav-hamburger.open span:nth-child(2) {
+            opacity: 0
+        }
+
+        .nav-hamburger.open span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg)
+        }
+
+        @media(max-width:768px) {
+            .nav-hamburger {
+                display: flex
+            }
+
+            nav ul {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: rgba(61, 31, 10, .98);
+                flex-direction: column;
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(202, 161, 113, .15);
+                z-index: 99
+            }
+
+            nav ul.nav-open {
+                display: flex
+            }
+
+            nav ul li {
+                padding: 0
+            }
+
+            nav ul a {
+                display: block;
+                padding: 12px 24px;
+                font-size: .85rem
+            }
+
+            nav ul a.nav-cta {
+                margin: 8px 16px;
+                text-align: center;
+                border-radius: 6px
+            }
+        }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            background: var(--maroon);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2.5rem;
+            height: 64px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--light-gold);
+            letter-spacing: 0.04em;
+        }
+
+        .nav-logo > span {
+            color: #fff;
+            font-weight: 300;
+            font-size: 0.75rem;
+            display: inline;
+            letter-spacing: normal;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav ul a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            position: relative;
+            padding-bottom: 0.25rem;
+        }
+
+        nav ul a:hover {
+            color: var(--light-gold);
+        }
+
+        nav ul a.active {
+            color: var(--light-gold);
+        }
+
+        nav ul a.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            background: var(--light-gold);
+            border-radius: 999px;
+        }
+
+        .nav-cta {
+            background: var(--gold);
+            color: #fff !important;
+            padding: 0.45rem 1.1rem;
+            border-radius: 3px;
+        }
+
+        /* LOGIN ICON (bottom-left) */
+        .login-icons {
+            position: fixed;
+            left: 2rem;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            z-index: 99;
+        }
+
+        .login-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            transform: scale(1.15);
+            filter: brightness(1.2);
+        }
+
+        .login-btn img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+
+        .login-label {
+            position: absolute;
+            left: 65px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .login-btn-wrapper:hover .login-label {
+            opacity: 1;
+        }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #8C6239 0%, #7A5136 55%, #5E3A21 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 6rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-main-logo {
+            height: 220px;
+            width: auto;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-cursive {
+            font-family: 'Alex Brush', cursive;
+            font-size: clamp(3.5rem, 7vw, 5rem);
+            color: #fff;
+            font-weight: 400;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-tagline {
+            color: var(--light-gold);
+            font-size: 1.15rem;
+            font-family: 'DM Sans', sans-serif;
+            font-style: normal;
+            max-width: 900px;
+            line-height: 1.6;
+            position: relative;
+            letter-spacing: 0.02em;
+            font-weight: 300;
+        }
+
+        /* SECTION COMMON */
+        section {
+            padding: 5rem 2rem;
+        }
+
+        .section-label {
+            font-size: 0.85rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: var(--maroon);
+            line-height: 1.15;
+            margin-bottom: 1rem;
+        }
+
+        .section-desc {
+            color: var(--muted);
+            max-width: 520px;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* FEATURES STRIP */
+        .features-strip {
+            background: var(--maroon);
+            padding: 1.5rem 2rem;
+            margin-top: -1rem;
+            position: relative;
+            z-index: 50;
+        }
+
+        .features-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            justify-items: center;
+            gap: 1px;
+        }
+
+        .feature-item {
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .feature-item:last-child {
+            border-right: none;
+        }
+
+        .feature-icon {
+            font-size: 1.4rem;
+        }
+
+        .feature-text strong {
+            display: block;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .feature-text {
+            text-align: center;
+        }
+
+        .feature-text span {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+        }
+
+        /* PROGRAMS */
+        #programs {
+            background: transparent;
+        }
+
+        .programs-header {
+            margin-bottom: 3rem;
+        }
+
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .program-card {
+            border: 1px solid rgba(94, 58, 33, 0.12);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: box-shadow 0.25s, transform 0.25s;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        .program-card:hover {
+            box-shadow: 0 12px 40px rgba(94, 58, 33, 0.14);
+            transform: translateY(-4px);
+        }
+
+        body.static-preview-mode #programs .programs-grid a {
+            pointer-events: none !important;
+            cursor: default !important;
+        }
+        body.static-preview-mode #programs .program-card {
+            cursor: default !important;
+        }
+        body.static-preview-mode #programs .program-card:hover {
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .program-card-header {
+            background: var(--maroon);
+            padding: 1.4rem 1.5rem;
+        }
+
+        .program-card-header h3 {
+            font-family: 'Playfair Display', serif;
+            color: #fff;
+            font-size: 1.25rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .program-card-header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+        }
+
+        .program-card-body {
+            padding: 1.4rem 1.5rem;
+        }
+
+        .program-card-body ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .program-card-body ul li {
+            font-size: 0.85rem;
+            color: var(--text);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .program-card-body ul li::before {
+            content: '•';
+            color: var(--gold);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .tag {
+            display: inline-block;
+            background: var(--light-gold);
+            color: var(--maroon);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
+            margin-bottom: 0.8rem;
+        }
+
+        /* TUTORIAL PRICING */
+        #tutorial {
+            background: transparent;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1.2rem;
+            margin-top: 2.5rem;
+        }
+
+        .pricing-card {
+            border-radius: 6px;
+            padding: 1.6rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .pricing-card.regular,
+        .pricing-card.double,
+        .pricing-card.daily,
+        .pricing-card.daily-double {
+            background: #F4E2D2;
+            color: var(--text);
+            border: 1px solid rgba(78, 50, 29, 0.12);
+        }
+
+        .pricing-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-card.regular .pricing-label,
+        .pricing-card.double .pricing-label,
+        .pricing-card.daily .pricing-label,
+        .pricing-card.daily-double .pricing-label {
+            color: var(--dark);
+        }
+
+        .pricing-price {
+            font-family: 'Abril Fatface', serif;
+            font-size: 2.2rem;
+            line-height: 1;
+            margin-bottom: 0.3rem;
+            color: var(--dark);
+        }
+
+        .pricing-period {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-card.regular .pricing-period,
+        .pricing-card.daily .pricing-period,
+        .pricing-card.double .pricing-period,
+        .pricing-card.daily-double .pricing-period {
+            color: var(--muted);
+        }
+
+        .pricing-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .pricing-features li {
+            font-size: 0.82rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.45rem;
+            opacity: 0.95;
+            line-height: 1.4;
+            color: var(--text) !important;
+        }
+
+        .pricing-features li::before {
+            content: '•';
+            flex-shrink: 0;
+            color: var(--dark);
+        }
+
+        .pricing-notes {
+            margin-top: 2rem;
+            background: var(--maroon);
+            border-radius: 6px;
+            padding: 1.5rem 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .pricing-note {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .pricing-note-icon {
+            font-size: 1.2rem;
+        }
+
+        .pricing-note-text {
+            color: #fff;
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        .pricing-note-text strong {
+            color: var(--light-gold);
+            display: block;
+        }
+
+        /* WEEKEND WORKSHOP */
+        #workshop {
+            background: transparent;
+        }
+
+        .workshop-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+            margin-top: 0.5rem;
+        }
+
+        #workshop .workshop-content>div:nth-child(2) {
+            transform: translateY(-28px);
+        }
+
+        @media (min-width: 992px) {
+            #workshop .workshop-content {
+                margin-top: 0;
+            }
+
+            #workshop .workshop-content>div:nth-child(2) {
+                transform: translateY(-120px);
+            }
+        }
+
+        .workshop-activities {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            padding: 1.2rem;
+            background: transparent;
+            border-radius: 12px;
+            border: 2px solid #fff;
+        }
+
+        .activity-pill {
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-align: center;
+        }
+
+        .workshop-sub-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            margin-top: 1.5rem;
+        }
+
+        .subscription-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .sub-card {
+            background: #fff;
+            border: 1px solid rgba(94, 58, 33, 0.15);
+            border-radius: 6px;
+            padding: 1.2rem;
+        }
+
+        .sub-card h4 {
+            font-family: 'Playfair Display', serif;
+            color: var(--maroon);
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .sub-card .sub-price {
+            font-family: 'Abril Fatface', serif;
+            color: var(--gold);
+            font-size: 1.4rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .sub-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .sub-card ul li {
+            font-size: 0.78rem;
+            color: var(--muted);
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .sub-card ul li::before {
+            content: '•';
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .group-price-banner {
+            background: linear-gradient(135deg, var(--maroon), #452A18);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .group-price-banner .label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .group-price-banner .price {
+            font-family: 'Abril Fatface', serif;
+            color: var(--light-gold);
+            font-size: 2rem;
+        }
+
+        .group-price-banner .period {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+        }
+
+        /* PLAYSCHOOL */
+        #playschool {
+            background: transparent;
+            padding-top: 1rem;
+            margin-top: -3.5rem;
+            padding-bottom: 2rem;
+        }
+
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 0.6rem;
+        }
+
+        #playschool .classes-grid {
+            max-width: 980px;
+            margin-left: auto;
+            margin-right: 0;
+        }
+
+        #playschool .classes-grid>.class-card {
+            max-width: 520px;
+            margin: 0;
+        }
+
+        /* Card base */
+        .class-card {
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        /* Keep cards and boxed elements opaque and slightly elevated */
+        .inclusions-list,
+        .rates-table,
+        .class-card,
+        .sub-card,
+        .contact-card,
+        .pricing-card {
+            background: #fff !important;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
+            color: #111;
+        }
+
+        .class-price-vip {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.72rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 3px;
+            margin-top: 0.4rem;
+            margin-left: 0.4rem;
+        }
+
+        .class-card-body {
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            color: var(--text);
+        }
+
+        .class-card-body h4 {
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+        }
+
+        .class-card-body ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .class-card-body ul li {
+            font-size: 0.83rem;
+            color: var(--text);
+            display: flex;
+            gap: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .class-card-body ul li::before {
+            content: '•';
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .schedule-box {
+            background: #fff;
+            border-left: 3px solid var(--gold);
+            padding: 0.8rem 1rem;
+            margin-top: 1.2rem;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .schedule-box p {
+            font-size: 0.8rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .schedule-box strong {
+            color: var(--maroon);
+        }
+
+        /* CHILD CARE */
+        #childcare {
+            background: transparent;
+        }
+
+        .childcare-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 3rem;
+            margin-top: 2.5rem;
+            align-items: start;
+        }
+
+        .inclusions-list {
+            background: var(--cream);
+            border-radius: 8px;
+            padding: 1.8rem;
+        }
+
+        .inclusions-list h4 {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+        }
+
+        .inclusion-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid rgba(94, 58, 33, 0.08);
+        }
+
+        .inclusion-item:last-child {
+            border-bottom: none;
+        }
+
+        .inclusion-item .icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .inclusion-item p {
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .rates-table {
+            background: #fff;
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.2rem;
+            font-size: 0.82rem;
+        }
+
+        .rates-table th {
+            background: #8C6239;
+            color: #fff;
+            padding: 0.6rem 0.9rem;
+            text-align: left;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .rates-table td {
+            padding: 0.6rem 0.9rem;
+            border-bottom: 1px solid rgba(94, 58, 33, 0.1);
+            color: var(--text);
+            background: #fff;
+        }
+
+        .rates-table tr:nth-child(even) td {
+            background: rgba(94, 58, 33, 0.04);
+        }
+
+        .rates-section-label {
+            background: #B08A63;
+            color: #fff;
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            font-weight: 600;
+        }
+
+        .what-to-bring {
+            background: var(--maroon);
+            border-radius: 6px;
+            padding: 1.4rem 1.5rem;
+            margin-top: 1.5rem;
+            color: #fff;
+        }
+
+        .what-to-bring h4 {
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--light-gold);
+            margin-bottom: 0.8rem;
+        }
+
+        .what-to-bring p {
+            font-size: 0.83rem;
+            line-height: 1.6;
+            opacity: 0.85;
+        }
+
+        .what-to-bring em {
+            color: var(--light-gold);
+            font-style: normal;
+        }
+
+        /* FACILITIES */
+        #facilities {
+            background: var(--maroon);
+        }
+
+        #facilities .section-title {
+            color: var(--light-gold);
+        }
+
+        #facilities .section-desc {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .facilities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1px;
+            margin-top: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .facility-item {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 1.5rem;
+            text-align: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            transition: background 0.2s;
+        }
+
+        .facility-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .facility-item .icon {
+            font-size: 1.6rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .facility-item p {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.82rem;
+        }
+
+        /* CONTACT */
+        #contact {
+            background: var(--cream);
+        }
+
+        .contact-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2.5rem;
+        }
+
+        .contact-card {
+            background: linear-gradient(180deg, #f6efe6 0%, #efe3d7 100%);
+            border: 1px solid rgba(94, 58, 33, 0.06);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 560px;
+            min-height: 0;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow: hidden;
+            color: var(--text);
+            align-self: start;
+        }
+
+        .contact-card h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--maroon);
+            font-size: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-item .icon {
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            background: var(--cream);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--maroon);
+        }
+
+        .contact-item p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .contact-item strong {
+            color: var(--maroon);
+            display: block;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.2rem;
+        }
+
+        #contact .contact-card a {
+            color: var(--light-gold);
+            text-decoration: underline;
+        }
+
+        .cta-big {
+            background: linear-gradient(135deg, var(--maroon), #452A18);
+            border-radius: 8px;
+            padding: 2.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 200px;
+        }
+
+        .cta-big h3 {
+            font-family: 'Abril Fatface', serif;
+            color: #fff;
+            font-size: 2rem;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+
+        .cta-big p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-big a {
+            display: inline-block;
+            background: var(--gold);
+            color: #fff;
+            padding: 0.8rem 1.8rem;
+            border-radius: 3px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.88rem;
+            align-self: flex-start;
+            transition: background 0.2s;
+        }
+
+        .cta-big a:hover {
+            background: #B0885B;
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--dark);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.78rem;
+            line-height: 1.8;
+        }
+
+        footer strong {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+
+            section {
+                padding: 3rem 1.5rem;
+            }
+
+            .hero {
+                padding: 4rem 1.5rem 2rem;
+            }
+
+            .hero-main-logo {
+                height: 150px;
+            }
+
+            .hero-cursive {
+                font-size: clamp(2rem, 5vw, 3rem);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .programs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .workshop-activities {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.6rem;
+                padding: 1rem;
+            }
+
+            .workshop-content,
+            .childcare-layout,
+            .contact-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .classes-grid {
+                margin-top: 0;
+                gap: 1.5rem;
+            }
+
+            .subscription-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-notes {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .section-title {
+                font-size: clamp(1.5rem, 3vw, 2rem);
+            }
+
+            .section-label {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* EXTRA SMALL DEVICES */
+        @media (max-width: 480px) {
+            nav {
+                padding: 0 1rem;
+                height: 56px;
+            }
+
+            .nav-logo {
+                font-size: 0.9rem;
+            }
+
+            .hero-main-logo {
+                height: 100px;
+                margin-bottom: 1rem;
+            }
+
+            .hero-cursive {
+                font-size: clamp(1.5rem, 4vw, 2.5rem);
+                margin-bottom: 1rem;
+            }
+
+            .hero-tagline {
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
+
+            section {
+                padding: 2.5rem 1rem;
+            }
+
+            .section-title {
+                font-size: 1.3rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .section-desc {
+                font-size: 0.85rem;
+            }
+
+            .pricing-grid {
+                gap: 1rem;
+            }
+
+            .workshop-activities {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+                padding: 0.8rem;
+            }
+
+            .activity-pill {
+                font-size: 0.8rem;
+            }
+
+            .class-card-body {
+                padding: 1rem;
+            }
+
+            .class-card-top h3 {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #playschool {
+                padding-top: 1.2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .features-strip {
+                margin-top: 0;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .features-strip {
+                margin-top: -2.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .contact-card {
+                max-width: 100%;
+                padding: 0.9rem;
+            }
+        }
+
+        /* SCROLL ANIMATIONS */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* Enhanced Legibility for Collage Sections */
+        #programs .section-label,
+        #tutorial .section-label,
+        #workshop .section-label,
+        #playschool .section-label,
+        #childcare .section-label,
+        #summerblast .section-label,
+        .workshop-sub-label {
+            color: var(--gold) !important;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+            font-weight: 700;
+        }
+
+        .group-includes {
+            list-style: none;
+            display: inline-block;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1.5rem;
+            background: transparent;
+            padding: 0.9rem 1rem;
+            border-radius: 8px;
+            max-width: 420px;
+            box-shadow: none;
+        }
+
+        .group-includes li {
+            font-size: 0.83rem;
+            color: #fff !important;
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+            line-height: 1.4;
+        }
+
+        .group-includes .bullet {
+            color: var(--gold);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        #programs .section-title,
+        #tutorial .section-title,
+        #workshop .section-title,
+        #playschool .section-title,
+        #childcare .section-title,
+        #summerblast .section-title {
+            color: var(--cream) !important;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        #programs .section-desc,
+        #tutorial .section-desc,
+        #workshop .section-desc,
+        #playschool .section-desc,
+        #childcare .section-desc,
+        #summerblast .section-desc {
+            color: var(--cream) !important;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+            font-weight: 500;
+        }
+
+        #workshop ul li {
+            color: var(--cream) !important;
+            text-shadow: none;
+            font-weight: 500;
+        }
+
+        #childcare .childcare-layout p[style*="color:var(--gold)"] {
+            text-shadow: none;
+        }
+
+        .inclusions-list,
+        .rates-table {
+            background: #fff !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .workshop-sub-label {
+            color: var(--gold) !important;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+            font-weight: 700;
+        }
+
+        .class-card-top {
+            background: var(--maroon);
+            color: var(--cream);
+            padding: 1.4rem 1.5rem;
+            border-radius: 6px 6px 0 0;
+            display: block;
+        }
+
+        .class-card-top h3 {
+            color: var(--cream);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .class-card-top p {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .class-price-tag,
+        .class-price-vip {
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: 0.6rem;
+            border-radius: 4px;
+            padding: 0.28rem 0.6rem;
+            font-weight: 700;
+        }
+
+        .class-price-tag {
+            background: var(--gold);
+            color: #fff;
+        }
+
+        .class-price-vip {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            font-size: 0.85rem;
+            margin-left: 0.6rem;
+        }
+
+        .class-card-body ul li,
+        .program-card-body ul li,
+        .sub-card ul li,
+        .subscription-cards li,
+        #workshop ul li,
+        .inclusion-item p,
+        .rates-table td,
+        .contact-item p {
+            color: var(--dark) !important;
+        }
+
+        .pricing-card .pricing-features li {
+            color: var(--text) !important;
+        }
+
+        .subscription-cards .sub-card ul li,
+        .subscription-cards .sub-card ul li span {
+            color: var(--dark) !important;
+        }
+
+        /* MEMBERSHIP SECTION */
+        .membership-card {
+            background: linear-gradient(180deg, #f6efe6 0%, #efe3d7 100%);
+            border: 1px solid rgba(94, 58, 33, 0.06);
+            border-radius: 8px;
+            padding: 0.75rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+            color: var(--maroon);
+        }
+
+        .membership-header {
+            text-align: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .membership-header h3 {
+            font-family: 'Great Vibes', cursive;
+            font-size: 1.2rem;
+            color: var(--gold);
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .membership-header p {
+            font-size: 0.95rem;
+            color: var(--maroon);
+            margin: 0.35rem 0 0 0;
+            font-weight: 500;
+        }
+
+        .membership-logo-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.6rem 0;
+            flex-wrap: wrap;
+        }
+
+        .membership-logo-section .badge {
+            text-align: center;
+        }
+
+        .membership-logo-section .badge img {
+            max-width: 72px;
+            height: auto;
+            margin-bottom: 0.2rem;
+        }
+
+        .membership-logo-section .badge-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: var(--gold);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .membership-features {
+            background: var(--maroon);
+            color: #fff;
+            border-radius: 6px;
+            padding: 0.55rem 0.6rem;
+            margin: 0.6rem 0;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .membership-features p {
+            font-size: 0.95rem;
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+
+        .membership-features strong {
+            color: var(--light-gold);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .membership-pricing {
+            background: linear-gradient(135deg, var(--maroon), #452A18);
+            color: #fff;
+            border-radius: 6px;
+            padding: 0.6rem;
+            margin: 0.6rem 0;
+            text-align: center;
+        }
+
+        .membership-pricing .price {
+            font-family: 'Abril Fatface', serif;
+            font-size: 1.25rem;
+            color: var(--light-gold);
+            margin: 0.25rem 0;
+        }
+
+        .membership-pricing p {
+            font-size: 0.9rem;
+            margin: 0.35rem 0;
+            opacity: 0.95;
+        }
+
+        .membership-contact {
+            background: #fdf8f5;
+            border: 1px solid rgba(94, 58, 33, 0.06);
+            border-radius: 6px;
+            padding: 0.6rem;
+            margin-top: 0.8rem;
+            text-align: center;
+        }
+
+        .membership-contact p {
+            font-size: 0.85rem;
+            margin: 0.4rem 0;
+            color: var(--text);
+        }
+
+        .membership-contact strong {
+            display: block;
+            font-size: 0.95rem;
+            color: var(--maroon);
+            margin-bottom: 0.25rem;
+        }
+
+        .membership-contact a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .membership-contact a:hover {
+            text-decoration: underline;
+        }
+
+        #workshop .workshop-sub-label {
+            color: var(--light-gold) !important;
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.28rem;
+        }
+
+        #workshop .group-includes {
+            background: transparent;
+            padding: 0.25rem 1.1rem 0.9rem 1.1rem;
+            margin-top: 0.1rem;
+            border-radius: 8px;
+            box-shadow: none;
+        }
+
+        #workshop .group-includes li {
+            color: #ffffff !important;
+            font-weight: 400;
+            font-size: 0.92rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+            line-height: 1.45;
+        }
+
+        #workshop .group-includes .bullet {
+            color: var(--light-gold);
+            font-weight: 400;
+            margin-right: 0.45rem;
+        }
+
+        #contact .contact-card p,
+        #contact .contact-card li,
+        #contact .contact-card span,
+        #contact .contact-card .contact-item p,
+        #contact .contact-card .contact-item strong,
+        #contact .contact-card .contact-item em {
+            color: var(--text) !important;
+        }
+
+        #contact .contact-card a,
+        #contact .contact-card .contact-item strong {
+            color: var(--maroon) !important;
+        }
+
+        #contact .contact-card .contact-item .icon {
+            background: var(--cream) !important;
+            color: var(--maroon) !important;
+        }
+
+        @media (min-width: 900px) {
+            #playschool .classes-grid {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                gap: 2rem !important;
+                justify-content: flex-start !important;
+                align-items: flex-start !important;
+                width: 100% !important;
+                max-width: 1200px !important;
+                margin-left: auto !important;
+                margin-right: 0 !important;
+            }
+
+            #playschool .classes-grid>.class-card {
+                flex: 0 0 48% !important;
+                max-width: 48% !important;
+                box-sizing: border-box !important;
+                margin: 0 !important;
+            }
+
+            #playschool .class-card-body {
+                padding: 1rem !important;
+            }
+
+            #playschool .class-card-top {
+                padding: 1rem 1.25rem !important;
+            }
+        }
+
+        #madstudio [style*="rgba(255,255,255,0.04)"],
+        #madstudio [style*="rgba(218,181,92,0.06)"] {
+            background: rgba(10, 6, 2, 0.82) !important;
+            margin-bottom: 18px !important;
+        }
+
+        #madstudio [style*="rgba(255,255,255,0.04)"]:last-child,
+        #madstudio [style*="rgba(218,181,92,0.06)"]:last-child {
+            margin-bottom: 0 !important;
+        }
