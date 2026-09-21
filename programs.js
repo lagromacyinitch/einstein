@@ -147,7 +147,7 @@ async function loadDynamicTables() {
     // 4. Playschool Info & Rates (type: general, program: Playschool)
     const playschoolTbody = document.querySelector('#dyn-playschool tbody');
     if (playschoolTbody) {
-        const packages = progs.filter(p => p.package_type === 'general' && p.program_name === 'Playschool');
+        const packages = progs.filter(p => p.package_type === 'playschool' || (p.package_type === 'general' && /^play\s*school$/i.test(p.program_name)));
         if (packages.length === 0) {
             playschoolTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No playschool packages available.</td></tr>';
         } else {
@@ -168,7 +168,7 @@ async function loadDynamicTables() {
 }
 
 // Modify openProgramModal to accept defaults
-function openProgramModal(programName = 'Playschool', packageType = 'general') {
+function openProgramModal(programName = 'Playschool', packageType = 'playschool') {
     document.getElementById('pm-id').value = '';
     document.getElementById('pm-program').value = programName;
     document.getElementById('pm-name').value = '';

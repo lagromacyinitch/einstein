@@ -9,120 +9,45 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="login-screen.css">
-  <style>
-    .otp-toggle-wrap {
-      display: flex;
-      gap: 0;
-      border: 1px solid #d4c4b4;
-      border-radius: 8px;
-      overflow: hidden;
-      margin: 14px 0 4px;
-    }
-
-    .otp-toggle-btn {
-      flex: 1;
-      padding: 9px 0;
-      font-size: 13px;
-      font-weight: 600;
-      background: #fff;
-      border: none;
-      cursor: pointer;
-      color: #8D6A4E;
-      transition: background .2s, color .2s;
-      font-family: inherit;
-    }
-
-    .otp-toggle-btn.active {
-      background: var(--gold, #C9A84C);
-      color: #fff;
-    }
-
-    #login-phone-row {
-      display: none;
-    }
-
-    .otp-hint {
-      font-size: 11px;
-      color: #a08060;
-      margin: 4px 0 10px;
-      text-align: center;
-    }
-
-    .send-otp-btn {
-      width: 100%;
-      margin: 6px 0 0;
-      padding: 10px;
-      background: #5c3317;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .send-otp-btn:hover {
-      background: #7a4520;
-    }
-
-    #otp-code-row {
-      display: none;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        align-items: flex-start;
-        padding: 0;
-      }
-
-      .ls-shell {
-        width: 100% !important;
-        min-height: 100dvh;
-        border-radius: 0 !important;
-        margin: 0 !important;
-      }
-
-      .ls-card {
-        padding: 20px 16px !important;
-      }
-
-      .ls-header {
-        padding: 16px !important;
-      }
-
-      .ls-input {
-        font-size: 16px !important;
-      }
-
-      /* prevent iOS zoom */
-      .ls-btn-primary,
-      .ls-btn-secondary {
-        font-size: 15px !important;
-        padding: 14px !important;
-      }
-    }
-  </style>
+<style>
+/* Hide Microsoft Edge / IE native password reveal & clear buttons to prevent duplicate eye icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+</style>
 </head>
 
 <body data-auto-login-init="true">
   <div id="login-screen">
     <div class="login-box">
-      <div style="position:absolute; top:16px; left:16px;">
-        <button type="button" class="login-back-btn" onclick="window.location.href='main.html'"
-          title="Back to Home" aria-label="Back to Home" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <div style="position:absolute; top:16px; left:16px; z-index:10;">
+        <a href="main.html" class="login-back-btn" id="login-back-btn"
+          title="Back to Home" aria-label="Back to Home" style="display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
-        </button>
+        </a>
       </div>
       <div class="login-logo">
         <div class="logo-oval"><img src="images/logo2.jpg" alt="Einstein Center logo"></div>
-        <h1>EINSTEIN CENTER</h1>
+
       </div>
 
-      <form id="login-form">
+      <form id="login-form" action="javascript:void(0);" onsubmit="event.preventDefault(); window.EinsteinLogin ? window.EinsteinLogin.submit() : (window.doLogin ? window.doLogin() : false);">
         <label for="login-user">Username / Email</label>
         <input type="text" id="login-user" placeholder="" autocomplete="username">
 
@@ -143,38 +68,74 @@
         <button type="submit" id="login-submit-btn" class="login-btn">Sign In</button>
       </form>
 
+      <section id="password-reset-panel" class="password-reset-panel" hidden aria-labelledby="reset-title">
+
+
+        <div class="reset-heading">
+          <h2 id="reset-title">Reset password</h2>
+          <p id="reset-description">Enter your registered email address</p>
+        </div>
+
+        <div class="reset-progress" aria-label="Password reset progress">
+          <span id="reset-step-email" class="active">1. Email</span>
+          <span aria-hidden="true">-</span>
+          <span id="reset-step-password">2. New password</span>
+        </div>
+
+        <div id="reset-message" class="reset-message" role="alert" aria-live="polite"></div>
+
+        <form id="reset-request-form" novalidate>
+          <label for="reset-email">Registered email</label>
+          <input type="email" id="reset-email" autocomplete="email" inputmode="email" required>
+          <button type="submit" id="reset-request-btn" class="login-btn">Send reset code</button>
+        </form>
+
+        <form id="reset-confirm-form" hidden novalidate>
+          <p id="reset-email-summary" class="reset-email-summary"></p>
+
+          <label for="reset-code">Six-digit reset code</label>
+          <input type="text" id="reset-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="______" required>
+
+          <label for="reset-new-password">New password</label>
+          <div class="password-field">
+            <input type="password" id="reset-new-password" autocomplete="new-password" minlength="8" required>
+            <button type="button" class="toggle-password-btn" data-toggle-password="reset-new-password" aria-label="Show new password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <label for="reset-confirm-password">Confirm new password</label>
+          <div class="password-field">
+            <input type="password" id="reset-confirm-password" autocomplete="new-password" minlength="8" required>
+            <button type="button" class="toggle-password-btn" data-toggle-password="reset-confirm-password" aria-label="Show confirmation password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <p class="reset-password-hint">Use at least 8 characters.</p>
+          <button type="submit" id="reset-confirm-btn" class="login-btn">Reset password</button>
+          <button type="button" id="reset-resend-btn" class="reset-resend-btn">Resend code</button>
+        </form>
+
+        <div id="reset-success" class="reset-success" hidden>
+          <div class="reset-success-icon" aria-hidden="true">✓</div>
+          <h3>Password updated</h3>
+          <p>Your password has been reset. You can now sign in with your new password.</p>
+          <button type="button" id="reset-signin-btn" class="login-btn">Back to sign in</button>
+        </div>
+      </section>
+
       <p class="login-footer-tagline">Einstein Center for Modern Education • Bohol</p>
-
-      <!-- -- OTP verification section -- -->
-      <div id="login-otp-section" style="display:none;border-top:1px solid #e0d4c8;margin-top:18px;padding-top:16px">
-        <p style="font-size:13px;font-weight:600;color:#5c3317;margin:0 0 10px;text-align:center">Verify your account
-        </p>
-        <div class="otp-toggle-wrap">
-          <button class="otp-toggle-btn active" id="btn-otp-email" onclick="setOtpChannel('email')">✉️ Email
-            OTP</button>
-
-        </div>
-        <p class="otp-hint" id="otp-channel-hint">A 6-digit code will be sent to your email.</p>
-
-        <button class="send-otp-btn" onclick="sendOtp()">Send Verification Code</button>
-
-        <div id="otp-code-row" style="margin-top:12px">
-          <label style="font-size:12px;font-weight:600;color:#5c3317">Enter 6-digit Code</label>
-          <input type="text" id="otp-code" class="login-input" placeholder="______" maxlength="6"
-            style="letter-spacing:6px;text-align:center;font-size:20px;margin-top:4px">
-          <button class="send-otp-btn" style="background:#2e7d32;margin-top:8px" onclick="verifyOtp()">• Verify
-            Code</button>
-          <p style="font-size:11px;color:#a08060;text-align:center;margin:8px 0 0">
-            Didn't receive it? <a href="#" onclick="sendOtp();return false" style="color:#5c3317">Resend</a>
-          </p>
-        </div>
-      </div>
 
       <div id="login-signup-row" class="login-footer-links">
         New parent? <a href="#" id="login-signup-link">Create an account</a>
-        &nbsp;•&nbsp; <a href="#" id="login-forgot-link">Forgot password?</a>
-        &nbsp;•&nbsp; <a href="#" id="login-verify-link" onclick="toggleOtpSection();return false">Verify account</a>
-        &nbsp;•&nbsp; <a href="admin.html" style="color:#8D6A4E;font-weight:700">Staff Portal</a>
+        &nbsp;&bull;&nbsp; <a href="#" id="login-forgot-link">Forgot password?</a>
       </div>
     </div>
   </div>
@@ -189,78 +150,217 @@
       if (ctx.program) params.set('program', ctx.program);
       window.location.href = 'main.html?' + params.toString();
     });
+  </script>
+  <script>
+    (function initPasswordResetFlow() {
+      const panel = document.getElementById('password-reset-panel');
+      const loginForm = document.getElementById('login-form');
+      const footerTagline = document.querySelector('.login-footer-tagline');
+      const footerLinks = document.getElementById('login-signup-row');
+      const loginError = document.getElementById('login-error');
+      const requestForm = document.getElementById('reset-request-form');
+      const confirmForm = document.getElementById('reset-confirm-form');
+      const successPanel = document.getElementById('reset-success');
+      const emailInput = document.getElementById('reset-email');
+      const codeInput = document.getElementById('reset-code');
+      const newPasswordInput = document.getElementById('reset-new-password');
+      const confirmPasswordInput = document.getElementById('reset-confirm-password');
+      const requestButton = document.getElementById('reset-request-btn');
+      const confirmButton = document.getElementById('reset-confirm-btn');
+      const resendButton = document.getElementById('reset-resend-btn');
+      const message = document.getElementById('reset-message');
+      const emailSummary = document.getElementById('reset-email-summary');
+      const emailStep = document.getElementById('reset-step-email');
+      const passwordStep = document.getElementById('reset-step-password');
+      let resetEmail = '';
 
+      function showMessage(text, type) {
+        message.textContent = text || '';
+        message.className = 'reset-message' + (text ? ' visible ' + (type || 'info') : '');
+      }
 
-
-    async function verifyOtp() {
-      const errEl = document.getElementById('login-error');
-      const code = (document.getElementById('otp-code').value || '').trim();
-      const email = (document.getElementById('login-user').value || '').trim();
-      const phone = (document.getElementById('otp-phone')?.value || '').trim();
-      if (!code) { errEl.style.color = '#c0392b'; errEl.textContent = 'Enter the 6-digit code.'; return; }
-      errEl.style.color = '#888'; errEl.textContent = 'Verifying•';
-      try {
-        const payload = { action: 'verify_otp', channel: _otpChannel, otp: code };
-        if (_otpChannel === 'email') payload.email = email;
-        else payload.phone = phone;
-        const r = await fetch(EinsteinLogin.apiUrl('api_otp.php'), {
-          method: 'POST', credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const d = await r.json();
-        errEl.style.color = d.success ? '#2a7a2a' : '#c0392b';
-        errEl.textContent = d.success ? '✓ Account verified! You can now sign in.' : d.message;
-        if (d.success) {
-          document.getElementById('otp-code-row').style.display = 'none';
-          setTimeout(() => { document.getElementById('login-otp-section').style.display = 'none'; }, 3000);
+      function setButtonLoading(button, isLoading, loadingText) {
+        if (!button) return;
+        if (isLoading) {
+          button.dataset.originalText = button.textContent;
+          button.disabled = true;
+          button.textContent = loadingText;
+          return;
         }
-      } catch { errEl.style.color = '#c0392b'; errEl.textContent = 'Network error. Try again.'; }
-    }
+        button.disabled = false;
+        button.textContent = button.dataset.originalText || button.textContent;
+      }
 
-    // --- Forgot password ? inline reset flow -------------------------------------
-    document.getElementById('login-forgot-link').addEventListener('click', function (e) {
-      e.preventDefault();
-      const email = (document.getElementById('login-user').value || '').trim();
-      const emailPrompt = email || prompt('Enter your registered email address:');
-      if (!emailPrompt) return;
-      const errEl = document.getElementById('login-error');
-      errEl.textContent = 'Sending reset code•';
-      errEl.style.color = '#888';
-      fetch(EinsteinLogin.apiUrl('forgot_password.php'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'request_reset', email: emailPrompt }),
-        credentials: 'same-origin',
-      })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            errEl.style.color = '#2a7a2a';
-            errEl.textContent = data.message;
-            const code = prompt('Enter the 6-digit code sent to your email:');
-            if (!code) return;
-            const newPw = prompt('Enter your new password (min. 8 characters):');
-            if (!newPw) return;
-            return fetch(EinsteinLogin.apiUrl('forgot_password.php'), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'reset_password', email: emailPrompt, otp: code, new_password: newPw }),
-              credentials: 'same-origin',
-            }).then(r => r.json()).then(d => {
-              errEl.style.color = d.success ? '#2a7a2a' : '#c0392b';
-              errEl.textContent = d.message;
-            });
-          } else {
-            errEl.style.color = '#c0392b';
-            errEl.textContent = data.message;
+      function setStage(stage) {
+        requestForm.hidden = stage !== 'request';
+        confirmForm.hidden = stage !== 'confirm';
+        successPanel.hidden = stage !== 'success';
+        emailStep.classList.toggle('active', stage === 'request');
+        passwordStep.classList.toggle('active', stage !== 'request');
+        panel.dataset.stage = stage;
+        document.getElementById('reset-title').textContent = stage === 'confirm' ? 'Set a new password' : 'Reset password';
+        document.getElementById('reset-description').textContent = stage === 'confirm' ? 'Enter your reset code and choose a new password.' : 'Enter your registered email address';
+        document.querySelector('.reset-heading').hidden = stage === 'success';
+        document.querySelector('.reset-progress').hidden = stage === 'success';
+      }
+
+      function openResetFlow() {
+        const loginEmail = (document.getElementById('login-user').value || '').trim();
+        panel.hidden = false;
+        document.querySelector('.login-back-btn').setAttribute('aria-label', 'Back to sign in');
+        document.querySelector('.login-back-btn').title = 'Back to sign in';
+        loginForm.hidden = true;
+        footerTagline.hidden = true;
+        footerLinks.hidden = true;
+        loginError.classList.remove('visible');
+        resetEmail = loginEmail;
+        emailInput.value = loginEmail;
+        setStage('request');
+        showMessage('');
+        setTimeout(function () { emailInput.focus(); }, 0);
+      }
+
+      function returnToSignIn() {
+        panel.hidden = true;
+        document.querySelector('.login-back-btn').setAttribute('aria-label', 'Back to Home');
+        document.querySelector('.login-back-btn').title = 'Back to Home';
+        loginForm.hidden = false;
+        footerTagline.hidden = false;
+        footerLinks.hidden = false;
+        document.getElementById('login-user').value = resetEmail || emailInput.value.trim();
+        document.getElementById('login-pass').value = '';
+        requestForm.reset();
+        confirmForm.reset();
+        resetEmail = '';
+        setStage('request');
+        showMessage('');
+        document.getElementById('login-pass').focus();
+      }
+
+      async function sendResetCode(isResend) {
+        const email = emailInput.value.trim().toLowerCase();
+        if (!emailInput.checkValidity()) {
+          emailInput.reportValidity();
+          return;
+        }
+
+        const button = isResend ? resendButton : requestButton;
+        setButtonLoading(button, true, isResend ? 'Sending...' : 'Sending code...');
+        showMessage(isResend ? 'Sending a new reset code...' : 'Sending your reset code...', 'info');
+
+        try {
+          const response = await fetch(EinsteinLogin.apiUrl('forgot_password.php'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ action: 'request_reset', email: email }),
+          });
+          const data = await response.json();
+          if (!data.success) {
+            showMessage(data.message || 'We could not send a reset code. Please try again.', 'error');
+            return;
           }
-        })
-        .catch(() => { errEl.style.color = '#c0392b'; errEl.textContent = 'Network error. Please try again.'; });
-    });
+
+          resetEmail = email;
+          emailSummary.textContent = 'Reset email: ' + email;
+          setStage('confirm');
+          showMessage(isResend ? 'If the address is registered, a new code has been sent.' : 'If this email is registered, check your inbox or spam folder for the code.', 'success');
+          setTimeout(function () { codeInput.focus(); }, 0);
+        } catch (error) {
+          showMessage('Network error. Please try again.', 'error');
+        } finally {
+          setButtonLoading(button, false);
+        }
+      }
+
+      document.getElementById('login-forgot-link').addEventListener('click', function (event) {
+        event.preventDefault();
+        openResetFlow();
+      });
+
+      document.querySelector('.login-back-btn').addEventListener('click', function (event) {
+        if (!panel.hidden) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          returnToSignIn();
+        } else {
+          // Explicitly go to main.html
+          window.location.href = 'main.html';
+        }
+      }, true);
+      document.getElementById('reset-signin-btn').addEventListener('click', returnToSignIn);
+
+      requestForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        sendResetCode(false);
+      });
+
+      resendButton.addEventListener('click', function () {
+        sendResetCode(true);
+      });
+
+      codeInput.addEventListener('input', function () {
+        codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
+      });
+
+      confirmForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const code = codeInput.value.trim();
+        const newPassword = newPasswordInput.value;
+        const confirmation = confirmPasswordInput.value;
+
+        if (!codeInput.checkValidity() || !newPasswordInput.checkValidity() || !confirmPasswordInput.checkValidity()) {
+          confirmForm.reportValidity();
+          return;
+        }
+        if (newPassword !== confirmation) {
+          showMessage('The new passwords do not match.', 'error');
+          confirmPasswordInput.focus();
+          return;
+        }
+
+        setButtonLoading(confirmButton, true, 'Updating password...');
+        showMessage('Updating your password...', 'info');
+        try {
+          const response = await fetch(EinsteinLogin.apiUrl('forgot_password.php'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              action: 'reset_password',
+              email: resetEmail,
+              otp: code,
+              new_password: newPassword,
+              confirm_password: confirmation,
+            }),
+          });
+          const data = await response.json();
+          if (!data.success) {
+            showMessage(data.message || 'We could not reset your password. Please try again.', 'error');
+            return;
+          }
+
+          showMessage('');
+          setStage('success');
+        } catch (error) {
+          showMessage('Network error. Please try again.', 'error');
+        } finally {
+          setButtonLoading(confirmButton, false);
+        }
+      });
+
+      panel.querySelectorAll('[data-toggle-password]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          const input = document.getElementById(button.dataset.togglePassword);
+          const show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        });
+      });
+    })();
   </script>
 <script src="security.js"></script>
-<script src="validation.js"></script>
+<script src="validation.js?v=12"></script>
 </body>
 
 </html>

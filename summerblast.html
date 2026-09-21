@@ -138,7 +138,7 @@
       border-radius: 12px;
       overflow: hidden;
       width: 100%;
-      max-width: 980px;
+      max-width: 800px;
       margin: 2.5rem 1rem;
       border: 1px solid var(--brown-border);
       box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
@@ -698,16 +698,16 @@
 
     <script>
       window.ENROLL_PACKAGES = [
-        { group: 'Registration Fee', value: 'Registration Fee ? ₱900', name: 'Slot Reservation', detail: '₱900' },
-        { group: 'Single Course', value: 'Single Course ? ₱3,900', name: 'Choose 1 Course + 1 Academics Free', detail: '₱3,900' },
-        { group: 'Two Courses', value: 'Two Courses ? ₱4,900', name: 'Choose 2 Courses + 1 Academics Free', detail: '₱4,900' },
-        { group: 'Special Course', value: 'Special Course ? ₱5,100', name: 'Choose 1 Special + 1 Any Course Free', detail: '₱5,100' }
+        { group: 'Registration Fee', value: 'Registration Fee – ₱900', name: 'Registration Fee (Slot Reservation) – ₱900', detail: '₱900 · Slot Reservation' },
+        { group: 'Single Course', value: 'Single Course – ₱3,900', name: 'Single Course – ₱3,900', detail: '₱3,900 · Choose 1 Course + 1 Academics Free' },
+        { group: 'Two Courses', value: 'Two Courses – ₱4,900', name: 'Two Courses – ₱4,900', detail: '₱4,900 · Choose 2 Courses + 1 Academics Free' },
+        { group: 'Special Course', value: 'Special Course – ₱5,100', name: 'Special Course – ₱5,100', detail: '₱5,100 · 1 Special Course + 1 Any Course Free' }
       ];
     </script>
-    <script src="enrollment-flow.js?v=6"></script>
+    <script src="enrollment-flow.js?v=14"></script>
   </div>
   <script src="security.js"></script>
-  <script src="validation.js"></script>
+  <script src="validation.js?v=12"></script>
   <script>
     (function applySummerblastRatesOnLoad() {
       function applyRates(sbPackages) {

@@ -13,6 +13,8 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/vip_membership.php';
+require_once __DIR__ . '/balance_helpers.php';
 setSecurityHeaders();
 
 startUserSession();
@@ -37,6 +39,7 @@ try {
 
     foreach ($rawEnrollments as $e) {
         $decrypted = decryptRow($e, ['child_name', 'child_age', 'child_grade', 'child_school', 'guardian_name', 'address', 'contact', 'facebook_name', 'notes']);
+        $decrypted['current_total_fee'] = balanceTotalFee($decrypted);
         $enrollments[] = $decrypted;
 
         $status = $e['status'];
@@ -53,6 +56,7 @@ try {
     echo json_encode([
         'success' => true,
         'enrollments' => $enrollments,
+        'vip_membership' => vipState($db, (int)$_SESSION['user_id']),
         'stats' => [
             'active' => $active,
             'pending' => $pending,

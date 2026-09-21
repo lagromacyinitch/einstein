@@ -6,12 +6,58 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/config.php';
 setSecurityHeaders();
 
-$defaultName = ini_get('session.name');
-$adminCookie = $_COOKIE[ADMIN_SESSION_NAME] ?? null;
-$userCookie  = $_COOKIE[$defaultName] ?? null;
+$portalPreference = $_GET['portal'] ?? $_GET['prefer'] ?? $_COOKIE['einstein_active_portal'] ?? '';
+$referer = $_SERVER['HTTP_REFERER'] ?? '';
+if (empty($portalPreference) && str_contains($referer, 'user.html')) {
+    $portalPreference = 'user';
+}
 
-// ── Check admin/staff portal session FIRST ──────────────────────
-if ($adminCookie) {
+function checkUserSessionData(): ?array {
+    startUserSession();
+    $role = $_SESSION['role'] ?? null;
+    if (!$role && isset($_SESSION['user_id'])) {
+        $role = 'user';
+        $_SESSION['role'] = 'user';
+    }
+    if (($role === 'user' || empty($role)) && !empty($_SESSION['user_id'])) {
+        if (empty($_SESSION['email'])) {
+            try {
+                $db = getDB();
+                $uStmt = $db->prepare("SELECT email FROM users WHERE id = ?");
+                $uStmt->execute([$_SESSION['user_id']]);
+                $_SESSION['email'] = $uStmt->fetchColumn() ?: '';
+            } catch (Exception $e) {}
+        }
+        $isVip = false;
+        $hasPendingVip = false;
+        try {
+            $db = getDB();
+            require_once __DIR__ . '/vip_membership.php';
+            $vState = vipState($db, (int) $_SESSION['user_id']);
+            $isVip = !empty($vState['active']);
+            $hasPendingVip = !empty($vState['pending']);
+        } catch (Exception $e) {
+            $isVip = false;
+            $hasPendingVip = false;
+        }
+        $data = [
+            'logged_in'   => true,
+            'role'        => 'user',
+            'user_id'     => $_SESSION['user_id'],
+            'email'       => $_SESSION['email'] ?? '',
+            'is_vip'      => $isVip,
+            'vip_pending' => $hasPendingVip,
+        ];
+        session_write_close();
+        return $data;
+    }
+    session_write_close();
+    return null;
+}
+
+function checkAdminSessionData(): ?array {
+    $adminCookie = $_COOKIE[ADMIN_SESSION_NAME] ?? null;
+    if (!$adminCookie) return null;
     startPortalSession();
     $role = $_SESSION['role'] ?? null;
     if ($role === 'admin' && isset($_SESSION['portal_username'])) {
@@ -20,37 +66,33 @@ if ($adminCookie) {
         $canModifyRecords = true;
         if (!$isHead) {
             $canEditPrices = false;
-            $canModifyRecords = true; // default: allow unless explicitly disabled
+            $canModifyRecords = true;
             $subAdminId = (int)($_SESSION['sub_admin_id'] ?? 0);
             if ($subAdminId) {
                 try {
                     $db = getDB();
-                    $stmt = $db->prepare("SELECT can_edit_prices, can_modify_records, display_name FROM admin_accounts WHERE id = ?");
+                    require_once __DIR__.'/tutor_profile_helpers.php';
+                    ensureTutorProfileSchema($db);
+                    $stmt = $db->prepare("SELECT can_edit_prices, can_modify_records, nav_permissions, display_name, id, username, email, tutor_id FROM admin_accounts WHERE id = ?");
                     $stmt->execute([$subAdminId]);
                     $aRow = $stmt->fetch(PDO::FETCH_ASSOC);
                     if ($aRow) {
                         $canEditPrices = (bool)$aRow['can_edit_prices'];
-                        // can_modify_records defaults to 1 if column doesn't exist yet
                         $canModifyRecords = isset($aRow['can_modify_records']) ? (bool)$aRow['can_modify_records'] : true;
-                        // Ensure tutor_id is set
-                        if (empty($_SESSION['tutor_id']) && !empty($aRow['display_name'])) {
-                            $tChk = $db->prepare("SELECT id FROM tutors WHERE LOWER(full_name) = LOWER(?) LIMIT 1");
-                            $tChk->execute([$aRow['display_name']]);
-                            $tId = $tChk->fetchColumn();
-                            if ($tId) {
-                                $_SESSION['tutor_id'] = (int)$tId;
-                            } else {
-                                $db->prepare("INSERT INTO tutors (full_name, is_active) VALUES (?, 1)")->execute([$aRow['display_name']]);
-                                $_SESSION['tutor_id'] = (int)$db->lastInsertId();
-                            }
-                        }
+                        $navPermsRaw = $aRow['nav_permissions'] ?? null;
+                        $navPermissions = ($navPermsRaw && $decoded = json_decode($navPermsRaw, true)) ? $decoded : [];
+                        if ($canEditPrices) $navPermissions = ['dashboard','students','programs','finance','tutors','admin'];
+                        require_once __DIR__.'/tutor_profile_helpers.php';
+                        ensureTutorProfileSchema($db);
+                        $_SESSION['tutor_id'] = linkTutorAccount($db,$aRow);
+                        $_SESSION['display_name'] = $aRow['display_name'];
                     }
                 } catch (Exception $e) {
                     $canEditPrices = false;
                 }
             }
         }
-        echo json_encode([
+        $data = [
             'logged_in'          => true,
             'role'               => 'admin',
             'username'           => $_SESSION['portal_username'],
@@ -58,58 +100,54 @@ if ($adminCookie) {
             'is_head_admin'      => $isHead,
             'can_edit_prices'    => $canEditPrices,
             'can_modify_records' => $canModifyRecords,
+            'nav_permissions'    => $navPermissions ?? null,
             'tutor_id'           => $_SESSION['tutor_id'] ?? null,
-        ]);
-        exit;
+        ];
+        session_write_close();
+        return $data;
     }
     if ($role === 'staff' && isset($_SESSION['portal_username'])) {
-        echo json_encode([
+        $data = [
             'logged_in'    => true,
             'role'         => 'staff',
             'username'     => $_SESSION['portal_username'],
             'display_name' => $_SESSION['display_name'] ?? $_SESSION['portal_username'] ?? 'Staff',
             'is_head_admin'=> false,
-        ]);
-        exit;
+        ];
+        session_write_close();
+        return $data;
     }
     session_write_close();
+    return null;
 }
 
-// ── Then check parent/user session ──────────────────────────────
-if ($userCookie) {
-    startUserSession();
-    $role = $_SESSION['role'] ?? null;
-    if (!$role && isset($_SESSION['user_id'], $_SESSION['email'])) {
-        $role = 'user';
-        $_SESSION['role'] = 'user';
-    }
-    if ($role === 'user' && isset($_SESSION['user_id'], $_SESSION['email'])) {
-        $isVip = false;
-        try {
-            $db = getDB();
-            $stmtVip = $db->prepare("SELECT created_at, updated_at FROM enrollments WHERE user_id = ? AND status = 'confirmed' AND LOWER(program) LIKE '%vip%' ORDER BY COALESCE(updated_at, created_at) DESC LIMIT 1");
-            $stmtVip->execute([(int)$_SESSION['user_id']]);
-            $vipRow = $stmtVip->fetch(PDO::FETCH_ASSOC);
-            if ($vipRow) {
-                $vDate = strtotime($vipRow['updated_at'] ?: $vipRow['created_at']);
-                if ($vDate && (time() - $vDate) < (2 * 365 * 86400)) {
-                    $isVip = true;
-                }
-            }
-        } catch (Exception $e) {
-            $isVip = false;
-        }
-
-        echo json_encode([
-            'logged_in' => true,
-            'role'      => 'user',
-            'user_id'   => $_SESSION['user_id'],
-            'email'     => $_SESSION['email'],
-            'is_vip'    => $isVip,
-        ]);
+if ($portalPreference === 'user') {
+    $uData = checkUserSessionData();
+    if ($uData) {
+        echo json_encode($uData);
         exit;
     }
-    session_write_close();
+    $aData = checkAdminSessionData();
+    if ($aData) {
+        echo json_encode($aData);
+        exit;
+    }
+} else {
+    $aData = checkAdminSessionData();
+    if ($aData && $portalPreference === 'admin') {
+        echo json_encode($aData);
+        exit;
+    }
+    // If no preference specified, check if user session exists first if no admin session
+    if ($aData) {
+        echo json_encode($aData);
+        exit;
+    }
+    $uData = checkUserSessionData();
+    if ($uData) {
+        echo json_encode($uData);
+        exit;
+    }
 }
 
 echo json_encode([

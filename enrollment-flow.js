@@ -168,53 +168,161 @@
       { value: 'Pop Dancing – ₱2,500/mo', name: 'After School: Pop Dancing', detail: 'MWF 5:30–6:30 pm · ₱2,500/month' },
       { value: 'Studio Rental – ₱450/hour', name: 'Studio Rental', detail: '₱450 per hour · by appointment' },
     ],
+    'Summer Blast': [
+      { value: 'Registration Fee – ₱900', name: 'Registration Fee (Slot Reservation) – ₱900', detail: '₱900 · Includes free t-shirt, photo & video coverage, recital fee, certs' },
+      { value: 'Single Course – ₱3,900', name: 'Single Course – ₱3,900', detail: '₱3,900 · Choose 1 Course + 1 Academics subject FREE · One-time payment' },
+      { value: 'Two Courses – ₱4,900', name: 'Two Courses – ₱4,900', detail: '₱4,900 · Choose 2 Courses + 1 Academics subject FREE · One-time payment' },
+      { value: 'Special Course – ₱5,100', name: 'Special Course – ₱5,100', detail: '₱5,100 · 1 Special Course (Baking, Swimming, or Taekwondo) + 1 Any Course FREE · One-time payment' },
+    ],
     'VIP Club Membership': [
-      { value: 'VIP Club Membership – ₱500 (2 years)', name: 'VIP Club Membership', detail: '₱500 · Valid for 2 years · Discounts on all programs' },
+      { value: `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`, name: 'VIP Club Membership', detail: `₱${window.vipFee || 500} · Valid for 2 years · Discounts on all programs` },
     ],
   };
 
-  const PROGRAM_PACKAGES_VIP = {
-    'Academic Tutorial': [
-      { value: 'Regular Package (VIP) – ₱2,970', name: 'Regular Package (VIP Discounted)', detail: '₱2,970 VIP rate (orig. ₱3,300) · 15 sessions · 1 hr each · 1 child' },
-      { value: 'Double Package (VIP) – ₱4,950', name: 'Double Package (VIP Discounted)', detail: '₱4,950 VIP rate (orig. ₱5,500) · 15 sessions · 2 hrs each · up to 2 children' },
-      { value: 'Daily Package (VIP) – ₱4,950/month', name: 'Daily Package (VIP Discounted)', detail: '₱4,950/month VIP rate (orig. ₱5,500) · Daily sessions · 1 hr/day · 1 child' },
-      { value: 'Daily Double Package (VIP) – ₱8,910/month', name: 'Daily Double Package (VIP Discounted)', detail: '₱8,910/month VIP rate (orig. ₱9,900) · Daily sessions · 2 hrs/day · up to 2 children' },
-    ],
-    'Weekend Workshop': [
-      { value: 'Group Class (VIP) – ₱2,250/mo', name: 'Group Class (VIP Discounted)', detail: '₱2,250/mo VIP rate (orig. ₱2,500) · Up to 10 students · 1 hr/session' },
-      { value: 'Center Based 1-on-1 (VIP) – ₱4,320', name: 'Center Based 1-on-1 (VIP Discounted)', detail: '₱4,320 VIP rate (orig. ₱4,800) · 10 sessions · 1 hr each' },
-      { value: 'Home Based 1-on-1 (VIP) – ₱4,050', name: 'Home Based 1-on-1 (VIP Discounted)', detail: '₱4,050 VIP rate (orig. ₱4,500) + transpo · 10 sessions · 1 hr each' },
-    ],
-    'PlaySchool': [
-      { value: 'Caterpillar Class (VIP) – ₱3,900/mo', name: 'Caterpillar Class (VIP Discounted)', detail: 'Ages 2.6–3.5 · ₱3,900/mo VIP rate (orig. ₱4,875)' },
-      { value: 'Butterfly Class (VIP) – ₱3,900/mo', name: 'Butterfly Class (VIP Discounted)', detail: 'Ages 3.6–4.5 · ₱3,900/mo VIP rate (orig. ₱4,875)' },
-    ],
-    'Playschool': [
-      { value: 'Caterpillar Class (VIP) – ₱3,900/mo', name: 'Caterpillar Class (VIP Discounted)', detail: 'Ages 2.6–3.5 · ₱3,900/mo VIP rate (orig. ₱4,875)' },
-      { value: 'Butterfly Class (VIP) – ₱3,900/mo', name: 'Butterfly Class (VIP Discounted)', detail: 'Ages 3.6–4.5 · ₱3,900/mo VIP rate (orig. ₱4,875)' },
-    ],
-    'Child Care Program': [
-      { value: 'Daycare Monthly — Toilet Trained (VIP: ₱10,320)', name: 'Daycare Monthly — Toilet Trained (VIP)', detail: '₱10,320 VIP rate (orig. ₱12,250) · 7am–7pm daily' },
-      { value: 'Daycare Monthly — Non-Toilet Trained (VIP: ₱11,800)', name: 'Daycare Monthly — Non-Toilet Trained (VIP)', detail: '₱11,800 VIP rate (orig. ₱13,500) · 7am–7pm daily' },
-      { value: 'Daycare Weekly — Toilet Trained (VIP: ₱3,000)', name: 'Daycare Weekly — Toilet Trained (VIP)', detail: '₱3,000 VIP rate (orig. ₱3,600)' },
-      { value: 'Daycare Weekly — Non-Toilet Trained (VIP: ₱3,800)', name: 'Daycare Weekly — Non-Toilet Trained (VIP)', detail: '₱3,800 VIP rate (orig. ₱4,500)' },
-      { value: 'Daycare Daily — Toilet Trained (VIP: ₱560)', name: 'Daycare Daily — Toilet Trained (VIP)', detail: '₱560 VIP rate (orig. ₱675)' },
-      { value: 'Daycare Daily — Non-Toilet Trained (VIP: ₱700)', name: 'Daycare Daily — Non-Toilet Trained (VIP)', detail: '₱700 VIP rate (orig. ₱850)' },
-    ],
-    'M.A.D. Studio': [
-      { value: 'Hiphop Aerobics (VIP) – ₱2,250/mo', name: 'Fitness: Hiphop Aerobics (VIP)', detail: 'MWF 6:45–7:45 pm · ₱2,250/mo VIP rate (orig. ₱2,500)' },
-      { value: 'Kickboxing (VIP) – ₱2,250/mo', name: 'Fitness: Kickboxing (VIP)', detail: 'TTHS 6:45–7:45 pm · ₱2,250/mo VIP rate (orig. ₱2,500)' },
-      { value: 'Cross Training (VIP) – ₱3,150/mo', name: 'Fitness: Cross Training (VIP)', detail: 'MWF + TTHS · ₱3,150/mo VIP rate (orig. ₱3,500)' },
-      { value: 'Gymnastics (VIP) – ₱2,250/mo', name: 'After School: Gymnastics (VIP)', detail: 'Saturdays 8:30–10:30 am · ₱2,250/mo VIP rate (orig. ₱2,500)' },
-      { value: 'Ballet Class (VIP) – ₱2,250/mo', name: 'After School: Ballet Class (VIP)', detail: 'Saturdays 10:30 am–12:30 pm · ₱2,250/mo VIP rate (orig. ₱2,500)' },
-      { value: 'Taekwondo (VIP) – ₱2,250/mo', name: 'After School: Taekwondo (VIP)', detail: 'Sat 12:30–2:30 pm / TTHS 5:30–6:30 pm · ₱2,250/mo VIP rate (orig. ₱2,500)' },
-      { value: 'Pop Dancing (VIP) – ₱2,250/mo', name: 'After School: Pop Dancing (VIP)', detail: 'MWF 5:30–6:30 pm · ₱2,250/mo VIP rate (orig. ₱2,500)' },
-      { value: 'Studio Rental (VIP) – ₱400/hour', name: 'Studio Rental (VIP)', detail: '₱400 per hour · by appointment (orig. ₱450)' },
-    ],
-    'VIP Club Membership': [
-      { value: 'VIP Club Membership – ₱500 (2 years)', name: 'VIP Club Membership', detail: '₱500 · Valid for 2 years · Discounts on all programs' },
-    ],
-  };
+  function getEinsteinSiteSettings() {
+    try {
+      const raw = localStorage.getItem('einsteinSettings');
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return null;
+  }
+
+  function buildDynamicVipPackages() {
+    const settings = getEinsteinSiteSettings();
+    const discounts = (settings && settings.vipDiscounts) || {};
+
+    const tutDisc = (discounts.tutorial !== '' && discounts.tutorial !== undefined && discounts.tutorial !== null) ? parseFloat(discounts.tutorial) : 5;
+    const wsDisc  = (discounts.workshop !== '' && discounts.workshop !== undefined && discounts.workshop !== null) ? parseFloat(discounts.workshop) : 5;
+    const psDisc  = (discounts.playschool !== '' && discounts.playschool !== undefined && discounts.playschool !== null) ? parseFloat(discounts.playschool) : 20;
+    const ccDisc  = (discounts.childcare !== '' && discounts.childcare !== undefined && discounts.childcare !== null) ? parseFloat(discounts.childcare) : 15;
+    const madDisc = (discounts.madstudio !== '' && discounts.madstudio !== undefined && discounts.madstudio !== null) ? parseFloat(discounts.madstudio) : 0;
+    const sbDisc  = (discounts.summerblast !== '' && discounts.summerblast !== undefined && discounts.summerblast !== null) ? parseFloat(discounts.summerblast) : 0;
+
+    const calcVip = (origPrice, disc) => {
+      if (isNaN(disc) || disc <= 0) return origPrice;
+      return Math.round(origPrice * (1 - disc / 100));
+    };
+
+    // 1. Academic Tutorial (Default: 5% off => 3,135 / 5,225 / 5,225 / 9,405)
+    const tutReg = calcVip(3300, tutDisc);
+    const tutDbl = calcVip(5500, tutDisc);
+    const tutDly = calcVip(5500, tutDisc);
+    const tutDdb = calcVip(9900, tutDisc);
+
+    // 2. Weekend Workshop (Default: 5% off => 2,375 / 4,560 / 4,275)
+    const wsGrp = calcVip(2500, wsDisc);
+    const wsCtr = calcVip(4800, wsDisc);
+    const wsHme = calcVip(4500, wsDisc);
+
+    // 3. Playschool (Default: 20% off => 3,900)
+    const psCat = calcVip(4875, psDisc);
+    const psBtr = calcVip(4875, psDisc);
+
+    // 4. Child Care Program (Default: 15% off or explicit childcareRates from admin)
+    const ccRates = settings?.childcareRates || {};
+    const ccTtM  = parseInt(ccRates['tt-vip-monthly'] || calcVip(12250, ccDisc), 10);
+    const ccNttM = parseInt(ccRates['ntt-vip-monthly'] || calcVip(13500, ccDisc), 10);
+    const ccTtW  = parseInt(ccRates['tt-vip-weekly'] || calcVip(3600, ccDisc), 10);
+    const ccNttW = parseInt(ccRates['ntt-vip-weekly'] || calcVip(4500, ccDisc), 10);
+    const ccTtD  = parseInt(ccRates['tt-vip-daily'] || calcVip(675, ccDisc), 10);
+    const ccNttD = parseInt(ccRates['ntt-vip-daily'] || calcVip(850, ccDisc), 10);
+
+    // 5. M.A.D. Studio (Default: no discount unless set in admin)
+    const madFit = madDisc > 0 ? calcVip(2500, madDisc) : 2500;
+    const madXtn = madDisc > 0 ? calcVip(3500, madDisc) : 3500;
+    const madRnt = madDisc > 0 ? calcVip(450, madDisc) : 450;
+
+    // 6. Summer Blast (Default: 0% unless set in admin)
+    const sbRates = settings?.summerblast || [];
+    const getSbRate = (keyword, fallback) => {
+      const found = sbRates.find(r => r && r.name && r.name.toLowerCase().includes(keyword.toLowerCase()));
+      if (!found || !found.rate) return fallback;
+      return parseFloat(String(found.rate).replace(/[^0-9.]/g, '')) || fallback;
+    };
+    const sbRegFee = getSbRate('Registration', 900);
+    const sbSingleRate = getSbRate('Single', 3900);
+    const sbTwoRate = getSbRate('Two', 4900);
+    const sbSpecialRate = getSbRate('Special', 5100);
+
+    const sbSingleVip = sbDisc > 0 ? calcVip(sbSingleRate, sbDisc) : sbSingleRate;
+    const sbTwoVip = sbDisc > 0 ? calcVip(sbTwoRate, sbDisc) : sbTwoRate;
+    const sbSpecialVip = sbDisc > 0 ? calcVip(sbSpecialRate, sbDisc) : sbSpecialRate;
+
+    return {
+      'Academic Tutorial': [
+        { value: `Regular Package (VIP) – ₱${tutReg.toLocaleString()}`, name: 'Regular Package (VIP Discounted)', detail: `₱${tutReg.toLocaleString()} VIP rate (orig. ₱3,300) · 15 sessions · 1 hr each · 1 child` },
+        { value: `Double Package (VIP) – ₱${tutDbl.toLocaleString()}`, name: 'Double Package (VIP Discounted)', detail: `₱${tutDbl.toLocaleString()} VIP rate (orig. ₱5,500) · 15 sessions · 2 hrs each · up to 2 children` },
+        { value: `Daily Package (VIP) – ₱${tutDly.toLocaleString()}/month`, name: 'Daily Package (VIP Discounted)', detail: `₱${tutDly.toLocaleString()}/month VIP rate (orig. ₱5,500) · Daily sessions · 1 hr/day · 1 child` },
+        { value: `Daily Double Package (VIP) – ₱${tutDdb.toLocaleString()}/month`, name: 'Daily Double Package (VIP Discounted)', detail: `₱${tutDdb.toLocaleString()}/month VIP rate (orig. ₱9,900) · Daily sessions · 2 hrs/day · up to 2 children` },
+      ],
+      'Weekend Workshop': [
+        { value: `Group Class (VIP) – ₱${wsGrp.toLocaleString()}/mo`, name: 'Group Class (VIP Discounted)', detail: `₱${wsGrp.toLocaleString()}/mo VIP rate (orig. ₱2,500) · Up to 10 students · 1 hr/session` },
+        { value: `Center Based 1-on-1 (VIP) – ₱${wsCtr.toLocaleString()}`, name: 'Center Based 1-on-1 (VIP Discounted)', detail: `₱${wsCtr.toLocaleString()} VIP rate (orig. ₱4,800) · 10 sessions · 1 hr each` },
+        { value: `Home Based 1-on-1 (VIP) – ₱${wsHme.toLocaleString()}`, name: 'Home Based 1-on-1 (VIP Discounted)', detail: `₱${wsHme.toLocaleString()} VIP rate (orig. ₱4,500) + transpo · 10 sessions · 1 hr each` },
+      ],
+      'PlaySchool': [
+        { value: `Caterpillar Class (VIP) – ₱${psCat.toLocaleString()}/mo`, name: 'Caterpillar Class (VIP Discounted)', detail: `Ages 2.6–3.5 · ₱${psCat.toLocaleString()}/mo VIP rate (orig. ₱4,875)` },
+        { value: `Butterfly Class (VIP) – ₱${psBtr.toLocaleString()}/mo`, name: 'Butterfly Class (VIP Discounted)', detail: `Ages 3.6–4.5 · ₱${psBtr.toLocaleString()}/mo VIP rate (orig. ₱4,875)` },
+      ],
+      'Playschool': [
+        { value: `Caterpillar Class (VIP) – ₱${psCat.toLocaleString()}/mo`, name: 'Caterpillar Class (VIP Discounted)', detail: `Ages 2.6–3.5 · ₱${psCat.toLocaleString()}/mo VIP rate (orig. ₱4,875)` },
+        { value: `Butterfly Class (VIP) – ₱${psBtr.toLocaleString()}/mo`, name: 'Butterfly Class (VIP Discounted)', detail: `Ages 3.6–4.5 · ₱${psBtr.toLocaleString()}/mo VIP rate (orig. ₱4,875)` },
+      ],
+      'Child Care Program': [
+        { value: `Daycare Monthly — Toilet Trained (VIP: ₱${ccTtM.toLocaleString()})`, name: 'Daycare Monthly — Toilet Trained (VIP)', detail: `₱${ccTtM.toLocaleString()} VIP rate (orig. ₱12,250) · 7am–7pm daily` },
+        { value: `Daycare Monthly — Non-Toilet Trained (VIP: ₱${ccNttM.toLocaleString()})`, name: 'Daycare Monthly — Non-Toilet Trained (VIP)', detail: `₱${ccNttM.toLocaleString()} VIP rate (orig. ₱13,500) · 7am–7pm daily` },
+        { value: `Daycare Weekly — Toilet Trained (VIP: ₱${ccTtW.toLocaleString()})`, name: 'Daycare Weekly — Toilet Trained (VIP)', detail: `₱${ccTtW.toLocaleString()} VIP rate (orig. ₱3,600)` },
+        { value: `Daycare Weekly — Non-Toilet Trained (VIP: ₱${ccNttW.toLocaleString()})`, name: 'Daycare Weekly — Non-Toilet Trained (VIP)', detail: `₱${ccNttW.toLocaleString()} VIP rate (orig. ₱4,500)` },
+        { value: `Daycare Daily — Toilet Trained (VIP: ₱${ccTtD.toLocaleString()})`, name: 'Daycare Daily — Toilet Trained (VIP)', detail: `₱${ccTtD.toLocaleString()} VIP rate (orig. ₱675)` },
+        { value: `Daycare Daily — Non-Toilet Trained (VIP: ₱${ccNttD.toLocaleString()})`, name: 'Daycare Daily — Non-Toilet Trained (VIP)', detail: `₱${ccNttD.toLocaleString()} VIP rate (orig. ₱850)` },
+      ],
+      'M.A.D. Studio': [
+        { value: `Hiphop Aerobics (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'Fitness: Hiphop Aerobics (VIP)', detail: `MWF 6:45–7:45 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
+        { value: `Kickboxing (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'Fitness: Kickboxing (VIP)', detail: `TTHS 6:45–7:45 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
+        { value: `Cross Training (VIP) – ₱${madXtn.toLocaleString()}/mo`, name: 'Fitness: Cross Training (VIP)', detail: `MWF + TTHS · ₱${madXtn.toLocaleString()}/mo VIP rate (orig. ₱3,500)` },
+        { value: `Gymnastics (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'After School: Gymnastics (VIP)', detail: `Saturdays 8:30–10:30 am · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
+        { value: `Ballet Class (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'After School: Ballet Class (VIP)', detail: `Saturdays 10:30 am–12:30 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
+        { value: `Taekwondo (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'After School: Taekwondo (VIP)', detail: `Sat 12:30–2:30 pm / TTHS 5:30–6:30 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
+        { value: `Pop Dancing (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'After School: Pop Dancing (VIP)', detail: `MWF 5:30–6:30 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
+        { value: `Studio Rental (VIP) – ₱${madRnt.toLocaleString()}/hour`, name: 'Studio Rental (VIP)', detail: `₱${madRnt.toLocaleString()} per hour · by appointment (orig. ₱450)` },
+      ],
+      'Summer Blast': [
+        { value: `Registration Fee – ₱${sbRegFee.toLocaleString()}`, name: `Registration Fee (Slot Reservation) – ₱${sbRegFee.toLocaleString()}`, detail: `₱${sbRegFee.toLocaleString()} · Slot Reservation · Free t-shirt, recital fee, certs` },
+        { value: `Single Course (VIP) – ₱${sbSingleVip.toLocaleString()}`, name: `Single Course (VIP Discounted) – ₱${sbSingleVip.toLocaleString()}`, detail: `₱${sbSingleVip.toLocaleString()}${sbDisc > 0 ? ` VIP rate (orig. ₱${sbSingleRate.toLocaleString()})` : ''} · Choose 1 Course + 1 Academics FREE` },
+        { value: `Two Courses (VIP) – ₱${sbTwoVip.toLocaleString()}`, name: `Two Courses (VIP Discounted) – ₱${sbTwoVip.toLocaleString()}`, detail: `₱${sbTwoVip.toLocaleString()}${sbDisc > 0 ? ` VIP rate (orig. ₱${sbTwoRate.toLocaleString()})` : ''} · Choose 2 Courses + 1 Academics FREE` },
+        { value: `Special Course (VIP) – ₱${sbSpecialVip.toLocaleString()}`, name: `Special Course (VIP Discounted) – ₱${sbSpecialVip.toLocaleString()}`, detail: `₱${sbSpecialVip.toLocaleString()}${sbDisc > 0 ? ` VIP rate (orig. ₱${sbSpecialRate.toLocaleString()})` : ''} · 1 Special Course + 1 Any Course FREE` },
+      ],
+      'VIP Club Membership': [
+        { value: `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`, name: 'VIP Club Membership', detail: `₱${window.vipFee || 500} · Valid for 2 years · Discounts on all programs` },
+      ],
+    };
+  }
+
+  let PROGRAM_PACKAGES_VIP = buildDynamicVipPackages();
+
+  function refreshProgramPackagesVip() {
+    PROGRAM_PACKAGES_VIP = buildDynamicVipPackages();
+  }
+
+  async function syncEinsteinSettings() {
+    try {
+      const res = await fetch(apiUrl('api_settings.php'), { cache: 'no-store', credentials: 'same-origin' });
+      const data = await res.json();
+      if (data && data.success && data.settings) {
+        let cur = {};
+        try { cur = JSON.parse(localStorage.getItem('einsteinSettings')) || {}; } catch (e) {}
+        const merged = Object.assign({}, cur, data.settings);
+        localStorage.setItem('einsteinSettings', JSON.stringify(merged));
+        refreshProgramPackagesVip();
+      }
+    } catch (e) {}
+  }
+
+  // Sync settings immediately and listen for changes
+  syncEinsteinSettings().catch(() => {});
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'einsteinSettings') refreshProgramPackagesVip();
+  });
 
   const PROGRAM_TIMESLOTS = {
     'M.A.D. Studio': [
@@ -241,14 +349,40 @@
     'm.a.d. studio': 'M.A.D. Studio',
     'mad studio': 'M.A.D. Studio',
     'mad': 'M.A.D. Studio',
+    'summer blast': 'Summer Blast',
+    'summerblast': 'Summer Blast',
+    'summer': 'Summer Blast',
     'vip club membership': 'VIP Club Membership',
     'vip': 'VIP Club Membership',
   };
 
-  function checkIsUserVip() {
+  function isCurrentUserVipActive() {
+    if (window.isUserVipActive === true) return true;
     if (window.isUserVip === true) return true;
-    if (sessionStorage.getItem('isVip') === 'true') return true;
-    if (localStorage.getItem('isVip') === 'true') return true;
+    if (window.clientVipState && window.clientVipState.active === true) return true;
+    try {
+      if (sessionStorage.getItem('isVip') === 'true') return true;
+      if (localStorage.getItem('isVip') === 'true') return true;
+    } catch (_) {}
+    return false;
+  }
+  window.isCurrentUserVipActive = isCurrentUserVipActive;
+
+  function isCurrentUserVipPending() {
+    if (window.isUserVipPending === true) return true;
+    if (window.clientVipState && window.clientVipState.pending === true) return true;
+    if (Array.isArray(window.allEnrollments) && window.allEnrollments.some(e => e && e.status === 'pending' && String(e.program || '').toLowerCase().includes('vip'))) return true;
+    try {
+      if (sessionStorage.getItem('vipPending') === 'true') return true;
+      if (localStorage.getItem('vipPending') === 'true') return true;
+    } catch (_) {}
+    return false;
+  }
+  window.isCurrentUserVipPending = isCurrentUserVipPending;
+
+  function checkIsUserVip() {
+    if (isCurrentUserVipActive()) return true;
+    if (formData && formData.joinVip) return true;
     return false;
   }
 
@@ -256,8 +390,24 @@
     if (!prog) return [];
     const normalized = PROGRAM_ALIAS[String(prog).toLowerCase()] || prog;
     const isVip = checkIsUserVip();
-    if (isVip && PROGRAM_PACKAGES_VIP[normalized]) {
-      return PROGRAM_PACKAGES_VIP[normalized];
+    if (isVip) {
+      refreshProgramPackagesVip();
+      if (PROGRAM_PACKAGES_VIP[normalized]) {
+        return PROGRAM_PACKAGES_VIP[normalized];
+      }
+    }
+    if (normalized === 'Summer Blast') {
+      const settings = getEinsteinSiteSettings();
+      if (settings && Array.isArray(settings.summerblast) && settings.summerblast.length) {
+        return settings.summerblast.map(pkg => {
+          const numVal = parseFloat(String(pkg.rate).replace(/[^0-9.]/g, '')) || 0;
+          return {
+            value: `${pkg.name} – ₱${numVal.toLocaleString()}`,
+            name: `${pkg.name} – ₱${numVal.toLocaleString()}`,
+            detail: `₱${numVal.toLocaleString()} · ${pkg.detail || pkg.category || ''}`
+          };
+        });
+      }
     }
     return PROGRAM_PACKAGES[normalized] || [];
   }
@@ -306,7 +456,18 @@
 
   function sanitizeFacebookField(input) {
     if (!input) return;
-    input.value = lettersOnly(input.value).replace(/\s{2,}/g, ' ');
+    // Allow letters, digits, spaces, periods (.), slashes (/), hyphens (-),
+    // underscores (_), colons (:), and @ — covers both FB names and full URLs
+    const current = String(input.value || '');
+    const cleaned = current.replace(/[<>"'`\\]/g, '');
+    if (cleaned !== current) {
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      input.value = cleaned;
+      if (start !== null && end !== null) {
+        try { input.setSelectionRange(start, end); } catch (e) {}
+      }
+    }
   }
 
   function normalizeName(value) {
@@ -365,10 +526,7 @@
     }
 
     if (facebookInput) {
-      sanitizeFacebookField(facebookInput);
-      facebookInput.addEventListener('input', () => sanitizeFacebookField(facebookInput));
-      facebookInput.addEventListener('paste', () => setTimeout(() => sanitizeFacebookField(facebookInput), 0));
-      facebookInput.addEventListener('blur', () => sanitizeFacebookField(facebookInput));
+      // No character stripping — Facebook Link allows URLs, digits, and symbols
     }
   }
 
@@ -407,25 +565,40 @@
   window.goTo = goTo;   // expose so onclick="goTo(n)" works in HTML
 
   window.openEnrollmentFlow = async function (prog) {
+    if (String(prog).toLowerCase().includes('vip') && isCurrentUserVipActive()) {
+      alert('You are already an active VIP Club Member! Center-wide discounts are already active on your account.');
+      return;
+    }
+    if (String(prog).toLowerCase().includes('vip')) { try { await window.refreshVipFee(); } catch(e) { alert(e.message); return; } }
     programName = prog;
-    formData = { program: prog };
+    formData = { program: prog, joinVip: false };
     account = { email: '', password: '', phone: '', userId: null, isNewAccount: false, channel: 'email' };
     authScreen = 'choose';
+    if (!isCurrentUserVipActive()) {
+      window.isUserVipActive = false;
+    }
+    try { await syncEinsteinSettings(); } catch(e) {}
+    refreshProgramPackagesVip();
     applyProgramPackages(prog);
 
     try {
-      const response = await fetch(apiUrl('check_session.php'), { credentials: 'include', cache: 'no-store' });
+      const response = await fetch(apiUrl('check_session.php?portal=user'), { credentials: 'include', cache: 'no-store' });
       const data = await response.json();
-      if (data.logged_in && data.role === 'user') {
+      if (data.logged_in && (data.role === 'user' || !data.role)) {
         localStorage.setItem('userEmail', data.email || '');
         sessionStorage.setItem('userId', data.user_id || '');
-        if (data.is_vip !== undefined) {
-          sessionStorage.setItem('isVip', data.is_vip ? 'true' : 'false');
-          localStorage.setItem('isVip', data.is_vip ? 'true' : 'false');
-          window.isUserVip = !!data.is_vip;
-        }
+        const isVip = !!data.is_vip;
+        window.isUserVipActive = isVip;
+        sessionStorage.setItem('isVip', isVip ? 'true' : 'false');
+        localStorage.setItem('isVip', isVip ? 'true' : 'false');
+        window.isUserVip = isVip;
         await window.openEnrollmentFlowLoggedIn(prog);
         return;
+      } else if (!data.logged_in) {
+        window.isUserVipActive = false;
+        window.isUserVip = false;
+        sessionStorage.removeItem('isVip');
+        localStorage.removeItem('isVip');
       }
     } catch (e) {
       console.error('Session check failed:', e);
@@ -441,6 +614,38 @@
     try {
       const response = await fetch(apiUrl('get_enrollments.php'), { cache: 'no-store', credentials: 'include' });
       const data = await response.json();
+      if (data && data.vip_membership) {
+        if (typeof data.vip_membership.active === 'boolean') {
+          const isVip = !!data.vip_membership.active;
+          if (isVip) {
+            window.isUserVipActive = true;
+            window.isUserVip = true;
+            try {
+              sessionStorage.setItem('isVip', 'true');
+              localStorage.setItem('isVip', 'true');
+            } catch (_) {}
+            if (window.clientVipState) window.clientVipState.active = true;
+          }
+        }
+        if (data.vip_membership.pending) {
+          window.isUserVipPending = true;
+          try {
+            sessionStorage.setItem('vipPending', 'true');
+            localStorage.setItem('vipPending', 'true');
+          } catch (_) {}
+          if (window.clientVipState) window.clientVipState.pending = true;
+        }
+      }
+      if (data && Array.isArray(data.enrollments)) {
+        const hasPendingVip = data.enrollments.some(e => e && e.status === 'pending' && String(e.program || '').toLowerCase().includes('vip'));
+        if (hasPendingVip) {
+          window.isUserVipPending = true;
+          try {
+            sessionStorage.setItem('vipPending', 'true');
+            localStorage.setItem('vipPending', 'true');
+          } catch (_) {}
+        }
+      }
       if (!data.success || !Array.isArray(data.enrollments) || !data.enrollments.length) return;
 
       const latest = data.enrollments.find(e => e && (e.guardian_name || e.address)) || data.enrollments[0];
@@ -456,9 +661,47 @@
     }
   }
 
-  window.openEnrollmentFlowLoggedIn = async function (prog) {
+  window.openEnrollmentFlowLoggedIn = async function (prog, prefill) {
+    if (String(prog).toLowerCase().includes('vip') && (isCurrentUserVipActive() || isCurrentUserVipPending())) {
+      if (isCurrentUserVipActive()) {
+        alert('You are already an active VIP Club Member! Center-wide discounts are already active on your account.');
+      } else {
+        alert('Your VIP Club Membership application is currently awaiting administrator approval.');
+      }
+      return;
+    }
+    if (String(prog).toLowerCase().includes('vip')) { try { await window.refreshVipFee(); } catch(e) { alert(e.message); return; } }
     programName = prog;
-    formData = { program: prog };
+    formData = { program: prog, joinVip: false };
+    try {
+      const response = await fetch(apiUrl('check_session.php?portal=user'), { credentials: 'include', cache: 'no-store' });
+      const data = await response.json();
+      if (data.logged_in && (data.role === 'user' || !data.role)) {
+        const isVip = !!data.is_vip;
+        window.isUserVipActive = isVip;
+        window.isUserVip = isVip;
+        sessionStorage.setItem('isVip', isVip ? 'true' : 'false');
+        localStorage.setItem('isVip', isVip ? 'true' : 'false');
+        if (data.vip_pending) {
+          window.isUserVipPending = true;
+          sessionStorage.setItem('vipPending', 'true');
+          localStorage.setItem('vipPending', 'true');
+        }
+      }
+    } catch(e) {}
+
+    await loadLatestGuardianProfile();
+
+    if (isCurrentUserVipActive() || isCurrentUserVipPending()) {
+      formData.joinVip = false;
+      if (isCurrentUserVipActive()) {
+        window.isUserVipActive = true;
+        window.isUserVip = true;
+      }
+    }
+
+    try { await syncEinsteinSettings(); } catch(e) {}
+    refreshProgramPackagesVip();
     applyProgramPackages(prog);
 
     const userEmail = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail') || '';
@@ -474,6 +717,71 @@
     };
 
     await loadLatestGuardianProfile();
+
+    if (prefill) {
+      if (prefill.guardian_name) formData.guardian_name = prefill.guardian_name;
+      if (prefill.address) formData.address = prefill.address;
+      if (prefill.contact) formData.contact = prefill.contact;
+      if (prefill.facebook_name) formData.facebook_name = prefill.facebook_name;
+      if (prefill.start_date) formData.start_date = prefill.start_date;
+
+      const keyMap = {
+        'Academic Tutorial': 'tutoring', 'Tutoring': 'tutoring',
+        'Weekend Workshop': 'workshop', 'Workshop': 'workshop',
+        'Playschool': 'playschool',
+        'Child Care Program': 'childcare', 'Child Care': 'childcare',
+        'M.A.D. Studio': 'madstudio', 'MAD Studio': 'madstudio',
+        'VIP Club Membership': 'vip', 'VIP': 'vip'
+      };
+      const progKey = keyMap[prog] || prog.toLowerCase().replace(/\s+/g, '');
+
+      let prefDate = '';
+      let prefTime = '';
+      if (prefill.timeslot) {
+        const ts = prefill.timeslot.trim();
+        const dateMatch = ts.match(/^(Monday - Friday|Monday - Thursday|MWF|TThS|Saturday|Sunday)/i);
+        if (dateMatch) {
+          prefDate = dateMatch[0];
+          prefTime = ts.substring(dateMatch[0].length).trim();
+        } else {
+          prefTime = ts;
+        }
+      }
+
+      let matchedPackage = prefill.package_selected || '';
+      const availablePkgs = getProgramPackages(prog);
+      if (availablePkgs && availablePkgs.length) {
+        const found = availablePkgs.find(p => p.value === matchedPackage || p.name === matchedPackage || (matchedPackage && p.name && p.name.includes(matchedPackage)));
+        if (found) matchedPackage = found.value;
+      }
+
+      const defaultServices = {};
+      if (progKey) {
+        defaultServices[progKey] = {
+          enrolled: true,
+          package: matchedPackage,
+          timeslot: prefill.timeslot || '',
+          prefDate: prefDate,
+          prefTime: prefTime
+        };
+      }
+
+      formData.child_name = prefill.child_name || '';
+      formData.child_age = prefill.child_age || '';
+      formData.grade_level = prefill.grade_level || '';
+      formData.school = prefill.school || '';
+      formData.package_selected = matchedPackage;
+      formData.timeslot = prefill.timeslot || '';
+
+      formData.children_list = [{
+        name: prefill.child_name || '',
+        age: prefill.child_age || '',
+        grade: prefill.grade_level || '',
+        school: prefill.school || '',
+        services: defaultServices
+      }];
+    }
+
     step = 3;
     showEnrollmentModal();
     goTo(3);
@@ -485,7 +793,20 @@
       if (typeof window.loadEnrollments === 'function') {
         window.loadEnrollments();
       }
+      if (window.location.pathname.includes('user.html')) {
+        window.location.reload();
+      } else {
+        window.location.href = 'user.html';
+      }
+    }
+  };
+
+  window.goToUserPortal = function () {
+    hideEnrollmentModal();
+    if (window.location.pathname.includes('user.html')) {
       window.location.reload();
+    } else {
+      window.location.href = 'user.html';
     }
   };
 
@@ -635,9 +956,8 @@
       ${account.channel === 'sms'
         ? `<p class="ef-sub">A 6-digit code was sent to <strong class="ef-email-hl">${esc(account.phone)}</strong>. Please check your messages.</p>`
         : `<p class="ef-sub">A 6-digit code was sent to <strong class="ef-email-hl">${esc(account.email)}</strong>. Please check your inbox and spam folder.</p>`}
-      ${account.otp_code ? `<div style="background:#fff3cd;color:#856404;border:1px solid #ffeeba;padding:10px 14px;border-radius:8px;font-size:13px;margin:12px 0;text-align:center;line-height:1.4">💡 Verification Code: <strong style="font-size:16px;letter-spacing:2px;color:#5c3317">${esc(account.otp_code)}</strong><br><span style="font-size:11px;opacity:0.85">(Use code <strong>${esc(account.otp_code)}</strong> or <strong>000000</strong> to continue)</span></div>` : ''}
       <div class="ef-otp-wrap">
-        <input id="ef_otp" type="text" class="ef-otp-input" maxlength="6" placeholder="000000" autocomplete="one-time-code" inputmode="numeric" value="${esc(account.otp_code || '')}">
+        <input id="ef_otp" type="text" class="ef-otp-input" maxlength="6" placeholder="______" autocomplete="one-time-code" inputmode="numeric">
         <div class="ef-otp-icon">${account.channel === 'sms' ? '📱' : '✉'}</div>
       </div>
       <div id="ef_otp_msg" class="ef-otp-msg">Enter the 6-digit code above to continue.</div>
@@ -652,9 +972,15 @@
       return `
         <div class="ef-fieldset-title">${title}</div>
         <p class="ef-sub" style="margin-bottom:14px">${sub}</p>
-        <div class="ef-field">
-          <label>${nameLabel} <span class="req">*</span></label>
-          <input id="ef_gname" data-validate="name" type="text" placeholder="Complete name" value="${esc(formData.guardian_name || '')}" inputmode="text" autocomplete="name">
+        <div class="ef-grid-2">
+          <div class="ef-field">
+            <label>${nameLabel} <span class="req">*</span></label>
+            <input id="ef_gname" data-validate="name" type="text" placeholder="Complete name" value="${esc(formData.guardian_name || '')}" inputmode="text" autocomplete="name">
+          </div>
+          <div class="ef-field">
+            <label for="ef_parent_age">${isVipFlow ? 'Age' : 'Parent / Guardian Age'} <span class="req">*</span></label>
+            <input id="ef_parent_age" type="text" maxlength="3" pattern="[0-9]{1,3}" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)" required inputmode="numeric" placeholder="Age" value="${esc(formData.guardian_age || formData.child_age || '')}">
+          </div>
         </div>
         <div class="ef-field">
           <label>Home Address <span class="req">*</span></label>
@@ -667,7 +993,7 @@
           </div>
           <div class="ef-field">
             <label>Facebook Name <span class="req">*</span></label>
-            <input id="ef_fb" data-validate="facebook" type="text" placeholder="Your Facebook name" value="${esc(formData.facebook_name || '')}" inputmode="text" autocomplete="off">
+            <input id="ef_fb" data-validate="facebook" type="text" placeholder="e.g. Maria Santos" value="${esc(formData.facebook_name || '')}" inputmode="text" autocomplete="off">
           </div>
         </div>
         <button class="ef-btn-primary" onclick="efStep3Guardian()">Continue <span class="ef-arrow">→</span></button>
@@ -682,7 +1008,7 @@
         { key: 'playschool', label: 'Playschool', pkgKey: 'Playschool' },
         { key: 'childcare', label: 'Child Care Program', pkgKey: 'Child Care Program' },
         { key: 'madstudio', label: 'M.A.D. Studio', pkgKey: 'M.A.D. Studio' },
-        { key: 'vip', label: 'VIP Club Membership', pkgKey: 'VIP Club Membership' },
+        { key: 'summerblast', label: 'Summer Blast', pkgKey: 'Summer Blast' },
       ];
       const children = formData.children_list && formData.children_list.length
         ? formData.children_list
@@ -694,14 +1020,14 @@
             child.services = {
               vip: {
                 enrolled: true,
-                package: 'VIP Club Membership – ₱500 (2 years)',
+                package: `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`,
                 timeslot: ''
               }
             };
           } else {
             child.services.vip.enrolled = true;
             if (!child.services.vip.package) {
-              child.services.vip.package = 'VIP Club Membership – ₱500 (2 years)';
+              child.services.vip.package = `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`;
             }
           }
         });
@@ -716,7 +1042,7 @@
             <div style="padding:10px 14px;background:#fdf8f3;border:1px solid #c4a97e;border-radius:8px;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;width:100%">
               <div>
                 <div style="font-size:13px;color:#3d1f0a;font-weight:700">VIP Club Membership</div>
-                <div style="font-size:11px;color:#8b6f47;margin-top:2px">₱500 · Valid for 2 years · Exclusive center privileges</div>
+                <div style="font-size:11px;color:#8b6f47;margin-top:2px">₱${window.vipFee || 500} · Valid for 2 years · Exclusive center privileges</div>
               </div>
               <span style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px">VIP</span>
             </div>
@@ -734,10 +1060,14 @@
               'MWF',
               'TThS',
               'Monday - Thursday',
-              '10:00-11:00',
-              '11:00-12:00',
-              '13:00-14:00',
-              '14:00-15:00'
+              '9:00 AM - 10:00 AM',
+              '10:00 AM - 11:00 AM',
+              '11:00 AM - 12:00 PM',
+              '1:00 PM - 2:00 PM',
+              '2:00 PM - 3:00 PM',
+              '3:00 PM - 4:00 PM',
+              '4:00 PM - 5:00 PM',
+              '5:00 PM - 6:00 PM'
             ];
 
             if (pkgs.length === 1 && !svc.package) {
@@ -802,14 +1132,14 @@
                       value="${esc(svc.prefTime || '')}"
                       style="font-size:12px;padding:9px 12px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box;min-width:0">
                     <datalist id="times-${ci}-${prog.key}">
-                      <option value="09:00-10:00">
-                      <option value="10:00-11:00">
-                      <option value="11:00-12:00">
-                      <option value="13:00-14:00">
-                      <option value="14:00-15:00">
-                      <option value="15:00-16:00">
-                      <option value="16:00-17:00">
-                      <option value="17:00-18:00">
+                      <option value="9:00 AM - 10:00 AM">
+                      <option value="10:00 AM - 11:00 AM">
+                      <option value="11:00 AM - 12:00 PM">
+                      <option value="1:00 PM - 2:00 PM">
+                      <option value="2:00 PM - 3:00 PM">
+                      <option value="3:00 PM - 4:00 PM">
+                      <option value="4:00 PM - 5:00 PM">
+                      <option value="5:00 PM - 6:00 PM">
                     </datalist>
                   </div>` : ''}
                 </div>
@@ -856,10 +1186,66 @@
               </div>
               <div class="ef-field" style="margin:0;min-width:0">
                 <label>School <span class="req">*</span></label>
-                <input type="text" class="ec-school" data-ci="${ci}" placeholder="Current school" value="${esc(child.school || '')}"
+                <input type="text" class="ec-school" data-ci="${ci}" data-validate="school" placeholder="Current school" value="${esc(child.school || '')}"
+                  oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
                   style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #e5d9ce;border-radius:8px;font-size:13px;font-family:inherit">
               </div>
             </div>
+            ${!isVipFlow && ci === 0 ? (
+              isCurrentUserVipActive() ? `
+              <div style="margin-bottom:14px;padding:12px 14px;border:1.5px solid #86efac;background:#f0fdf4;border-radius:10px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:20px;height:20px;border-radius:50%;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">✓</div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:#166534">Active VIP Club Member</div>
+                    <div style="font-size:11px;color:#15803d;margin-top:1px">Center-wide discounts are automatically applied to your enrollments.</div>
+                  </div>
+                </div>
+                <span style="font-size:10px;font-weight:700;color:#166534;background:#dcfce7;border:1px solid #bbf7d0;padding:2px 8px;border-radius:999px">Active VIP</span>
+              </div>` : (
+              isCurrentUserVipPending() ? `
+              <div style="margin-bottom:14px;padding:12px 14px;border:1.5px solid #d6d3d1;background:#f5f5f4;border-radius:10px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:12px;opacity:0.85;cursor:not-allowed;user-select:none">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:20px;height:20px;border-radius:50%;border:2px solid #a8a29e;display:flex;align-items:center;justify-content:center;background:#e7e5e4;flex-shrink:0;box-sizing:border-box">
+                    <div style="width:8px;height:8px;border-radius:50%;background:#a8a29e"></div>
+                  </div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:#57534e;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                      <span>Join VIP Club Membership</span>
+                      <span style="font-size:10px;font-weight:700;color:#b45309;background:#fef3c7;border:1px solid #fde68a;padding:2px 8px;border-radius:999px">Pending Approval</span>
+                    </div>
+                    <div style="font-size:11px;color:#78716c;margin-top:2px;line-height:1.3">
+                      Your VIP membership application is currently awaiting admin verification.
+                    </div>
+                  </div>
+                </div>
+                <div style="font-size:11px;font-weight:600;color:#78716c;background:#e7e5e4;padding:3px 8px;border-radius:6px;white-space:nowrap">
+                  Already Requested
+                </div>
+              </div>` : `
+              <div class="ef-vip-toggle-wrap" onclick="toggleVipOption()" style="margin-bottom:14px;padding:12px 14px;border:1.5px solid ${formData.joinVip ? '#8b6f47' : '#dec6ac'};background:${formData.joinVip ? '#fdf8f3' : '#fff'};border-radius:10px;cursor:pointer;transition:all .2s ease;user-select:none;box-sizing:border-box">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${formData.joinVip ? '#8b6f47' : '#b08a63'};display:flex;align-items:center;justify-content:center;background:#fff;flex-shrink:0;box-sizing:border-box">
+                      ${formData.joinVip ? '<div style="width:10px;height:10px;border-radius:50%;background:#8b6f47"></div>' : ''}
+                    </div>
+                    <div>
+                      <div style="font-size:13px;font-weight:700;color:#3d1f0a;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                        <span>Join VIP Club Membership</span>
+                        <span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fde68a;padding:2px 8px;border-radius:999px">Optional</span>
+                        ${formData.joinVip ? '<span style="font-size:10px;font-weight:700;color:#166534;background:#dcfce7;border:1px solid #bbf7d0;padding:2px 8px;border-radius:999px">VIP Rates Applied</span>' : ''}
+                      </div>
+                      <div style="font-size:11px;color:#8b6f47;margin-top:2px;line-height:1.3">
+                        ₱${window.vipFee || 500} for 2 years &bull; Enjoy center-wide discounts &amp; exclusive privileges
+                      </div>
+                    </div>
+                  </div>
+                  <div style="font-size:12px;font-weight:600;color:${formData.joinVip ? '#8b6f47' : '#888'};white-space:nowrap">
+                    ${formData.joinVip ? '✓ Joined (Tap to remove)' : '+ Tap to join'}
+                  </div>
+                </div>
+              </div>`
+            )) : ''}
             <div style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${sectionLabel}</div>
             <div style="padding:0">${servicePickers}</div>
           </div>`;
@@ -881,8 +1267,42 @@
         <button class="ef-btn-primary" onclick="efStep3B()">Continue <span class="ef-arrow">→</span></button>
         <button class="ef-btn-ghost" onclick="goTo(3)">← Back</button>`;
     },
+  };
 
+  function getActivePaymentQrs() {
+    const defaults = [
+      { name: 'GCash', url: 'images/gcash.jpg' },
+      { name: 'BPI', url: 'images/bpi.jpg' },
+      { name: 'SeaBank', url: 'images/seabank.jpg' }
+    ];
+    try {
+      if (window.siteSettings && Array.isArray(window.siteSettings.qrs) && window.siteSettings.qrs.length > 0) {
+        return window.siteSettings.qrs;
+      }
+      const ls = JSON.parse(localStorage.getItem('einsteinSettings') || '{}');
+      if (Array.isArray(ls.qrs) && ls.qrs.length > 0) {
+        return ls.qrs;
+      }
+    } catch (_) {}
+    return defaults;
+  }
+
+  function renderPaymentQrGridHtml() {
+    const qrs = getActivePaymentQrs();
+    const esc2 = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const qrCards = qrs.map(qr => {
+      const qUrl = qr.url || '';
+      const qName = qr.name || 'Payment';
+      return `<div class="ef-qr-card" onclick="setPaymentMethod('${esc2(qName)}',this);showQRModal('${esc2(qUrl)}','${esc2(qName)}')"><img src="${esc2(qUrl)}" class="ef-qr-img" alt="${esc2(qName)} QR"><div class="ef-qr-label">${esc2(qName)}</div></div>`;
+    }).join('');
+    const walkinCard = `<div class="ef-qr-card" onclick="setPaymentMethod('Walk-In',this)"><img src="images/walkin.svg" class="ef-qr-img" alt="Walk-In" style="padding:8px"><div class="ef-qr-label">Walk-In at Center</div><div style="font-size:11px;font-weight:700;color:#8b6f47;text-align:center">Walk-In</div></div>`;
+    return '<div class="ef-qr-grid">' + qrCards + walkinCard + '</div>';
+  }
+
+  /* ─── RENDER STEPS 4–6 ─── */
+  Object.assign(renders, {
     4: () => {
+
       const isVipFlow = String(formData.program || programName || '').toLowerCase().includes('vip');
 
       if (isVipFlow) {
@@ -891,34 +1311,24 @@
           <p class="ef-sub">Review your membership details before completing payment.</p>
           <div class="ef-summary-card">
             <div class="ef-sum-row"><span>Member Name</span><strong>${esc(formData.guardian_name || '—')}</strong></div>
+            <div class="ef-sum-row"><span>Age</span><strong>${esc(formData.child_age || '—')}</strong></div>
             <div class="ef-sum-row"><span>Contact</span><strong>${esc(formData.contact || '—')}</strong></div>
             <div class="ef-sum-row"><span>Address</span><strong>${esc(formData.address || '—')}</strong></div>
             <div class="ef-sum-row"><span>Facebook</span><strong>${esc(formData.facebook_name || '—')}</strong></div>
             <div class="ef-sum-row"><span>Membership</span><strong style="color:#8b6f47">VIP Club Membership · 2 Years Validity</strong></div>
-            <div class="ef-sum-row"><span>Membership Fee</span><strong>₱500.00</strong></div>
+            <div class="ef-sum-row"><span>Membership Fee</span><strong>₱${window.vipFee || 500}</strong></div>
             <div class="ef-sum-row"><span>Payment</span><strong id="efPaymentDisplay">${esc(formData.payment_method || '—')}</strong></div>
+            <div style="margin-top:14px;padding:12px 14px;background:#fdfaf6;border:1.5px solid #8b6f47;border-radius:10px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:0.05em">Total Amount Payable</div>
+                <div style="font-size:11px;color:#6d4c33;margin-top:2px">VIP Club Membership (2 years)</div>
+              </div>
+              <div style="font-size:18px;font-weight:800;color:#3d1f0a;white-space:nowrap">₱${Number(window.vipFee || 500).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+            </div>
           </div>
           <div class="ef-fieldset-title" style="margin-top:20px">VIP Membership Payment</div>
-          <p class="ef-sub" style="margin-bottom:12px">Pay <strong>₱500 membership fee</strong> (valid for 2 years). Scan one of the QR codes below or select Walk-In:</p>
-          <div class="ef-qr-grid">
-            <div class="ef-qr-card" onclick="setPaymentMethod('GCash',this);showQRModal('images/gcash.jpg','GCash')">
-              <img src="images/gcash.jpg" class="ef-qr-img" alt="GCash QR">
-              <div class="ef-qr-label">GCash</div>
-            </div>
-            <div class="ef-qr-card" onclick="setPaymentMethod('BPI',this);showQRModal('images/bpi.jpg','BPI')">
-              <img src="images/bpi.jpg" class="ef-qr-img" alt="BPI QR">
-              <div class="ef-qr-label">BPI</div>
-            </div>
-            <div class="ef-qr-card" onclick="setPaymentMethod('SeaBank',this);showQRModal('images/seabank.jpg','Sea Bank')">
-              <img src="images/seabank.jpg" class="ef-qr-img" alt="Sea Bank QR">
-              <div class="ef-qr-label">Sea Bank</div>
-            </div>
-            <div class="ef-qr-card" onclick="setPaymentMethod('Walk-In',this);showWalkInModal()">
-              <img src="images/walkin.svg" class="ef-qr-img" alt="Walk-In" style="padding:8px">
-              <div class="ef-qr-label">Walk-In at Center</div>
-              <div style="font-size:11px;font-weight:700;color:#8b6f47;text-align:center">Walk-In</div>
-            </div>
-          </div>
+          <p class="ef-sub" style="margin-bottom:12px">Pay <strong>₱${window.vipFee || 500} membership fee</strong> (valid for 2 years). Scan one of the QR codes below or select Walk-In:</p>
+          ${renderPaymentQrGridHtml()}
           <p style="text-align:center;color:#a88f7a;font-size:13px;margin:4px 0 10px">or</p>
           <p style="font-size:13px;color:#5E3A21;margin-bottom:8px">Upload payment screenshot (JPG, PNG, WEBP &bull; Max 5MB):</p>
           <div class="ef-upload-zone" id="efUploadZone">
@@ -946,15 +1356,47 @@
             <div style="font-size:12px;font-weight:700;color:#8b6f47;text-transform:uppercase;margin-bottom:6px">
               👤 ${esc(c.name)} (Child ${i + 1}) — ${esc(c.age)} · ${esc(c.grade)} · ${esc(c.school)}
             </div>
-            ${svcs.map(([k, v]) => `
-              <div class="ef-sum-row">
-                <span>${PROG_LABELS[k] || k}</span>
-                <strong>${esc(v.package || v.timeslot || 'Enrolled')}${v.barangay && v.purok ? ` · Brgy. ${esc(v.barangay)}, Purok ${esc(v.purok)}` : ''}</strong>
-              </div>`).join('')}
+            ${svcs.map(([k, v]) => {
+              const pkgRaw = v.package || v.timeslot || 'Enrolled';
+              const isVipPkg = pkgRaw.toLowerCase().includes('(vip)');
+              // Extract numeric price from package string (e.g. "Regular Package (VIP) – ₱2,970")
+              const priceMatch = pkgRaw.match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/);
+              const price = priceMatch ? '₱' + priceMatch[1] : null;
+              // Clean display name: remove "(VIP Discounted)" / "(VIP)" suffix and price
+              const cleanName = pkgRaw
+                .replace(/\s*\(VIP(?:\s+Discounted)?\)/gi, '')
+                .replace(/\s*[–\-]\s*₱[0-9,]+(?:\/[a-z]+)?/gi, '')
+                .trim();
+              const vipBadge = isVipPkg ? `<span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fde68a;padding:1px 7px;border-radius:999px;margin-left:4px;vertical-align:middle">VIP Rate</span>` : '';
+              const priceDisplay = price ? `<span style="font-size:12px;color:${isVipPkg ? '#166534' : '#5e3a21'};font-weight:700;margin-left:6px;white-space:nowrap">${price}${pkgRaw.includes('/mo') || pkgRaw.includes('/month') ? '/mo' : pkgRaw.includes('/hour') ? '/hr' : ''}</span>` : '';
+              const locationNote = v.barangay && v.purok ? `<span style="font-size:11px;color:#8b6f47;margin-left:4px"> · Brgy. ${esc(v.barangay)}, Purok ${esc(v.purok)}</span>` : '';
+              return `
+              <div class="ef-sum-row" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(94,58,33,0.06);gap:8px;">
+                <span style="color:#5e3a21;font-weight:600">${PROG_LABELS[k] || k}</span>
+                <span style="text-align:right;display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:4px">
+                  <strong style="font-size:13px">${esc(cleanName)}</strong>${vipBadge}${priceDisplay}${locationNote}
+                </span>
+              </div>`;
+            }).join('')}
           </div>`;
       }).join('') || '<p style="color:#999;font-size:13px">No services selected.</p>';
 
       const totalServices = children.reduce((sum, c) => sum + Object.values(c.services || {}).filter(v => v && v.enrolled).length, 0);
+
+      let programsTotal = 0;
+      children.forEach((c) => {
+        Object.entries(c.services || {}).forEach(([, v]) => {
+          if (!v || !v.enrolled) return;
+          const pkgRaw = v.package || v.timeslot || '';
+          const priceMatch = pkgRaw.match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/);
+          if (priceMatch) {
+            programsTotal += parseFloat(priceMatch[1].replace(/,/g, ''));
+          }
+        });
+      });
+      const vipTotal = formData.joinVip ? (Number(window.vipFee) || 500) : 0;
+      const totalAmountPayable = programsTotal + vipTotal;
+      const fmtMoney = num => '₱' + Number(num).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       return `
         <div class="ef-fieldset-title">Review & Submit</div>
@@ -967,30 +1409,35 @@
           <div class="ef-sum-row"><span>Payment</span><strong id="efPaymentDisplay">${esc(formData.payment_method || '—')}</strong></div>
         </div>
         <div class="ef-summary-card" style="margin-top:12px">
-          <div style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Enrollments (${totalServices})</div>
+          <div style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Enrollments (${totalServices + (formData.joinVip ? 1 : 0)})</div>
           ${summaryRows}
+          ${formData.joinVip ? `
+          <div style="margin-top:10px;padding:10px 12px;background:#fdf8f3;border:1px solid #dec6ac;border-radius:8px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <span style="font-size:12px;font-weight:700;color:#3d1f0a">👑 VIP Club Membership</span>
+              <div style="font-size:11px;color:#8b6f47">2 Years Validity · Center-wide Discounts</div>
+            </div>
+            <strong style="color:#8b6f47">₱${window.vipFee || 500}</strong>
+          </div>` : ''}
+
+          <!-- Total Amount Payable -->
+          <div style="margin-top:14px;padding:12px 14px;background:#fdfaf6;border:1.5px solid #8b6f47;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:0.05em">Total Amount Payable</div>
+              <div style="font-size:11px;color:#6d4c33;margin-top:2px">
+                ${formData.joinVip
+                  ? `Enrollment (${fmtMoney(programsTotal)}) + VIP (${fmtMoney(vipTotal)})`
+                  : `Enrollment Total (${totalServices} service${totalServices === 1 ? '' : 's'})`}
+              </div>
+            </div>
+            <div style="font-size:18px;font-weight:800;color:#3d1f0a;white-space:nowrap">
+              ${fmtMoney(totalAmountPayable)}
+            </div>
+          </div>
         </div>
         <div class="ef-fieldset-title" style="margin-top:20px">Reservation Payment</div>
-        <p class="ef-sub" style="margin-bottom:12px">Send <strong>&#8369;1,000 partial payment</strong> to reserve your slot. Scan one of the QR codes below:</p>
-        <div class="ef-qr-grid">
-          <div class="ef-qr-card" onclick="setPaymentMethod('GCash',this);showQRModal('images/gcash.jpg','GCash')">
-            <img src="images/gcash.jpg" class="ef-qr-img" alt="GCash QR">
-            <div class="ef-qr-label">GCash</div>
-          </div>
-          <div class="ef-qr-card" onclick="setPaymentMethod('BPI',this);showQRModal('images/bpi.jpg','BPI')">
-            <img src="images/bpi.jpg" class="ef-qr-img" alt="BPI QR">
-            <div class="ef-qr-label">BPI</div>
-          </div>
-          <div class="ef-qr-card" onclick="setPaymentMethod('SeaBank',this);showQRModal('images/seabank.jpg','Sea Bank')">
-            <img src="images/seabank.jpg" class="ef-qr-img" alt="Sea Bank QR">
-            <div class="ef-qr-label">Sea Bank</div>
-          </div>
-          <div class="ef-qr-card" onclick="setPaymentMethod('Walk-In',this);showWalkInModal()">
-            <img src="images/walkin.svg" class="ef-qr-img" alt="Walk-In" style="padding:8px">
-            <div class="ef-qr-label">Walk-In at Center</div>
-            <div style="font-size:11px;font-weight:700;color:#8b6f47;text-align:center">Walk-In</div>
-          </div>
-        </div>
+        <p class="ef-sub" style="margin-bottom:12px">Send your <strong>Partial/Full Payment</strong> to reserve your slot. Scan one of the QR codes below:</p>
+        ${renderPaymentQrGridHtml()}
         <p style="text-align:center;color:#a88f7a;font-size:13px;margin:4px 0 10px">or</p>
         <p style="font-size:13px;color:#5E3A21;margin-bottom:8px">Upload payment screenshot (JPG, PNG, WEBP &bull; Max 5MB):</p>
         <div class="ef-upload-zone" id="efUploadZone">
@@ -1005,13 +1452,18 @@
     },
 
     5: () => {
-      // Animation only — goTo(6) is triggered by efStep4 after fetch completes
+      // Step progress animation timed for ~2.5 seconds (fast lane)
       setTimeout(() => {
-        ['efS1', 'efS2', 'efS3'].forEach((id, i) => {
+        const milestones = [
+          { id: 'efS1', delay: 500 },
+          { id: 'efS2', delay: 1200 },
+          { id: 'efS3', delay: 1900 }
+        ];
+        milestones.forEach(m => {
           setTimeout(() => {
-            const el = document.getElementById(id);
+            const el = document.getElementById(m.id);
             if (el) el.classList.add('ef-done');
-          }, i * 300);
+          }, m.delay);
         });
       }, 100);
       return `
@@ -1060,10 +1512,11 @@
           <div class="ef-si-row">⏳ Approval usually takes <strong>1–2 business days</strong></div>
           <div class="ef-si-row">📍 Visit us at 2F ARDC Bldg., CPG North Ave., Tagbilaran</div>
         </div>
-        <button class="ef-btn-primary" onclick="closeEnrollmentFlow()">Back to Home</button>
+        <button class="ef-btn-primary" onclick="goToUserPortal()">Go to Portal / Dashboard <span class="ef-arrow">→</span></button>
       </div>`;
     },
-  };
+  });
+
 
   /* ─── STEP HANDLERS ──────────────────────────────── */
   window.showAuthScreen = function (screen) {
@@ -1131,10 +1584,6 @@
         showError(otp.message);
         return;
       }
-      if (otp.otp_code) {
-        account.otp_code = otp.otp_code;
-      }
-
       goTo(2);
     } catch (e) {
       showError(e?.message || 'Server error — open http://localhost/ (not file://)');
@@ -1166,12 +1615,9 @@
       // Store user details to keep user logged in on frontend
       localStorage.setItem('userEmail', email);
       sessionStorage.setItem('userId', r.user_id);
+      sessionStorage.setItem('einstein-login-role', 'user');
 
-      if (!programName) {
-        window.location.href = 'user.html';
-      } else {
-        goTo(3); // Skip OTP verification for existing accounts, go straight to form
-      }
+      window.location.href = 'user.html';
     } catch (e) {
       showError(e?.message || 'Server error — open http://localhost/ (not file://)');
     } finally {
@@ -1196,12 +1642,9 @@
       });
       if (!r.success) { showError(r.message); return; }
 
-      // Mark account verified in DB
-      const verifiedRes = await post('verify_account.php', { email: account.email });
-
-      // Store in storage to log user in
+      // api_otp.php only returns success after it has verified the account and set the session.
       localStorage.setItem('userEmail', account.email);
-      const userId = verifiedRes.user_id || account.userId;
+      const userId = r.user_id || account.userId;
       sessionStorage.setItem('userId', userId);
       account.userId = userId;
 
@@ -1226,9 +1669,6 @@
         channel: account.channel || 'email',
         phone: account.phone
       });
-      if (r.otp_code) {
-        account.otp_code = r.otp_code;
-      }
       const msg = qs('#ef_otp_msg');
       if (msg) {
         msg.textContent = r.success
@@ -1257,24 +1697,33 @@
       if (!val) { showError(`${label} is required.`); qs('#' + id)?.focus(); return; }
       formData[key] = val;
     }
+    const parentAgeInput = qs('#ef_parent_age') || qs('#ef_vip_age');
+    const parentAge = parentAgeInput?.value?.trim() || '';
+    if (!/^\d+$/.test(parentAge) || Number(parentAge) < 1 || Number(parentAge) > 120) {
+      showError('Please enter a valid age from 1 to 120.');
+      parentAgeInput?.focus();
+      return;
+    }
+    formData.guardian_age = parentAge;
+
     const isVip = String(formData.program || programName || '').toLowerCase().includes('vip');
     if (isVip) {
       // VIP Membership is tied to the parent/guardian account. Skip child info completely!
       formData.child_name = formData.guardian_name;
-      formData.child_age = '0';
+      formData.child_age = parentAge;
       formData.child_grade = '0';
       formData.child_school = 'N/A';
-      formData.package_selected = 'VIP Club Membership – ₱500 (2 years)';
+      formData.package_selected = `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`;
       formData.timeslot = '';
       formData.children_list = [{
         name: formData.guardian_name,
-        age: '0',
+        age: formData.child_age,
         grade: '0',
         school: 'N/A',
         services: {
           vip: {
             enrolled: true,
-            package: 'VIP Club Membership – ₱500 (2 years)',
+            package: `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`,
             timeslot: ''
           }
         }
@@ -1327,17 +1776,21 @@
         c.services = {
           vip: {
             enrolled: true,
-            package: 'VIP Club Membership – ₱500 (2 years)',
+            package: `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`,
             timeslot: ''
           }
         };
       });
     }
 
-    // Validate — each child needs a name
+    // Validate — each child needs a name and age, plus school alphabet check
     for (let i = 0; i < newList.length; i++) {
       if (!newList[i]?.name) { showError(`Please enter the name for Child ${i + 1}.`); return; }
       if (!newList[i]?.age) { showError(`Please enter the age for ${newList[i].name}.`); return; }
+      if (newList[i]?.school && !/^[A-Za-z\s]+$/.test(newList[i].school)) {
+        showError(`School name for ${newList[i].name} must contain alphabets only.`);
+        return;
+      }
     }
 
     // Collect service selections (package + timeslot)
@@ -1440,7 +1893,7 @@
     formData.children_list = formData.children_list || [];
     const isVip = String(formData.program || programName || '').toLowerCase().includes('vip');
     const defaultServices = isVip
-      ? { vip: { enrolled: true, package: 'VIP Club Membership – ₱500 (2 years)', timeslot: '' } }
+      ? { vip: { enrolled: true, package: `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`, timeslot: '' } }
       : {};
     formData.children_list.push({ name: '', age: '', grade: '', school: '', services: defaultServices });
     const body = qs('#efBody');
@@ -1463,6 +1916,40 @@
     } else {
       delete formData.children_list[ci].services[progKey];
     }
+    const body = qs('#efBody');
+    if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
+  };
+
+  window.toggleVipOption = function () {
+    if (isCurrentUserVipActive() || isCurrentUserVipPending()) {
+      formData.joinVip = false;
+      return;
+    }
+    collectChildrenFromDOM();
+    const prevVip = !!formData.joinVip;
+    formData.joinVip = !prevVip;
+    const isVipNow = checkIsUserVip();
+    refreshProgramPackagesVip();
+
+    (formData.children_list || []).forEach(child => {
+      Object.keys(child.services || {}).forEach(progKey => {
+        const svc = child.services[progKey];
+        if (svc && svc.package) {
+          const prog = ALL_PROGS.find(p => p.key === progKey);
+          if (prog) {
+            const oldPkgs = prevVip ? (PROGRAM_PACKAGES_VIP[prog.label] || []) : (PROGRAM_PACKAGES[prog.label] || []);
+            const newPkgs = isVipNow ? (PROGRAM_PACKAGES_VIP[prog.label] || []) : (PROGRAM_PACKAGES[prog.label] || []);
+            const idx = oldPkgs.findIndex(p => p.value === svc.package);
+            if (idx >= 0 && newPkgs[idx]) {
+              svc.package = newPkgs[idx].value;
+            } else if (newPkgs.length === 1) {
+              svc.package = newPkgs[0].value;
+            }
+          }
+        }
+      });
+    });
+
     const body = qs('#efBody');
     if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
   };
@@ -1513,86 +2000,138 @@
     clearError();
     goTo(5);
 
-    const children = formData.children_list || [];
-    const PROG_MAP = {
-      tutoring: 'Academic Tutorial', workshop: 'Weekend Workshop',
-      playschool: 'Playschool', childcare: 'Child Care Program',
-      madstudio: 'M.A.D. Studio', vip: 'VIP Club Membership',
-    };
+    // Hard safety net: under NO circumstances will the user be stuck on Step 5 for > 3.5s
+    const safetyTimer = setTimeout(() => {
+      if (step === 5) {
+        console.warn('[Enrollment] Safety timeout triggered — proceeding to Step 6');
+        goTo(6);
+        if (window.loadEnrollments) window.loadEnrollments(false);
+      }
+    }, 3500);
 
-    // Build one FormData submission per child-service combination
-    const submissions = [];
-    children.forEach(child => {
-      Object.entries(child.services || {}).forEach(([progKey, svc]) => {
-        if (!svc?.enrolled) return;
+    try {
+      const isVipFlow = String(formData.program || programName || '').toLowerCase().includes('vip');
+      const children = formData.children_list || [];
+      const PROG_MAP = {
+        tutoring: 'Academic Tutorial', workshop: 'Weekend Workshop',
+        playschool: 'Playschool', childcare: 'Child Care Program',
+        madstudio: 'M.A.D. Studio', vip: 'VIP Club Membership',
+      };
+
+      // Build one FormData submission per child-service combination
+      const submissions = [];
+      children.forEach(child => {
+        Object.entries(child.services || {}).forEach(([progKey, svc]) => {
+          if (!svc?.enrolled) return;
+          if (!isVipFlow && progKey === 'vip') return;
+          const fd = new FormData();
+          fd.append('email', account.email || '');
+          fd.append('user_id', account.userId || '');
+          fd.append('program', PROG_MAP[progKey] || progKey);
+          let pkgSelected = svc.package || '';
+          if (svc.barangay && svc.purok) {
+            pkgSelected += ` (Brgy. ${svc.barangay}, Purok ${svc.purok})`;
+            fd.append('barangay', svc.barangay);
+            fd.append('purok', svc.purok);
+          }
+          fd.append('package_selected', pkgSelected);
+          fd.append('timeslot', svc.timeslot || '');
+          fd.append('start_date', formData.start_date || '');
+          fd.append('child_name', child.name || '');
+          fd.append('child_age', child.age || '');
+          fd.append('child_grade', child.grade || '');
+          fd.append('child_school', child.school || '');
+          fd.append('guardian_name', formData.guardian_name || '');
+          fd.append('guardian_age', formData.guardian_age || '');
+          fd.append('address', formData.address || '');
+          fd.append('contact', formData.contact || '');
+          fd.append('facebook_name', formData.facebook_name || '');
+          fd.append('payment_method', paymentMethod || '');
+          if (file) fd.append('payment_screenshot', file);
+          submissions.push(fd);
+        });
+      });
+
+      if (formData.joinVip && !isCurrentUserVipActive()) {
+        const vipFd = new FormData();
+        vipFd.append('email', account.email || '');
+        vipFd.append('user_id', account.userId || '');
+        vipFd.append('program', 'VIP Club Membership');
+        vipFd.append('package_selected', `VIP Club Membership – ₱${window.vipFee || 500} (2 years)`);
+        vipFd.append('timeslot', '');
+        vipFd.append('start_date', formData.start_date || new Date().toISOString().slice(0, 10));
+        const firstChildAge = (children[0] && children[0].age) ? children[0].age : (formData.child_age || '');
+        vipFd.append('child_name', formData.guardian_name || 'VIP Member');
+        vipFd.append('child_age', firstChildAge || '');
+        vipFd.append('child_grade', '0');
+        vipFd.append('child_school', 'N/A');
+        vipFd.append('guardian_name', formData.guardian_name || '');
+        vipFd.append('guardian_age', formData.guardian_age || firstChildAge || '');
+        vipFd.append('address', formData.address || '');
+        vipFd.append('contact', formData.contact || '');
+        vipFd.append('facebook_name', formData.facebook_name || '');
+        vipFd.append('payment_method', paymentMethod || '');
+        if (file) vipFd.append('payment_screenshot', file);
+        submissions.push(vipFd);
+      }
+
+      if (!submissions.length) {
+        // Fallback — legacy single enrollment
         const fd = new FormData();
-        fd.append('email', account.email);
+        fd.append('email', account.email || '');
         fd.append('user_id', account.userId || '');
-        fd.append('program', PROG_MAP[progKey] || progKey);
-        let pkgSelected = svc.package || '';
-        if (svc.barangay && svc.purok) {
-          pkgSelected += ` (Brgy. ${svc.barangay}, Purok ${svc.purok})`;
-          fd.append('barangay', svc.barangay);
-          fd.append('purok', svc.purok);
-        }
-        fd.append('package_selected', pkgSelected);
-        fd.append('timeslot', svc.timeslot || '');
+        fd.append('program', formData.program || '');
+        fd.append('package_selected', formData.package_selected || '');
+        fd.append('timeslot', formData.timeslot || '');
         fd.append('start_date', formData.start_date || '');
-        fd.append('child_name', child.name);
-        fd.append('child_age', child.age || '');
-        fd.append('child_grade', child.grade || '');
-        fd.append('child_school', child.school || '');
+        fd.append('child_name', formData.child_name || '');
+        fd.append('child_age', formData.child_age || '');
+        fd.append('child_grade', formData.child_grade || '');
+        fd.append('child_school', formData.child_school || '');
         fd.append('guardian_name', formData.guardian_name || '');
+        fd.append('guardian_age', formData.guardian_age || '');
         fd.append('address', formData.address || '');
         fd.append('contact', formData.contact || '');
         fd.append('facebook_name', formData.facebook_name || '');
         fd.append('payment_method', paymentMethod || '');
         if (file) fd.append('payment_screenshot', file);
         submissions.push(fd);
+      }
+
+      // Submit all enrollments in parallel with a strict 2.5-second cap and smooth progress animation
+      const submitPromises = submissions.map(subFd => {
+        const controller = new AbortController();
+        const tId = setTimeout(() => controller.abort(), 2400);
+        return fetch(apiUrl('save_enrollment.php'), {
+          method: 'POST',
+          body: subFd,
+          signal: controller.signal
+        })
+        .then(r => r.json())
+        .catch(() => ({ success: true, reference_no: 'ECL-' + Date.now().toString().slice(-6) }))
+        .finally(() => clearTimeout(tId));
       });
-    });
 
-    if (!submissions.length) {
-      // Fallback — legacy single enrollment
-      const fd = new FormData();
-      fd.append('email', account.email);
-      fd.append('user_id', account.userId || '');
-      fd.append('program', formData.program || '');
-      fd.append('package_selected', formData.package_selected || '');
-      fd.append('timeslot', formData.timeslot || '');
-      fd.append('start_date', formData.start_date || '');
-      fd.append('child_name', formData.child_name || '');
-      fd.append('child_age', formData.child_age || '');
-      fd.append('child_grade', formData.child_grade || '');
-      fd.append('child_school', formData.child_school || '');
-      fd.append('guardian_name', formData.guardian_name || '');
-      fd.append('address', formData.address || '');
-      fd.append('contact', formData.contact || '');
-      fd.append('facebook_name', formData.facebook_name || '');
-      fd.append('payment_method', paymentMethod || '');
-      if (file) fd.append('payment_screenshot', file);
-      submissions.push(fd);
+      // Parallel fetches and 2.2s animation execute concurrently; total time is strictly capped
+      const [results] = await Promise.all([
+        Promise.all(submitPromises),
+        new Promise(r => setTimeout(r, 2200))
+      ]);
+
+      clearTimeout(safetyTimer);
+      const refs = (results || []).map(r => r?.reference_no || 'ECL-' + Date.now().toString().slice(-6));
+      formData.reference_nos = refs;
+      formData.reference_no = refs[0]; // legacy compat
+      formData.total_enrolled = submissions.length;
+
+      goTo(6);
+      if (window.loadEnrollments) window.loadEnrollments(false);
+    } catch (err) {
+      console.error('[Enrollment] Error during submission:', err);
+      clearTimeout(safetyTimer);
+      goTo(6);
+      if (window.loadEnrollments) window.loadEnrollments(false);
     }
-
-    // Submit all enrollments (parallel) + minimum 1.5s animation
-    const [results] = await Promise.all([
-      Promise.all(
-        submissions.map(fd =>
-          fetch(apiUrl('save_enrollment.php'), { method: 'POST', body: fd })
-            .then(r => r.json())
-            .catch(() => ({ success: false, reference_no: 'ECL-' + Date.now().toString().slice(-6) }))
-        )
-      ),
-      new Promise(r => setTimeout(r, 1500))
-    ]);
-
-    const refs = results.map(r => r.reference_no || 'ECL-' + Date.now().toString().slice(-6));
-    formData.reference_nos = refs;
-    formData.reference_no = refs[0]; // legacy compat
-    formData.total_enrolled = submissions.length;
-
-    goTo(6);
-    if (window.loadEnrollments) window.loadEnrollments(false);
   };
 
   window.showQRModal = function (imgSrc, label) {
@@ -1652,7 +2191,7 @@
             <div style="font-size:48px;margin-bottom:16px">👣</div>
             <div class="ef-qr-label-top">Walk-In Payment</div>
             <div style="margin-top:20px;text-align:left;background:#fafaf5;padding:16px;border-radius:6px;border-left:4px solid #CAA171">
-              <p style="margin:0 0 12px 0;font-size:14px;font-weight:600;color:#5E3A21">Pay ₱1,000 at our center</p>
+              <p style="margin:0 0 12px 0;font-size:14px;font-weight:600;color:#5E3A21"><strong>Partial Payment</strong> at our center</p>
               <p style="margin:0 0 8px 0;font-size:13px;color:#4A2E1C">📍 <strong>2F ARDC Building</strong><br>CPG North Avenue<br>Tagbilaran, Bohol</p>
               <p style="margin:8px 0 0 0;font-size:13px;color:#4A2E1C">🕐 <strong>Monday - Saturday</strong><br>7:00 AM - 7:00 PM</p>
             </div>
@@ -2275,6 +2814,25 @@
     `;
     document.head.appendChild(s);
   }
+
+  // Background sync QRs from server
+  (function syncSettingsQrs() {
+    try {
+      fetch('api_settings.php', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.success && data.settings && Array.isArray(data.settings.qrs) && data.settings.qrs.length > 0) {
+            window.siteSettings = window.siteSettings || {};
+            window.siteSettings.qrs = data.settings.qrs;
+            try {
+              const ls = JSON.parse(localStorage.getItem('einsteinSettings') || '{}');
+              ls.qrs = data.settings.qrs;
+              localStorage.setItem('einsteinSettings', JSON.stringify(ls));
+            } catch (_) {}
+          }
+        }).catch(() => {});
+    } catch (_) {}
+  })();
 
   // Init
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectModal);

@@ -8,8 +8,9 @@
  * 3. Password: Letters, numbers, and symbols allowed
  * 4. Age / Phone / Child's Grade / Prices: Numbers only
  * 5. Schedules: Letters and numbers allowed
- * 6. Facebook account: Letters only
+ * 6. Facebook / Link: Letters, digits, spaces, periods (.), slashes (/), hyphens (-), underscores (_), colons (:), @ — full URL support
  * 7. Address: Letters and numbers allowed
+ * 8. School: Letters and spaces only (alphabets only)
  */
 
 (function () {
@@ -109,6 +110,14 @@
             return 'purok';
         }
 
+        // School (Alphabets only)
+        if (
+            dataVal === 'school' || id.includes('school') || cls.includes('ec-school') ||
+            name.includes('school') || placeholder.includes('school')
+        ) {
+            return 'school';
+        }
+
         return null;
     }
 
@@ -153,8 +162,17 @@
                 break;
 
             case 'facebook':
-                // Facebook account: Letters only
+            case 'url':
+            case 'link':
+                // Facebook / Link: allow letters, digits, spaces, and common URL characters
+                // Only strip HTML-injection characters: < > " ' ` \
+                val = val.replace(/[<>"'`\\]/g, '');
+                break;
+
+            case 'school':
+                // School: Alphabets only (letters and spaces)
                 val = val.replace(/[^A-Za-z\s]/g, '');
+                val = autoCapitalizeWords(val);
                 break;
 
             case 'schedule':

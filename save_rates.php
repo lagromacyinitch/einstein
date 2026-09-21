@@ -130,7 +130,7 @@ try {
                 $rate = '₱' . $rate;
             }
             $schedule = $row['schedule'] ?? null;
-            $type = $row['package_type'] ?? 'workshop';
+            $type = 'workshop';
             $selectStmt->execute([$programName, $name]);
             $found = $selectStmt->fetchColumn();
             if ($found) {
@@ -145,7 +145,7 @@ try {
             $requireNumber($row['rate'] ?? null, 'Playschool rate');
             $rate = $formatRate($row['rate'] ?? null) . '/mo';
             $notes = $row['notes'] ?? null;
-            $type = $row['package_type'] ?? 'playschool';
+            $type = 'playschool';
             $selectStmt->execute([$programName, $name]);
             $found = $selectStmt->fetchColumn();
             if ($found) {

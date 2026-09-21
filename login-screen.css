@@ -1,3 +1,22 @@
+
+/* Hide Microsoft Edge / IE native password reveal & clear buttons to prevent duplicate eye icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
 /* Einstein Center — login screen (matches admin portal design) */
 :root {
   --login-brown-primary: #5c3317;
@@ -15,6 +34,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
+  padding: 24px 0;
+  box-sizing: border-box;
   font-family: 'Lato', sans-serif;
 }
 
@@ -33,6 +55,7 @@
   backdrop-filter: blur(8px);
   animation: loginFadeUp 0.6s ease;
   position: relative;
+  margin: auto 16px;
 }
 
 @keyframes loginFadeUp {
@@ -281,3 +304,192 @@
 .login-footer-links a:hover {
   text-decoration: underline;
 }
+
+.password-reset-panel {
+  margin-top: 6px;
+}
+
+.password-reset-panel[hidden] {
+  display: none !important;
+}
+
+.reset-back-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--login-gold-light);
+  font: 600 12px 'Lato', sans-serif;
+  cursor: pointer;
+}
+
+.reset-back-link:hover,
+.reset-back-link:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.reset-heading {
+  margin: 18px 0 14px;
+  text-align: center;
+}
+
+.reset-heading h2 {
+  margin: 0;
+  color: var(--login-gold-light);
+  font-family: 'Playfair Display', serif;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.reset-heading p,
+.reset-email-summary,
+.reset-password-hint {
+  margin: 7px 0 0;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.reset-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 11px;
+}
+
+.reset-progress .active {
+  color: var(--login-gold-light);
+  font-weight: 700;
+}
+
+.reset-message {
+  display: none;
+  margin: 12px 0 2px;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.reset-message.visible {
+  display: block;
+}
+
+.reset-message.info {
+  color: #f7e7b2;
+  background: rgba(201, 168, 76, 0.14);
+  border-color: rgba(224, 196, 122, 0.35);
+}
+
+.reset-message.success {
+  color: #c7f0ce;
+  background: rgba(51, 135, 74, 0.22);
+  border-color: rgba(130, 210, 151, 0.38);
+}
+
+.reset-message.error {
+  color: #ffc9c0;
+  background: rgba(192, 57, 43, 0.2);
+  border-color: rgba(255, 120, 100, 0.35);
+}
+
+.reset-email-summary {
+  margin: 2px 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.reset-password-hint {
+  margin-top: 7px;
+  font-size: 11px;
+}
+
+.reset-resend-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--login-gold-light);
+  font: 600 12px 'Lato', sans-serif;
+  cursor: pointer;
+}
+
+.reset-resend-btn:hover:not(:disabled),
+.reset-resend-btn:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.reset-resend-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.reset-success {
+  padding: 18px 0 2px;
+  text-align: center;
+}
+
+.reset-success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 2px solid rgba(151, 225, 166, 0.8);
+  border-radius: 50%;
+  color: #d6f7dc;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.reset-success h3 {
+  margin: 12px 0 6px;
+  color: var(--login-gold-light);
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+}
+
+.reset-success p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.reset-success .login-btn {
+  margin-top: 20px;
+}
+
+@media (max-height: 800px) {
+  #login-screen {
+    align-items: flex-start;
+  }
+
+  .login-box {
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+}
+
+/* Compact, aligned password recovery steps; retain the existing card width. */
+body[data-auto-login-init] .login-logo .logo-oval { width: 156px; height: 112px; }
+body[data-auto-login-init] .login-logo { margin-bottom: 16px; }
+.password-reset-panel [hidden] { display: none !important; }
+.password-reset-panel .reset-heading { margin: 0 0 18px; }
+.password-reset-panel .reset-heading p { margin-top: 8px; font-size: 13px; }
+.password-reset-panel .reset-progress { gap: 12px; margin-bottom: 20px; }
+.password-reset-panel label { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 600; margin-top: 16px; margin-bottom: 7px; }
+.password-reset-panel .reset-message { margin: 0 0 16px; line-height: 1.5; }
+.password-reset-panel .reset-email-summary { margin: 0 0 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(224,196,122,.25); }
+.password-reset-panel .login-btn { margin-top: 22px; }
+.password-reset-panel .reset-password-hint { margin: 8px 0 0; }
+.password-reset-panel .reset-resend-btn { padding: 8px 0; margin-top: 10px; }
+#reset-code { letter-spacing: 6px; text-align: center; font-size: 18px; }
+
+body[data-auto-login-init] .login-logo .logo-oval img { transform: scale(1.25); }

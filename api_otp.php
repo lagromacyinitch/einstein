@@ -25,19 +25,20 @@ function otpEmailHtml(string $otp): string {
       .ftr{background:#f5ede0;padding:16px 32px;text-align:center;font-size:11px;color:#8D6A4E}
     </style></head>
     <body><div class="wrap">
-      <div class="hdr"><h1>Einstein Center</h1><p>Enrollment Verification</p></div>
+      <div class="hdr"><h1>EINSTEIN-Center For Modern Education</h1><p>Enrollment Verification</p></div>
       <div class="body">
-        <p>Thank you for enrolling at <strong>Einstein Child Care &amp; Learning Center</strong>.</p>
+        <p>Thank you for enrolling at <strong>EINSTEIN-Center For Modern Education</strong>.</p>
         <p>Your one-time verification code is:</p>
         <div class="code">$otp</div>
         <p class="note">This code expires in <strong>10 minutes</strong>. Do not share this code with anyone. If you did not request this, please disregard this email.</p>
       </div>
-      <div class="ftr">© Einstein Center for Modern Education &nbsp;·&nbsp; Tagbilaran, Bohol</div>
+      <div class="ftr">© EINSTEIN-Center For Modern Education &nbsp;·&nbsp; Tagbilaran, Bohol</div>
     </div></body></html>
     HTML;
 }
 
 // ── MAIN HANDLER ──────────────────────────────────────────────────
+$db = null;
 try {
     $input  = json_decode(file_get_contents('php://input'), true) ?? [];
     $post   = array_merge($_POST, $input);
@@ -73,75 +74,105 @@ try {
             $db->prepare("INSERT INTO otp_codes (email, otp_code, expires_at) VALUES (?,?,?)")
                ->execute([$email, $otp, $expiresAt]);
         }
+        $otpId = (int) $db->lastInsertId();
 
-        // Send email
-        $sent = sendEmail($email, 'Einstein Center — Your Verification Code', otpEmailHtml($otp));
+        // Send email. Never expose the OTP in a response or log it in plaintext.
+        $sent = sendEmail($email, 'EINSTEIN-Center For Modern Education — Your Verification Code', otpEmailHtml($otp));
         if (!$sent) {
-            error_log('[OTP] Email delivery failed or unavailable for ' . $email . ' - Generated OTP: ' . $otp);
+            $db->prepare("UPDATE otp_codes SET is_used=1 WHERE id=?")
+                ->execute([$otpId]);
+            throw new Exception('We could not send the verification email. Please try again shortly.');
         }
-
-        $message = $sent
-            ? "Verification code sent to $email. Check your inbox (and spam folder)."
-            : "Verification code generated for $email. (Note: Email delivery unavailable — your code is: $otp)";
 
         ob_clean();
         echo json_encode([
             'success'  => true,
-            'otp_code' => $otp,
-            'sent'     => $sent,
-            'message'  => $message,
+            'message'  => "Verification code sent to $email. Check your inbox (and spam folder).",
         ]);
         exit;
     }
 
     // ── VERIFY ────────────────────────────────────────────────────
     if ($action === 'verify_otp') {
-
         $enteredOtp = trim($post['otp'] ?? '');
-        if (!$enteredOtp)
+        if (!ctype_digit($enteredOtp) || strlen($enteredOtp) !== OTP_LENGTH) {
             throw new Exception('Please enter the verification code.');
+        }
+
+        rateLimit('otp_verify_' . md5($email), MAX_OTP_ATTEMPTS + 2, OTP_EXPIRY);
+        $db->beginTransaction();
 
         $stmt = $db->prepare(
             "SELECT id, otp_code, expires_at, attempts
              FROM otp_codes
              WHERE email = ? AND is_used = 0
-             ORDER BY created_at DESC LIMIT 1"
+             ORDER BY created_at DESC LIMIT 1 FOR UPDATE"
         );
         $stmt->execute([$email]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row)
+        if (!$row) {
+            $db->rollBack();
             throw new Exception('No active verification code found. Please request a new one.');
+        }
 
         if (new DateTime() > new DateTime($row['expires_at'])) {
             $db->prepare("UPDATE otp_codes SET is_used=1 WHERE id=?")->execute([$row['id']]);
+            $db->commit();
             throw new Exception('Code expired. Please request a new one.');
         }
 
         if ($row['attempts'] >= MAX_OTP_ATTEMPTS) {
             $db->prepare("UPDATE otp_codes SET is_used=1 WHERE id=?")->execute([$row['id']]);
+            $db->commit();
             throw new Exception('Too many failed attempts. Please request a new code.');
         }
 
-        if ($enteredOtp !== '000000' && $row['otp_code'] !== $enteredOtp) {
+        if (!hash_equals((string) $row['otp_code'], $enteredOtp)) {
             $db->prepare("UPDATE otp_codes SET attempts=attempts+1 WHERE id=?")->execute([$row['id']]);
             $left = MAX_OTP_ATTEMPTS - $row['attempts'] - 1;
+            $db->commit();
             throw new Exception("Incorrect code. $left attempt(s) remaining.");
         }
 
-        // ✅ Valid — mark as used
+        $emailHash = hashLookup($email);
+        $userStmt = $db->prepare(
+            "SELECT id FROM users WHERE email_hash = ? OR email = ? LIMIT 1 FOR UPDATE"
+        );
+        $userStmt->execute([$emailHash, $email]);
+        $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$user) {
+            $db->prepare("UPDATE otp_codes SET is_used=1 WHERE id=?")->execute([$row['id']]);
+            $db->commit();
+            throw new Exception('No account was found for this verification. Please create an account first.');
+        }
+
+        // A valid OTP is the only path that verifies an account.
         $db->prepare("UPDATE otp_codes SET is_used=1 WHERE id=?")->execute([$row['id']]);
+        $db->prepare("UPDATE users SET is_verified=1 WHERE id=?")->execute([$user['id']]);
+        $db->commit();
+
+        startUserSession();
+        session_regenerate_id(true);
+        $_SESSION['role'] = 'user';
+        $_SESSION['user_id'] = (int) $user['id'];
+        $_SESSION['email'] = $email;
+        unset($_SESSION['portal_username']);
 
         ob_clean();
         echo json_encode([
             'success' => true,
             'message' => 'Email verified successfully.',
             'email'   => $email,
+            'user_id' => (int) $user['id'],
         ]);
         exit;
     }
 
 } catch (Exception $e) {
+    if ($db instanceof PDO && $db->inTransaction()) {
+        $db->rollBack();
+    }
     ob_clean();
     http_response_code(200); // keep 200 so fetch() resolves in JS
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

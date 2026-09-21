@@ -34,7 +34,7 @@ File → Open SQL Script → run it.
 
 #### 3. Verify
 ```sql
-USE einstein_db;
+USE einstein_center;
 SHOW TABLES;
 -- Should show: enrollments, otp_codes, users
 ```
@@ -45,7 +45,7 @@ Open `config.php` — the defaults already work for XAMPP:
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');        // blank = default XAMPP
-define('DB_NAME', 'einstein_db');
+define('DB_NAME', 'einstein_center');
 ```
 
 No changes needed for local development.

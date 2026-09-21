@@ -40,12 +40,13 @@ function normalizeName(string $value, string $fieldLabel): string {
 function normalizeFacebookName(string $value): string {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
     if ($value === '') {
-        throw new Exception('Facebook name is required.');
+        throw new Exception('Facebook name / link is required.');
     }
-    if (!preg_match('/^[A-Za-z\s]+$/', $value)) {
-        throw new Exception('Facebook name may only contain letters and spaces.');
+    // Allow letters, digits, spaces, and common URL/FB characters: . / - _ : @ # ? & = % + ~
+    if (!preg_match('/^[A-Za-z0-9\s\.\/:@\-_#?&=%+~]+$/', $value)) {
+        throw new Exception('Facebook name / link contains invalid characters.');
     }
-    return ucwords(strtolower($value));
+    return $value;
 }
 
 try {
@@ -63,6 +64,15 @@ try {
 
     $db      = getDB();
     $userId  = (int) $_SESSION['user_id'];
+    if ($isVip) {
+        $vipRate=$db->query("SELECT rate FROM program_packages WHERE program_name='VIP Club Membership' AND package_name='VIP Club Membership' ORDER BY id DESC LIMIT 1")->fetchColumn();
+        $vipFee=$vipRate===false ? 500 : (float)preg_replace('/[^0-9.]/','',$vipRate);
+        $_POST['package_selected']='VIP Club Membership – ₱'.number_format($vipFee,2).' (2 years)';
+    }
+    if ($isVip) {
+        require_once __DIR__ . '/vip_membership.php';
+        if (vipState($db, $userId)['active']) throw new Exception('Your VIP membership is still active. Renewal is available after expiry.');
+    }
     $email   = strtolower(trim($_POST['email']));
     $emailHash = hashLookup($email);
 
@@ -71,6 +81,9 @@ try {
     $stmt->execute([$userId, $emailHash, $email]);
     if (!$stmt->fetch())
         throw new Exception('User account not found or not verified. Please log in again.');
+
+    // Release session lock early to prevent blocking subsequent requests
+    session_write_close();
 
     // ── File Upload → Supabase Storage ───────────────
     $screenshotPath = null;
@@ -85,7 +98,7 @@ try {
             throw new Exception('File too large. Maximum size is 5MB.');
 
         $ext            = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename       = 'pmt_' . $userId . '_' . time() . '.' . strtolower($ext);
+        $filename       = 'pmt_' . $userId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . strtolower($ext);
         $screenshotPath = uploadToSupabase($file['tmp_name'], $filename);
     }
 
@@ -99,6 +112,9 @@ try {
     // ── Cryptographic Encryption (AES-256) of Sensitive Data ──
     $rawChildName     = sanitize($_POST['child_name'] ?? '');
     $rawChildAge      = sanitize($_POST['child_age'] ?? '');
+    if ($isVip && $rawChildAge !== '' && (!preg_match('/^\d+$/', $rawChildAge) || (int)$rawChildAge < 1 || (int)$rawChildAge > 120)) {
+        throw new Exception('Please enter a valid VIP member age from 1 to 120.');
+    }
     $rawChildGrade    = sanitize($_POST['child_grade'] ?? '');
     $rawChildSchool   = sanitize($_POST['child_school'] ?? '');
     $rawGuardianName  = sanitize($_POST['guardian_name'] ?? '');
@@ -115,12 +131,22 @@ try {
     }
 
     if ($isVip) {
-        if (empty($rawChildName)) {
-            $rawChildName = $rawGuardianName;
-        } else {
-            $rawChildName = normalizeName($rawChildName, 'Guardian name');
+        // VIP membership is always registered under the parent/guardian's name
+        $rawChildName = $rawGuardianName;
+        if (($rawChildAge === '' || $rawChildAge === '0') && $userId > 0) {
+            $uStmt = $db->prepare("SELECT birthdate FROM users WHERE id = ?");
+            $uStmt->execute([$userId]);
+            $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+            if ($uRow && !empty($uRow['birthdate'])) {
+                $bdate = decryptAES256($uRow['birthdate']);
+                if ($bdate && strtotime($bdate)) {
+                    $rawChildAge = (string) (new DateTime($bdate))->diff(new DateTime())->y;
+                }
+            }
         }
-        $rawChildAge = '0';
+        if ($rawChildAge === '') {
+            $rawChildAge = '0';
+        }
         $rawChildGrade = '0';
         if (empty($rawChildSchool)) {
             $rawChildSchool = 'N/A';
@@ -129,12 +155,30 @@ try {
         $rawChildName     = normalizeName($rawChildName, 'Child name');
         $rawChildAge      = digitsOnly($rawChildAge);
         $rawChildGrade    = digitsOnly($rawChildGrade);
+        $rawChildSchool   = preg_replace('/[^a-zA-Z\s]/', '', $rawChildSchool);
 
         if ($rawChildAge === '') {
             throw new Exception('Child age is required and must contain numbers only.');
         }
         if ($rawChildGrade === '') {
             throw new Exception('Child grade is required and must contain numbers only.');
+        }
+    }
+
+    $rawGuardianAge  = sanitize($_POST['guardian_age'] ?? '');
+    if ($rawGuardianAge !== '') {
+        $rawGuardianAge = digitsOnly($rawGuardianAge);
+    } elseif ($isVip && !empty($rawChildAge) && $rawChildAge !== '0') {
+        $rawGuardianAge = $rawChildAge;
+    } elseif ($userId > 0) {
+        $uStmt = $db->prepare("SELECT birthdate FROM users WHERE id = ?");
+        $uStmt->execute([$userId]);
+        $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+        if ($uRow && !empty($uRow['birthdate'])) {
+            $bdate = decryptAES256($uRow['birthdate']);
+            if ($bdate && strtotime($bdate)) {
+                $rawGuardianAge = (string) (new DateTime($bdate))->diff(new DateTime())->y;
+            }
         }
     }
 
@@ -152,17 +196,19 @@ try {
     $childGradeEnc   = encryptAES256($rawChildGrade);
     $childSchoolEnc  = encryptAES256($rawChildSchool);
     $guardianNameEnc = encryptAES256($rawGuardianName);
+    $guardianAgeEnc  = encryptAES256($rawGuardianAge);
     $addressEnc      = encryptAES256($rawAddress);
     $contactEnc      = encryptAES256($rawContact);
     $facebookEnc     = encryptAES256($rawFacebook);
     $notesEnc        = encryptAES256($rawNotes);
 
     // ── Insert enrollment ─────────────────────────────
+    $initialStatus = 'pending';
     $sql = "INSERT INTO enrollments
         (reference_no, user_id, program, package_selected, start_date, timeslot,
          child_name, child_age, child_grade, child_school,
-         guardian_name, address, contact, facebook_name, payment_screenshot, payment_method, notes)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+         guardian_name, guardian_age, address, contact, facebook_name, payment_screenshot, payment_method, notes, status)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     $db->prepare($sql)->execute([
         $ref,
@@ -176,24 +222,56 @@ try {
         $childGradeEnc,
         $childSchoolEnc,
         $guardianNameEnc,
+        $guardianAgeEnc,
         $addressEnc,
         $contactEnc,
         $facebookEnc,
         $screenshotPath,
         sanitize($_POST['payment_method']   ?? ''),
         $notesEnc,
+        $initialStatus,
     ]);
 
     $enrollmentId = (int) $db->lastInsertId();
 
-    // ── Respond immediately, email in background ─────
+    // ── Sync guardian details to user profile if empty ──
+    if ($userId > 0) {
+        try {
+            $uStmt = $db->prepare("SELECT firstname, contact_number, address FROM users WHERE id = ?");
+            $uStmt->execute([$userId]);
+            $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+            if ($uRow) {
+                $uFields = [];
+                $uParams = [];
+                if (empty($uRow['firstname']) && !empty($rawGuardianName)) {
+                    $uFields[] = "firstname = ?";
+                    $uParams[] = encryptAES256($rawGuardianName);
+                }
+                if (empty($uRow['contact_number']) && !empty($rawContact)) {
+                    $uFields[] = "contact_number = ?";
+                    $uParams[] = encryptAES256($rawContact);
+                }
+                if (empty($uRow['address']) && !empty($rawAddress)) {
+                    $uFields[] = "address = ?";
+                    $uParams[] = encryptAES256($rawAddress);
+                }
+                if (!empty($uFields)) {
+                    $uParams[] = $userId;
+                    $db->prepare("UPDATE users SET " . implode(', ', $uFields) . " WHERE id = ?")->execute($uParams);
+                }
+            }
+        } catch (Exception $ex) {
+            error_log('[Sync User Profile Error] ' . $ex->getMessage());
+        }
+    }
+
+    // ── Respond to browser NOW — no email code blocks this ────────────────
     $jsonResponse = json_encode([
         'success'       => true,
         'message'       => 'Enrollment submitted successfully.',
         'reference_no'  => $ref,
         'enrollment_id' => $enrollmentId,
     ]);
-
     ignore_user_abort(true);
     while (ob_get_level()) ob_end_clean();
     header('Content-Type: application/json; charset=utf-8');
@@ -201,19 +279,40 @@ try {
     header('Content-Length: ' . strlen($jsonResponse));
     echo $jsonResponse;
     flush();
+    if (function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
 
-    // ── Send confirmation email AFTER response is sent ──
-    sendConfirmationEmail($email, $_POST['guardian_name'], $_POST['child_name'], $ref, $_POST['program']);
+    // ── Fire-and-forget: spawn a background PHP process to send email ─────
+    // popen() on Windows spawns a separate process that runs independently.
+    // The current request is already answered above — this never blocks the user.
+    $phpExe = (defined('PHP_BINARY') && str_ends_with(strtolower(PHP_BINARY), 'php.exe') && file_exists(PHP_BINARY))
+        ? PHP_BINARY
+        : (file_exists('C:\\xampp\\php\\php.exe') ? 'C:\\xampp\\php\\php.exe' : 'php');
+    $mailScript = __DIR__ . '/send_enrollment_email.php';
+    $emailArg   = escapeshellarg($email);
+    $guardianArg = escapeshellarg($_POST['guardian_name'] ?? 'Guardian');
+    $childArg   = escapeshellarg(!empty($_POST['child_name']) ? $_POST['child_name'] : ($_POST['guardian_name'] ?? 'Member'));
+    $refArg     = escapeshellarg($ref);
+    $programArg = escapeshellarg($_POST['program'] ?? 'Program');
+    $logArg     = escapeshellarg(__DIR__ . '/logs/mail_bg.log');
+    if (file_exists($mailScript)) {
+        @popen("start /B \"\" \"$phpExe\" \"$mailScript\" $emailArg $guardianArg $childArg $refArg $programArg >> $logArg 2>&1", 'r');
+    }
+    exit;
 
 } catch (Exception $e) {
     ob_clean();
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    exit;
 }
 
 // ── CONFIRMATION EMAIL ────────────────────────────────
 function sendConfirmationEmail(
     string $email, string $guardian, string $child, string $ref, string $program
 ): void {
+    // Hard safety net: the entire email routine must finish in ≤3 s or abort
+    // (set_time_limit is already 4 s at call-site, so we stay under that)
     try {
         $subject = "Enrollment Submitted — $ref";
         $html = <<<HTML
@@ -233,7 +332,7 @@ function sendConfirmationEmail(
           .ftr{background:#f5ede0;padding:16px 32px;text-align:center;font-size:11px;color:#8D6A4E}
         </style></head><body>
         <div class="wrap">
-          <div class="hdr"><h1>Einstein Center</h1><p>Enrollment Confirmation</p></div>
+          <div class="hdr"><h1>EINSTEIN-Center For Modern Education</h1><p>Tutorial • Workshop • Childcare</p></div>
           <div class="body">
             <h2>Thank you, $guardian!</h2>
             <p>Your enrollment application for <strong>$child</strong> has been received and is now under review. We will contact you shortly to confirm your schedule and payment.</p>
@@ -252,8 +351,9 @@ function sendConfirmationEmail(
         </div></body></html>
         HTML;
 
-        $smtp = @fsockopen(SMTP_HOST, SMTP_PORT, $errno, $errstr, 20);
+        $smtp = @fsockopen(SMTP_HOST, SMTP_PORT, $errno, $errstr, 1.5);
         if (!$smtp) return;
+        stream_set_timeout($smtp, 1);
 
         $r = fgets($smtp, 1024);
         if (strpos($r, '220') !== 0) { fclose($smtp); return; }

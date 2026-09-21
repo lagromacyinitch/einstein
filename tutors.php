@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 require_once __DIR__ . '/config.php';
 setSecurityHeaders();
 require_once __DIR__ . '/admin_auth.php';
+require_once __DIR__ . '/tutor_profile_helpers.php';
 
 function normalizeName(string $value, string $fieldLabel): string {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
@@ -28,25 +29,12 @@ function digitsOnly(string $value): string {
 
 try {
     $db     = getDB();
+    ensureTutorProfileSchema($db);
+    foreach ($db->query("SELECT * FROM admin_accounts WHERE is_active=1")->fetchAll(PDO::FETCH_ASSOC) as $account) linkTutorAccount($db,$account);
     $method = $_SERVER['REQUEST_METHOD'];
     $action = $_GET['action'] ?? ($_POST['action'] ?? (json_decode(file_get_contents('php://input'), true)['action'] ?? ''));
 
     if ($method === 'GET') {
-        // Sync any active admin_accounts (Sub-Admin / Tutor) into tutors table
-        try {
-            $adminAccts = $db->query("SELECT display_name FROM admin_accounts WHERE is_active = 1")->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($adminAccts as $aa) {
-                if (!empty($aa['display_name'])) {
-                    $chk = $db->prepare("SELECT id FROM tutors WHERE LOWER(full_name) = LOWER(?)");
-                    $chk->execute([$aa['display_name']]);
-                    if (!$chk->fetch()) {
-                        $ins = $db->prepare("INSERT INTO tutors (full_name, is_active) VALUES (?, 1)");
-                        $ins->execute([$aa['display_name']]);
-                    }
-                }
-            }
-        } catch (Exception $e) { /* ignore */ }
-
         $rows = $db->query("SELECT * FROM tutors WHERE is_active = true ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'tutors' => $rows]);
         exit;
@@ -62,14 +50,15 @@ try {
         $subj  = $body['subjects'] ?? [];
         $schedule = trim($body['schedule'] ?? '') ?: null;
         if ($rate === null || $rate === '' || !is_numeric($rate)) throw new Exception('Hourly rate must contain numbers only.');
-        $stmt = $db->prepare("INSERT INTO tutors (full_name, email, phone, hourly_rate, subjects, schedule) VALUES (?,?,?,?,?,?)");
+        $stmt = $db->prepare("INSERT INTO tutors (full_name, email, phone, hourly_rate, subjects, schedule, teaching_specialization) VALUES (?,?,?,?,?,?,?)");
         $stmt->execute([
             $name,
             $email ?: null,
             $phone ?: null,
             (float) $rate,
             '{' . implode(',', array_map('trim', $subj)) . '}',
-            $schedule               
+            $schedule,
+            trim($body['teaching_specialization'] ?? '') ?: null
         ]);
         echo json_encode(['success' => true, 'message' => 'Tutor added.', 'id' => $db->lastInsertId()]);
 
@@ -79,15 +68,25 @@ try {
         $rate = $body['hourly_rate'] ?? null;
         if (!$id || !$name) throw new Exception('ID and name required.');
         if ($rate === null || $rate === '' || !is_numeric($rate)) throw new Exception('Hourly rate must contain numbers only.');
-        $stmt = $db->prepare("UPDATE tutors SET full_name=?, email=?, phone=?, hourly_rate=?, schedule=?, updated_at=NOW() WHERE id=?");
+        $linked=$db->prepare('SELECT id FROM admin_accounts WHERE tutor_id=?');
+        $linked->execute([$id]);
+        $accountId=(int)$linked->fetchColumn();
+        if ($accountId) validateTutorEmail($db,trim($body['email'] ?? ''),$accountId);
+        $db->beginTransaction();
+        $subj = $body['subjects'] ?? [];
+        $stmt = $db->prepare("UPDATE tutors SET full_name=?, email=?, phone=?, hourly_rate=?, subjects=?, schedule=?, teaching_specialization=?, updated_at=NOW() WHERE id=?");
         $stmt->execute([
             $name,
             trim($body['email'] ?? '') ?: null,
             digitsOnly(trim($body['phone'] ?? '')) ?: null,
             (float) $rate,
+            '{' . implode(',', array_map('trim', (array)$subj)) . '}',
             trim($body['schedule'] ?? '') ?: null,
+            trim($body['teaching_specialization'] ?? '') ?: null,
             $id
         ]);
+        if ($accountId) $db->prepare('UPDATE admin_accounts SET display_name=?,email=?,updated_at=NOW() WHERE id=?')->execute([$name,trim($body['email']),$accountId]);
+        $db->commit();
         echo json_encode(['success' => true, 'message' => 'Tutor updated.']);
 
     } elseif ($action === 'delete') {
@@ -100,6 +99,7 @@ try {
         throw new Exception('Unknown action.');
     }
 } catch (Exception $e) {
+    if (isset($db) && $db->inTransaction()) $db->rollBack();
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

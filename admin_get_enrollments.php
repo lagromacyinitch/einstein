@@ -40,14 +40,18 @@ set_error_handler(function($errno, $errstr) {
 
 try {
     require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/balance_helpers.php';
     setSecurityHeaders();
     require_once __DIR__ . '/admin_auth.php';
 
     $db   = getDB();
+    require_once __DIR__ . '/student_archive_schema.php';
+    ensureStudentArchiveTable($db);
     $stmt = $db->query("
-        SELECT e.*, u.email AS user_email, u.email_encrypted AS u_email_enc
+        SELECT e.*, u.email AS user_email, u.email_encrypted AS u_email_enc, u.birthdate AS u_birthdate_enc, sa.archived_at AS student_archived_at
         FROM enrollments e
         LEFT JOIN users u ON e.user_id = u.id
+        LEFT JOIN student_archives sa ON sa.enrollment_id = e.id
         ORDER BY e.created_at DESC
     ");
     $rawEnrollments = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -56,10 +60,27 @@ try {
     $counts = ['pending' => 0, 'confirmed' => 0, 'cancelled' => 0];
 
     foreach ($rawEnrollments as $row) {
-        $decrypted = decryptRow($row, ['child_name', 'child_age', 'child_grade', 'child_school', 'guardian_name', 'address', 'contact', 'facebook_name', 'notes', 'user_email']);
+        $decrypted = decryptRow($row, ['child_name', 'child_age', 'child_grade', 'child_school', 'guardian_name', 'guardian_age', 'address', 'contact', 'facebook_name', 'notes', 'user_email']);
         if (!empty($row['u_email_enc'])) {
             $decrypted['user_email'] = decryptAES256($row['u_email_enc']);
         }
+        if (!empty($row['u_birthdate_enc'])) {
+            $bdate = decryptAES256($row['u_birthdate_enc']);
+            if ($bdate && strtotime($bdate)) {
+                $calcAge = (string) (new DateTime($bdate))->diff(new DateTime())->y;
+                $decrypted['user_calculated_age'] = $calcAge;
+                if (($decrypted['child_age'] === '0' || empty($decrypted['child_age'])) && stripos($decrypted['program'] ?? '', 'vip') !== false) {
+                    $decrypted['child_age'] = $calcAge;
+                }
+                if (empty($decrypted['guardian_age'])) {
+                    $decrypted['guardian_age'] = $calcAge;
+                }
+            }
+        }
+        if (empty($decrypted['guardian_age']) && stripos($decrypted['program'] ?? '', 'vip') !== false && !empty($decrypted['child_age']) && $decrypted['child_age'] !== '0') {
+            $decrypted['guardian_age'] = $decrypted['child_age'];
+        }
+        $decrypted['current_total_fee'] = balanceTotalFee($decrypted);
         $enrollments[] = $decrypted;
 
         $s = $row['status'] ?? 'pending';

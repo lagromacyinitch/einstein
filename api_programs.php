@@ -37,6 +37,13 @@ try {
         }
     } 
     elseif ($method === 'POST') {
+        // Program-specific types replace the legacy generic label.
+        $programKey = strtolower(preg_replace('/\s+/', '', $input['program_name'] ?? ''));
+        if (in_array($programKey, ['playschool', 'playschoolprogram'], true)) {
+            $input['package_type'] = 'playschool';
+        } elseif (in_array($programKey, ['workshop', 'weekendworkshop'], true)) {
+            $input['package_type'] = 'workshop';
+        }
         if ($action === 'add') {
             $stmt = $db->prepare("INSERT INTO program_packages (program_name, package_name, care_duration, rate, capacity_slots, package_type) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([

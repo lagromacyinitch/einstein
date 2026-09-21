@@ -88,7 +88,11 @@
     return ROLE_TARGETS.user;
   }
 
+  let isLoggingIn = false;
+
   async function submitLogin() {
+    if (isLoggingIn) return;
+
     const userEl = qs('#login-user');
     const passEl = qs('#login-pass');
     const roleEl = qs('#login-role');
@@ -106,6 +110,7 @@
     }
 
     showError('');
+    isLoggingIn = true;
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Signing in…';
@@ -161,6 +166,7 @@
     } catch (e) {
       showError('Could not reach the server. Open the project through XAMPP at http://localhost/EINSTEIN-WEB18/ and try again.');
     } finally {
+      isLoggingIn = false;
       if (btn) {
         btn.disabled = false;
         btn.textContent = 'Sign In';
@@ -253,9 +259,15 @@
     apiUrl,
   };
 
-  document.addEventListener('DOMContentLoaded', () => {
-    if (document.body.dataset.autoLoginInit !== 'false') {
+  function startInit() {
+    if (document.body && document.body.dataset.autoLoginInit !== 'false') {
       initLoginScreen({ embedded: !!document.body.dataset.portalPage });
     }
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startInit);
+  } else {
+    startInit();
+  }
 })();

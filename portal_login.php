@@ -77,68 +77,48 @@ try {
     //    All sub-admin/tutor accounts are now managed via the DB (admin_accounts table).
 
     // ── 3. Check DB-backed Admin/Staff accounts (admin_accounts) ───
-    if (strpos($username, '@') === false) {
-        try {
-            $dbConn = getDB();
-            $dbConn->exec("
-                CREATE TABLE IF NOT EXISTS admin_accounts (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    display_name VARCHAR(120) NOT NULL,
-                    username VARCHAR(80) NOT NULL UNIQUE,
-                    password_hash VARCHAR(255) NOT NULL,
-                    role ENUM('sub_admin') NOT NULL DEFAULT 'sub_admin',
-                    is_active TINYINT(1) NOT NULL DEFAULT 1,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-                    can_edit_prices TINYINT(1) NOT NULL DEFAULT 0
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-            ");
-            $stmt = $dbConn->prepare("SELECT * FROM admin_accounts WHERE username=? AND is_active=1");
-            $stmt->execute([$usernameLower]);
-            $acc = $stmt->fetch();
+    try {
+        $dbConn = getDB();
+        $stmt = $dbConn->prepare("SELECT * FROM admin_accounts WHERE (LOWER(username)=? OR LOWER(COALESCE(email, ''))=?) AND is_active=1");
+        $stmt->execute([$usernameLower, $usernameLower]);
+        $acc = $stmt->fetch();
 
-            if ($acc && password_verify($password, $acc['password_hash'])) {
-                startPortalSession();
-                session_regenerate_id(true);
-                // All DB accounts are Sub-Admin / Tutor — always redirect to admin.html
-                $resolvedRole = 'admin';
-                $redirectPage = 'admin.html';
+        if ($acc && password_verify($password, $acc['password_hash'])) {
+            startPortalSession();
+            session_regenerate_id(true);
+            // All DB accounts are Sub-Admin / Tutor — always redirect to admin.html
+            $resolvedRole = 'admin';
+            $redirectPage = 'admin.html';
 
-                $_SESSION['role'] = $resolvedRole;
-                $_SESSION['portal_username'] = $acc['username'];
-                $_SESSION['display_name'] = $acc['display_name'];
-                $_SESSION['is_head_admin'] = false;
-                $_SESSION['sub_admin_id'] = (int)$acc['id'];
+            $_SESSION['role'] = $resolvedRole;
+            $_SESSION['portal_username'] = $acc['username'];
+            $_SESSION['display_name'] = $acc['display_name'];
+            $_SESSION['is_head_admin'] = false;
+            $_SESSION['sub_admin_id'] = (int)$acc['id'];
+            $_SESSION['email'] = $acc['email'] ?? $acc['username'];
 
-                // Link/set tutor_id in session
-                try {
-                    $tStmt = $dbConn->prepare("SELECT id FROM tutors WHERE LOWER(full_name) = LOWER(?) LIMIT 1");
-                    $tStmt->execute([$acc['display_name']]);
-                    $tId = $tStmt->fetchColumn();
-                    if ($tId) {
-                        $_SESSION['tutor_id'] = (int)$tId;
-                    } else {
-                        $dbConn->prepare("INSERT INTO tutors (full_name, is_active) VALUES (?, 1)")->execute([$acc['display_name']]);
-                        $_SESSION['tutor_id'] = (int)$dbConn->lastInsertId();
-                    }
-                } catch (Exception $e) { /* ignore */ }
+            // Link/set tutor_id in session
+            try {
+                require_once __DIR__.'/tutor_profile_helpers.php';
+                ensureTutorProfileSchema($dbConn);
+                $_SESSION['tutor_id'] = linkTutorAccount($dbConn,$acc);
+            } catch (Exception $e) { /* ignore */ }
 
-                unset($_SESSION['user_id'], $_SESSION['email']);
+            unset($_SESSION['user_id']);
 
-                logPortalActivity($acc['display_name'], 'Sub-Admin/Tutor', 'LOGIN', 'Sub-Admin/Tutor "' . $acc['display_name'] . '" (username: ' . $acc['username'] . ') logged in.');
+            logPortalActivity($acc['display_name'], 'Sub-Admin/Tutor', 'LOGIN', 'Sub-Admin/Tutor "' . $acc['display_name'] . '" (' . $acc['username'] . ') logged in.');
 
-                ob_clean();
-                echo json_encode([
-                    'success' => true,
-                    'role' => $resolvedRole,
-                    'redirect' => $redirectPage,
-                    'display_name' => $acc['display_name'],
-                ]);
-                exit;
-            }
-        } catch (Exception $e) {
-            // Fall through if database error or no matching admin account
+            ob_clean();
+            echo json_encode([
+                'success' => true,
+                'role' => $resolvedRole,
+                'redirect' => $redirectPage,
+                'display_name' => $acc['display_name'],
+            ]);
+            exit;
         }
+    } catch (Exception $e) {
+        // Fall through if database error or no matching admin account
     }
 
     // ── 4. Check Parent / User accounts (users table) ───────────────
@@ -163,6 +143,7 @@ try {
     $userEmail = $decryptedUser['email'] ?? strtolower($username);
 
     $_SESSION['role'] = 'user';
+    unset($_SESSION['returning_portal_visit']);
     $_SESSION['user_id'] = (int) $decryptedUser['id'];
     $_SESSION['email'] = $userEmail;
     unset($_SESSION['portal_username']);
