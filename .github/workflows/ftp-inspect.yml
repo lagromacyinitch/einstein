@@ -1,0 +1,25 @@
+name: Inspect FTP folders
+
+# Run manually from the Actions tab. Read-only: it only lists folders, it
+# never uploads or deletes anything.
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+    steps:
+      - name: List FTP folders
+        run: |
+          list() {
+            echo "===== /$1 ====="
+            curl -sS --list-only --user "$FTP_USERNAME:$FTP_PASSWORD" "ftp://$FTP_SERVER/$1" || echo "(not found)"
+            echo
+          }
+          list ""
+          list "public_html/"
+          list "domains/"

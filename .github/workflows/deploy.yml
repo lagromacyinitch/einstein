@@ -1,0 +1,38 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    # Drop chore/deployment-hostinger once it is merged into main.
+    branches: [main, chore/deployment-hostinger]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload public/ via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          local-dir: ./public/
+          # The subdomain FTP account logs straight into the site folder
+          # (confirmed with the "Inspect FTP folders" workflow).
+          server-dir: ./
+          # Receipts and config.php are gitignored, so they are never in the
+          # checkout; the action only deletes files it uploaded itself, so
+          # live receipts on the server are left alone.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            config.php

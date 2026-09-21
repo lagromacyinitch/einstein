@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../public/config.php';
 $res = $conn->query("SELECT DISTINCT program FROM enrollments");
 while ($row = $res->fetch_assoc()) {
     echo $row['program'] . "\n";
