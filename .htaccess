@@ -1,0 +1,8 @@
+DirectoryIndex main.html index.php index.html
+
+# Revalidate payment UI so older image links are not reused after updates.
+<IfModule mod_headers.c>
+    <FilesMatch "^(user\.html|admin\.html|enrollment-flow\.js)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>

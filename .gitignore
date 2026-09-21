@@ -1,0 +1,13 @@
+# Local database credentials and environment-specific configuration.
+config.php
+
+# Local editor and operating-system files.
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# Private uploaded receipts and generated OCR cache.
+uploads/*
+!uploads/.htaccess

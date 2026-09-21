@@ -1,0 +1,413 @@
+================================================================================
+EINSTEIN CENTER FOR MODERN EDUCATION - FULL SYSTEM PROMPT
+================================================================================
+Project Type: Child Care Center Website with Online Enrollment System
+Server Stack: XAMPP (Apache 2.4.58, MySQL 8.0+, PHP 8.2.12)
+Hosting Location: c:\xampp\htdocs\einstein_v4\einstein_bugfix\
+Status: Production-Ready with Database Integration
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Einstein Child Care & Learning Center website featuring:
+- Multi-program offerings (Tutorial, Workshop, Playschool, Child Care)
+- Online enrollment system with account creation/verification
+- Pricing and membership information
+- Responsive HTML5/CSS3/JavaScript (no frameworks)
+- Brand colors: Maroon (#5E3A21), Gold (#CAA171), Cream (#FFFFFF)
+- Fonts: Playfair Display (headers), DM Sans (body)
+
+================================================================================
+2. DATABASE SCHEMA (MySQL - einstein_db)
+================================================================================
+
+CREATE DATABASE einstein_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+TABLE: users
+  - id (INT AUTO_INCREMENT PRIMARY KEY)
+  - email (VARCHAR(255) UNIQUE NOT NULL)
+  - password_hash (VARCHAR(255) NOT NULL)
+  - is_verified (BOOLEAN DEFAULT 0)
+  - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+  - updated_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+  - INDEX idx_email (email)
+
+TABLE: otp_codes
+  - id (INT AUTO_INCREMENT PRIMARY KEY)
+  - email (VARCHAR(255) NOT NULL)
+  - otp_code (VARCHAR(6) NOT NULL)
+  - expires_at (TIMESTAMP NOT NULL)
+  - attempts (INT DEFAULT 0)
+  - is_used (BOOLEAN DEFAULT 0)
+  - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+  - INDEX idx_email_used (email, is_used)
+
+TABLE: enrollments
+  - id (INT AUTO_INCREMENT PRIMARY KEY)
+  - reference_no (VARCHAR(50) UNIQUE NOT NULL)
+  - user_id (INT NOT NULL, FOREIGN KEY REFERENCES users(id))
+  - program (VARCHAR(100))
+  - package_selected (VARCHAR(100))
+  - start_date (DATE)
+  - timeslot (VARCHAR(50))
+  - child_name (VARCHAR(255))
+  - child_age (INT)
+  - child_grade (VARCHAR(100))
+  - child_school (VARCHAR(255))
+  - guardian_name (VARCHAR(255))
+  - address (TEXT)
+  - contact (VARCHAR(20))
+  - facebook_name (VARCHAR(255))
+  - payment_screenshot (VARCHAR(255))
+  - payment_status (ENUM('pending', 'confirmed', 'failed') DEFAULT 'pending')
+  - status (ENUM('draft', 'submitted', 'approved', 'rejected') DEFAULT 'draft')
+  - admin_notes (TEXT)
+  - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+  - updated_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)
+
+================================================================================
+3. FILE STRUCTURE
+================================================================================
+
+einstein_bugfix/
+├── main.html                    [Landing page with hero, programs, pricing, contact]
+├── academic_tutorial.html       [Tutorial program details page]
+├── workshop.html                [Weekend workshop program details]
+├── playschool.html              [Early childhood education program]
+├── childcare_program.html       [Full-day child care program]
+├── collage.html                 [Background collage animation (embedded via iframe)]
+├── collage (2).html             [Alternative collage version]
+│
+├── enrollment-flow.js           [Multi-step enrollment modal system - 6 steps]
+├── config.php                   [Database configuration]
+├── db_setup.sql                 [Database schema creation script]
+│
+├── PHP Backend (Authentication & Processing):
+│   ├── register.php             [New account registration + OTP generation]
+│   ├── login.php                [Existing user login]
+│   ├── verify_account.php       [Email verification handler]
+│   ├── api_otp.php              [OTP verification endpoint]
+│   └── save_enrollment.php      [Enrollment form submission + payment handling]
+│
+├── images/                      [Visual assets]
+│   ├── logo2.jpg
+│   ├── admin.png
+│   ├── card.png
+│   ├── p.png (phone icon)
+│   ├── loc.png (location icon)
+│   ├── fb.png (facebook icon)
+│   └── hrs.png (hours icon)
+│
+└── uploads/                     [Payment screenshots and uploads storage]
+
+================================================================================
+4. ENROLLMENT FLOW - 6 STEP PROCESS
+================================================================================
+
+STEP 1: ACCOUNT AUTHENTICATION
+  - Two tabs: "New Account" | "Existing Account"
+  - NEW: Register email + password → auto-generate OTP → send to email
+  - EXISTING: Login email + password → skip OTP → go to Step 3
+  - POST: register.php or login.php
+  - Returns: Boolean success/error with message
+
+STEP 2: OTP VERIFICATION (New users only)
+  - Email receives OTP code (6 digits)
+  - User enters OTP in modal
+  - POST: api_otp.php
+  - Validates against otp_codes table
+  - Max 3 attempts, 10-minute expiration
+  - Returns: success → proceed to Step 3
+
+STEP 3: ENROLLMENT FORM
+  - Required fields: child name, age, grade, school, guardian name, address, contact, Facebook, program, timeslot, date
+  - Form validation on client-side (enrollment-flow.js)
+  - Stores in formData object
+
+STEP 4: REVIEW & PAYMENT
+  - Display form summary
+  - Show pricing
+  - Upload payment screenshot (FormData)
+  - Payment status set to 'pending' initially
+
+STEP 5: PROCESSING
+  - POST: save_enrollment.php
+  - Saves enrollment record to database
+  - Assigns reference_no
+  - Updates payment_status
+  - Shows loading animation
+
+STEP 6: SUCCESS
+  - Display reference number
+  - Confirmation message
+  - Option to close modal
+
+================================================================================
+5. KEY JAVASCRIPT FUNCTIONS (enrollment-flow.js)
+================================================================================
+
+window.openEnrollmentFlow()
+  - Opens enrollment modal from any page
+  - Triggered by "Enroll Now" buttons
+
+window.switchAuthMode(mode)
+  - Switch between "new" and "login" tabs on Step 1
+  - Tab visibility toggle
+
+window.efStep1New()
+  - Register: POST email/password to register.php
+  - Response contains: success, message, otp_email
+  - Auto-advances to Step 2 if successful
+
+window.efStep1Login()
+  - Login: POST email/password to login.php
+  - Skips OTP, advances directly to Step 3
+
+window.efStep2()
+  - Verify OTP code user entered
+  - POST to api_otp.php
+  - Advances to Step 3 on success
+
+window.efStep3()
+  - Validate all form fields present
+  - Stores values in formData object
+  - Advances to Step 4
+
+window.efStep4()
+  - Capture payment screenshot via file input
+  - FormData upload to save_enrollment.php
+  - Advances to Step 5
+
+window.post(url, data)
+  - Async fetch wrapper
+  - Uses URLSearchParams for POST
+  - Returns JSON response
+
+State Objects:
+  - formData: { program, package, startDate, timeslot, childName, childAge, childGrade, childSchool, guardianName, address, contact, facebook, paymentScreenshot }
+  - account: { email, password, isNewAccount }
+  - debugOtp: { enabled, autoFill } (for development)
+
+================================================================================
+6. PHP BACKEND ENDPOINTS
+================================================================================
+
+register.php
+  - Method: POST
+  - Params: email, password
+  - Process: Hash password, create users record, generate OTP, send email
+  - Response: { success: bool, message: string, otp_email: string }
+
+login.php
+  - Method: POST
+  - Params: email, password
+  - Process: Verify credentials, start session
+  - Response: { success: bool, message: string, user_id: int }
+
+api_otp.php
+  - Method: POST
+  - Params: email, otp_code
+  - Process: Validate OTP against otp_codes table, mark is_used=1, update is_verified in users
+  - Response: { success: bool, message: string }
+
+verify_account.php
+  - Method: GET (email link)
+  - Params: token (or email verification link)
+  - Process: Mark user as verified
+  - Response: Redirect or confirmation page
+
+save_enrollment.php
+  - Method: POST (multipart/form-data for file upload)
+  - Params: All enrollment form fields + payment screenshot file
+  - Process: Generate reference_no, insert into enrollments table, handle file upload
+  - Response: { success: bool, reference_no: string, message: string }
+
+================================================================================
+7. CSS VARIABLES & STYLING
+================================================================================
+
+:root {
+    --maroon: #5E3A21;
+    --gold: #CAA171;
+    --cream: #FFFFFF;
+    --dark: #3D2615;
+    --text: #4A2E1C;
+    --light-gold: #E1C39A;
+    --muted: #8D6A4E;
+    --brown-warm: #8B6845;
+}
+
+Font Family:
+  - Playfair Display: Headers, titles (serif)
+  - DM Sans: Body text, UI elements (sans-serif)
+
+Responsive Design:
+  - CSS Grid: grid-template-columns: repeat(auto-fit, minmax(260px, 1fr))
+  - Flexbox for component alignment
+  - clamp() for fluid typography
+  - Media queries for mobile optimization
+
+Key Selectors:
+  - .nav: Fixed navigation (z-index: 100)
+  - .hero: Hero section with logo and tagline
+  - .programs-grid: Grid layout for program cards
+  - .program-card: Hover effect (box-shadow + translateY)
+  - .features-strip: Dark banner below hero
+  - .pricing-grid: Pricing card layout
+  - .modal: Enrollment modal (z-index: 1000)
+
+================================================================================
+8. MODAL SYSTEM (enrollment-flow.js)
+================================================================================
+
+Modal Structure:
+  - Full-viewport overlay
+  - Centered card with min-width: 400px
+  - Close button (✕) top-right
+  - Step indicator (e.g., "Step 1 of 6")
+  - Progress bar showing completion
+  - Dynamic content renders based on current step
+
+Modal Functions:
+  - injectModal(): Creates modal HTML in DOM
+  - destroyModal(): Removes modal from DOM
+  - renderStep(n): Displays content for step n
+  - updateProgress(currentStep, totalSteps): Updates progress bar
+
+Button States:
+  - "Previous" button (disabled on Step 1)
+  - "Next" or action button (varies by step)
+  - "Close" button always available
+
+Form Validation:
+  - Client-side validation in efStep3()
+  - Server-side validation in save_enrollment.php
+  - Error messages displayed inline in modal
+
+================================================================================
+9. PROGRAMS & PRICING
+================================================================================
+
+1. ACADEMIC TUTORIAL
+   - For school-age children
+   - One-on-one expert tutors
+   - All subjects covered
+   - Flexible scheduling
+   - Online booking available
+
+2. WEEKEND WORKSHOP
+   - Saturdays: Aug to Jan
+   - Music, arts, sports
+   - Group & 1-on-1 options
+   - Grand Recital at Island City Mall
+   - Swimming pool fee separate
+
+3. PLAYSCHOOL (Early Childhood)
+   - Caterpillar Class (2.6-3.5 years): ₱4,875/month (VIP: ₱3,900)
+   - Butterfly Class (3.6-4.5 years): ₱4,875/month (VIP: ₱3,900)
+   - Mon-Fri: 9:00-11:30 AM or 1:00-3:30 PM
+
+4. CHILD CARE (Full Day)
+   - Ages 1.6-4.5 years
+   - 7 AM - 7 PM (up to 12 hours)
+   - Includes meals, nanny care, activities
+   - Toilet trained: ₱12,250/month (VIP: ₱10,320)
+   - Non-toilet trained: ₱13,500/month (VIP: ₱11,800)
+   - Weekly and daily rates available
+
+VIP MEMBERSHIP
+  - ₱500 for 2 years
+  - 15% discount on all services
+  - Exclusive access
+
+================================================================================
+10. FACILITY AMENITIES
+================================================================================
+
+- Fully Air-Conditioned Rooms
+- 24/7 CCTV & Security
+- Mini Library
+- Canteen
+- Outdoor Play & Educational Tours
+- Toy Room
+- Music Room
+- Personal Lockers
+
+Operating Hours: Monday-Saturday, 7:00 AM - 7:00 PM
+Location: 2nd Floor, ARDC Building, CPG North Avenue, Tagbilaran, Bohol
+Contact: 0919-004-4939
+Facebook: www.facebook.com/einsteincenter.ph
+
+================================================================================
+11. CONTACT & SUPPORT
+================================================================================
+
+Phone/SMS: 0919-004-4939
+Address: 2nd Floor of ARDC Building, CPG North Avenue, Tagbilaran (near Coca-Cola Plant, going to Bohol Wisdom School)
+Facebook: www.facebook.com/einsteincenter.ph
+Operating Hours: Monday to Saturday · 7:00 AM – 7:00 PM
+Copyright: ©2018 by Einstein - Center for Modern Education - ECME
+
+================================================================================
+12. DEVELOPMENT & DEPLOYMENT
+================================================================================
+
+Local Development:
+  - XAMPP with Apache and MySQL running
+  - PHP 8.2.12+ required
+  - Database: einstein_db (UTF8MB4)
+  - Access: http://localhost/einstein_v4/einstein_bugfix/
+
+Database Setup:
+  1. Start MySQL via XAMPP Control Panel
+  2. Import db_setup.sql: Get-Content db_setup.sql | mysql.exe -u root
+  3. Verify: mysql -u root -e "USE einstein_db; SHOW TABLES;"
+
+File Upload:
+  - Payment screenshots stored in /uploads/ directory
+  - Ensure folder has write permissions
+  - Only images accepted (jpg, png)
+
+Security Considerations:
+  - Passwords hashed with PHP password_hash()
+  - OTP expires after 10 minutes
+  - Max 3 OTP attempts
+  - Session-based authentication
+  - File upload validation required
+
+================================================================================
+13. KNOWN ISSUES & RESOLUTIONS
+================================================================================
+
+RESOLVED:
+✓ Database missing error - Created einstein_db and imported schema
+✓ Enrollment flow UX - Reorganized from 7 steps to 6, account-first approach
+✓ Password security - Implemented proper hashing in register.php
+✓ OTP validation - Added expiration (10 min) and attempt limiting (3 tries)
+
+OUTSTANDING:
+- Image placeholders need real photos
+- Email sending requires SMTP configuration
+- Payment verification workflow (manual review)
+- Admin dashboard for enrollment management
+
+================================================================================
+14. QUICK START CHECKLIST
+================================================================================
+
+Before going live:
+□ Start XAMPP (Apache + MySQL)
+□ Create einstein_db database
+□ Import db_setup.sql
+□ Configure SMTP for email sending (config.php)
+□ Update image paths in collage.html and main.html
+□ Test enrollment flow: register → OTP → form → payment
+□ Verify file uploads to /uploads/ directory
+□ Test all program detail pages
+□ Mobile responsiveness check
+□ SSL certificate installation (for production)
+
+================================================================================
+END OF SYSTEM PROMPT
+================================================================================

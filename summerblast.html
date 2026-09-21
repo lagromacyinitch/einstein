@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summer Blast • Einstein Center</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Abril+Fatface&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --header-bg-1: #4A2C18;
+      --header-bg-2: #2B1608;
+      --mad-gold: #D4A76A;
+      --mad-gold-dim: rgba(212, 167, 106, 0.18);
+      --mad-gold-border: rgba(212, 167, 106, 0.28);
+
+      --cream: #F5EDD8;
+      --cream-block: #FDF8EE;
+      --cream-tab: #EAD8B5;
+      --cream-footer: #EDD9B2;
+
+      --brown-ink: #2B1608;
+      --brown-mid: #7B5230;
+      --brown-accent: #6B3F1A;
+      --brown-price: #3D1E06;
+      --brown-bar: #7B5230;
+      --brown-border: rgba(139, 94, 60, 0.22);
+      --brown-border-h: rgba(139, 94, 60, 0.42);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: none;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* -- TOP NAV BAR -- */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, #5d3f2d 0%, #3a2617 100%);
+      border-bottom: 1px solid var(--mad-gold-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 56px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(255, 255, 255, 0.45);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover {
+      color: var(--mad-gold);
+    }
+
+    .back-btn svg {
+      transition: transform 0.2s;
+    }
+
+    .back-btn:hover svg {
+      transform: translateX(-3px);
+    }
+
+    .topbar-brand {
+      font-family: 'Abril Fatface', serif;
+      font-size: 1.2rem;
+      color: var(--mad-gold);
+      letter-spacing: -0.01em;
+    }
+
+    .call-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--mad-gold);
+      color: #111 !important;
+      padding: 0.4rem 1rem;
+      border-radius: 3px;
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      transition: opacity 0.2s;
+      margin-top: 0.2rem;
+    }
+
+    .call-btn:hover {
+      opacity: 0.85;
+    }
+
+    /* -- MAIN CARD WRAPPER -- */
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      padding-top: 76px;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-bottom: 4rem;
+      background: rgba(60, 39, 28, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #fff;
+    }
+
+    .mad-card {
+      background: var(--cream);
+      border-radius: 12px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 800px;
+      margin: 2.5rem 1rem;
+      border: 1px solid var(--brown-border);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55);
+      color: var(--brown-ink);
+    }
+
+    /* -- CARD HEADER -- */
+    .card-header {
+      background: linear-gradient(135deg, var(--header-bg-1) 0%, var(--header-bg-2) 100%);
+      padding: 2.6rem 2.4rem 2rem;
+      border-bottom: 1px solid rgba(212, 167, 106, 0.15);
+      position: relative;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .card-header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .logo-mark {
+      font-family: 'Abril Fatface', serif;
+      font-size: 2.6rem;
+      line-height: 1;
+      color: var(--mad-gold);
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-text .eyebrow {
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.42);
+      font-weight: 600;
+    }
+
+    .logo-text .name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .card-header-location {
+      color: rgba(255, 255, 255, 0.38);
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* -- TABS -- */
+    .card-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--brown-border);
+      padding: 0 2.4rem;
+      background: var(--cream-tab);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: rgba(43, 22, 8, 0.45);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 1rem 1.35rem;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.25s, border-color 0.25s, background 0.25s;
+    }
+
+    .tab-btn.active {
+      color: var(--brown-accent);
+      border-bottom-color: var(--brown-accent);
+      background: rgba(107, 63, 26, 0.07);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--brown-ink);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card-body {
+      padding: 1.8rem 2.2rem 2rem;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .service-block {
+      background: var(--cream-block);
+      border: 1px solid var(--brown-border);
+      border-radius: 20px;
+      padding: 1.6rem 1.8rem;
+      transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .service-block:hover {
+      transform: translateY(-4px);
+      border-color: var(--brown-border-h);
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .service-block.full {
+      grid-column: 1 / -1;
+    }
+
+    .service-block h4 {
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--brown-accent);
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .service-block ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .service-block ul li {
+      font-size: 0.87rem;
+      color: rgba(43, 22, 8, 0.78);
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .service-block ul li::before {
+      content: '';
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--brown-accent);
+      flex-shrink: 0;
+    }
+
+    .pkg-price {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--brown-border);
+    }
+
+    .rate-price {
+      font-family: 'Abril Fatface', serif;
+      color: var(--brown-price);
+      font-size: 1.15rem;
+      white-space: nowrap;
+    }
+
+    .rate-period {
+      color: rgba(43, 22, 8, 0.4);
+      font-size: 0.75rem;
+    }
+
+    .reg-banner {
+      background: #FAF0DC;
+      border: 1px solid #E8D3AB;
+      border-radius: 16px;
+      padding: 1.4rem 1.8rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .reg-banner h4 {
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--brown-accent);
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+    }
+
+    .reg-banner p {
+      font-size: 0.82rem;
+      color: rgba(43, 22, 8, 0.65);
+      margin: 0;
+    }
+
+    .dates-box {
+      background: #FAF3E6;
+      border: 1px dashed var(--brown-border-h);
+      border-radius: 14px;
+      padding: 1.2rem 1.5rem;
+      margin-top: 1.5rem;
+      color: var(--brown-ink);
+    }
+
+    .dates-box h5 {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--brown-accent);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .dates-box p {
+      font-size: 0.83rem;
+      color: rgba(43, 22, 8, 0.75);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* -- ENROLL CTA -- */
+    .enroll-cta {
+      background: var(--brown-bar);
+      border-top: 1px solid rgba(139, 94, 60, 0.3);
+      padding: 2rem 2.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .enroll-cta-text h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--mad-gold);
+      margin: 0 0 0.3rem;
+    }
+
+    .enroll-cta-text p {
+      font-size: 0.83rem;
+      color: rgba(255, 255, 255, 0.58);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .enroll-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      white-space: nowrap;
+      background: var(--mad-gold);
+      color: #2B1608;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: 'DM Sans', sans-serif;
+      flex-shrink: 0;
+    }
+
+    .enroll-btn:hover {
+      background: #c9a24e;
+      box-shadow: 0 8px 24px rgba(212, 167, 106, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .enroll-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        padding: 0 1rem;
+      }
+
+      .card-header {
+        padding: 1.8rem 1.4rem 1.4rem;
+      }
+
+      .logo-mark {
+        font-size: 2rem;
+      }
+
+      .logo-text .name {
+        font-size: 0.88rem;
+      }
+
+      .card-tabs {
+        padding: 0 1.4rem;
+      }
+
+      .card-body {
+        padding: 1.4rem;
+      }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mad-card {
+        margin: 1rem 0.5rem;
+      }
+
+      .enroll-cta {
+        padding: 1.5rem 1.4rem;
+      }
+
+      .reg-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- CONTINUOUS COLLAGE BACKGROUND -->
+  <iframe src="main.html#programs"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: -1; pointer-events: none; opacity: 1;"></iframe>
+
+  <!-- PAGE WRAP -->
+  <div class="page-wrap">
+    <div class="mad-card">
+
+      <!-- HEADER -->
+      <div class="card-header">
+        <a href="main.html#programs" class="close-btn" title="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </a>
+        <div class="card-header-logo">
+          <span class="logo-mark">Summer Blast</span>
+          <div class="logo-text">
+            <span class="eyebrow">Einstein Center</span>
+            <span class="name">Year 14 • Summer Program</span>
+          </div>
+        </div>
+        <p class="card-header-location">Learning starts April 15, 2026 • Grand Recital at Island City Mall</p>
+      </div>
+
+      <!-- TABS -->
+      <div class="card-tabs">
+        <button class="tab-btn active" onclick="switchTab('courses', this)">Our Courses</button>
+        <button class="tab-btn" onclick="switchTab('packages', this)">Packages &amp; Rates</button>
+      </div>
+
+      <!-- COURSES TAB -->
+      <div class="tab-content active" id="tab-courses">
+        <div class="card-body">
+          <div class="services-grid">
+
+            <div class="service-block">
+              <h4>Academics</h4>
+              <ul>
+                <li>Basic Read &amp; Write</li>
+                <li>Reading w/ Comprehension</li>
+                <li>Math for Elementary</li>
+                <li>Math for High School</li>
+                <li>Public Speaking / Hosting</li>
+                <li>Wikang Tagalog / Filipino</li>
+              </ul>
+            </div>
+
+            <div class="service-block">
+              <h4>Music</h4>
+              <ul>
+                <li>Drum Lessons</li>
+                <li>Guitar Lessons</li>
+                <li>Piano Lessons</li>
+                <li>Violin Lessons</li>
+                <li>Voice Coaching</li>
+              </ul>
+            </div>
+
+            <div class="service-block">
+              <h4>Arts &amp; Dance</h4>
+              <ul>
+                <li>Ballet Lessons</li>
+                <li>Drawing &amp; Painting</li>
+                <li>Pop Dancing &amp; Afro Dance</li>
+                <li>Gymnastics</li>
+                <li>Modeling Class</li>
+                <li>Photography</li>
+              </ul>
+            </div>
+
+            <div class="service-block">
+              <h4>Sports</h4>
+              <ul>
+                <li>Basketball Clinic</li>
+                <li>Chess Clinic</li>
+              </ul>
+            </div>
+
+            <div class="service-block full">
+              <h4>Special Courses</h4>
+              <ul>
+                <li>Baking Class</li>
+                <li>Swimming Lessons</li>
+                <li>Taekwondo Class</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- PACKAGES TAB -->
+      <div class="tab-content" id="tab-packages">
+        <div class="card-body">
+
+          <!-- Registration Fee Banner -->
+          <div class="reg-banner">
+            <div>
+              <h4>Reserve Your Slot</h4>
+              <p>Includes free t-shirt, photo &amp; video coverage, recital fee, certificates &amp; more</p>
+            </div>
+            <div style="text-align:right">
+              <span class="rate-price" data-summerblast="Registration Fee" style="font-size:1.6rem">₱900</span>
+              <p class="rate-period">Registration Fee</p>
+            </div>
+          </div>
+
+          <div class="services-grid">
+
+            <!-- Single Course -->
+            <div class="service-block">
+              <h4>Single Course</h4>
+              <ul>
+                <li>Choose ONE course</li>
+                <li>Plus 1 Academics subject FREE</li>
+              </ul>
+              <div class="pkg-price">
+                <span class="rate-price" data-summerblast="Single Course">₱3,900</span>
+                <span class="rate-period">/One-time payment</span>
+              </div>
+            </div>
+
+            <!-- Two Courses -->
+            <div class="service-block">
+              <h4>Two Courses</h4>
+              <ul>
+                <li>Choose TWO courses</li>
+                <li>Plus 1 Academics subject FREE</li>
+              </ul>
+              <div class="pkg-price">
+                <span class="rate-price" data-summerblast="Two Courses">₱4,900</span>
+                <span class="rate-period">/One-time payment</span>
+              </div>
+            </div>
+
+            <!-- Special Course -->
+            <div class="service-block full">
+              <h4>Special Course</h4>
+              <ul>
+                <li>Choose ONE Special Course (Baking, Swimming, or Taekwondo)</li>
+                <li>Plus 1 Any Course FREE</li>
+              </ul>
+              <div class="pkg-price">
+                <span class="rate-price" data-summerblast="Special Course">₱5,100</span>
+                <span class="rate-period">/One-time payment</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Important Dates -->
+          <div class="dates-box">
+            <h5>Important Dates</h5>
+            <p>
+              <strong>Classes start:</strong> April 15 &bull;
+              <strong>No classes:</strong> May 1&ndash;2 &bull;
+              <strong>Rehearsal:</strong> May 22 &bull;
+              <strong>Grand Recital:</strong> May 23 at Island City Mall
+            </p>
+          </div>
+
+        </div>
+
+        <!-- ENROLL CTA -->
+        <div class="enroll-cta">
+          <div class="enroll-cta-text">
+            <h3>Reserve your slot for Summer Blast Year 14!</h3>
+            <p>Slots are limited to only 15 students per class. Reserve early to secure your preferred schedule.</p>
+          </div>
+          <button class="enroll-btn" onclick="openEnrollmentFlow('Summer Blast')">
+            Enroll Now
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        </div>
+
+      </div>
+
+    </div><!-- end mad-card -->
+
+    <script>
+      function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        btn.classList.add('active');
+      }
+    </script>
+
+    <script>
+      window.ENROLL_PACKAGES = [
+        { group: 'Registration Fee', value: 'Registration Fee – ₱900', name: 'Registration Fee (Slot Reservation) – ₱900', detail: '₱900 · Slot Reservation' },
+        { group: 'Single Course', value: 'Single Course – ₱3,900', name: 'Single Course – ₱3,900', detail: '₱3,900 · Choose 1 Course + 1 Academics Free' },
+        { group: 'Two Courses', value: 'Two Courses – ₱4,900', name: 'Two Courses – ₱4,900', detail: '₱4,900 · Choose 2 Courses + 1 Academics Free' },
+        { group: 'Special Course', value: 'Special Course – ₱5,100', name: 'Special Course – ₱5,100', detail: '₱5,100 · 1 Special Course + 1 Any Course Free' }
+      ];
+    </script>
+    <script src="enrollment-flow.js?v=14"></script>
+  </div>
+  <script src="security.js"></script>
+  <script src="validation.js?v=12"></script>
+  <script>
+    (function applySummerblastRatesOnLoad() {
+      function applyRates(sbPackages) {
+        if (!Array.isArray(sbPackages)) return;
+        sbPackages.forEach(function(s) {
+          if (!s.name || !s.rate) return;
+          var numVal = parseFloat(String(s.rate).replace(/[^0-9.]/g, ''));
+          if (!numVal) return;
+          document.querySelectorAll('[data-summerblast="' + s.name + '"]').forEach(function(el) {
+            el.textContent = '₱' + numVal.toLocaleString();
+          });
+        });
+      }
+
+      function loadFromLocalStorage() {
+        var settings;
+        try { settings = JSON.parse(localStorage.getItem('einsteinSettings')); } catch(e) {}
+        if (settings && Array.isArray(settings.summerblast)) {
+          applyRates(settings.summerblast);
+        }
+      }
+
+      function loadFromServer() {
+        fetch('load_rates.php', { credentials: 'same-origin' })
+          .then(function(r) { return r.json(); })
+          .then(function(j) {
+            if (j.success && j.rates && Array.isArray(j.rates.summerblast) && j.rates.summerblast.length) {
+              applyRates(j.rates.summerblast);
+              // Also update localStorage so cross-tab sync stays fresh
+              try {
+                var s = JSON.parse(localStorage.getItem('einsteinSettings') || '{}') || {};
+                s.summerblast = j.rates.summerblast;
+                localStorage.setItem('einsteinSettings', JSON.stringify(s));
+              } catch(e) {}
+            }
+          })
+          .catch(function() {});
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        loadFromLocalStorage();
+        // Always also fetch from server so DB prices override stale localStorage
+        loadFromServer();
+      });
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'einsteinSettings') loadFromLocalStorage();
+      });
+      window.addEventListener('einsteinSettingsUpdated', function(e) {
+        var settings = e.detail;
+        if (settings && Array.isArray(settings.summerblast)) applyRates(settings.summerblast);
+      });
+    })();
+  </script>
+</body>
+
+</html>
