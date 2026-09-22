@@ -1,5 +1,28 @@
 DirectoryIndex main.html index.php index.html
 
+# Clean URLs: pages are reached as /playschool instead of /playschool.html.
+# The redirects read THE_REQUEST (what the browser actually asked for), so the
+# internal rewrite below never loops back into them. Only GET is redirected;
+# the api/*.php endpoints keep their extensions.
+RewriteEngine On
+
+# main.html and /main are the home page.
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteCond %{THE_REQUEST} \s(/(?:[^?\s]*/)?)main(?:\.html)?[?\s]
+RewriteRule ^ %1 [R=301,L,NE]
+
+# Old .html links go to the clean URL. The Google verification file must stay
+# reachable at its exact .html path.
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteCond %{REQUEST_URI} !/google[0-9a-f]+\.html$
+RewriteCond %{THE_REQUEST} \s(/[^?\s]*?)\.html[?\s]
+RewriteRule ^ %1 [R=301,L,NE]
+
+# Serve /playschool from playschool.html.
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)$ $1.html [L]
+
 # Revalidate payment UI so older image links are not reused after updates.
 <IfModule mod_headers.c>
     <FilesMatch "^(user\.html|admin\.html|enrollment-flow\.js|main\.css|admin\.css)$">
