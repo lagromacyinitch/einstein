@@ -1720,7 +1720,7 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 <span class="user-notif-dot" id="userNotifDot" style="display:none;"></span>
             </button>
-            <a href="main.html?portal=user&view=static" onclick="sessionStorage.setItem('active_portal','user');sessionStorage.setItem('view_as_static','1');" class="nav-home-btn">View Website</a>
+            <a href="./?portal=user&view=static" onclick="sessionStorage.setItem('active_portal','user');sessionStorage.setItem('view_as_static','1');" class="nav-home-btn">View Website</a>
         </div>
     </nav>
 
@@ -2131,42 +2131,42 @@
                 subtitle: 'For school-age children',
                 category: 'Tutoring',
                 features: ['One-on-one expert tutors', 'All subjects & modules covered', 'Flexible scheduling options', 'Online booking available'],
-                page: 'academic_tutorial.html'
+                page: 'academic_tutorial'
             },
             {
                 name: 'Weekend Workshop',
                 subtitle: 'Saturdays • Aug to Jan',
                 category: 'Enrichment',
                 features: ['Music, arts, and sports', 'Group & 1-on-1 options', 'Grand Recital at Island City Mall', 'Pool fee not yet included for swimming'],
-                page: 'workshop.html'
+                page: 'workshop'
             },
             {
                 name: 'PlaySchool',
                 subtitle: 'Ages 2.6 to 4.5 years old',
                 category: 'Early Education',
                 features: ['Caterpillar & Butterfly classes', 'Arts, literacy, numeracy', 'Morning & afternoon sessions', 'Mon • Fri schedule'],
-                page: 'playschool.html'
+                page: 'playschool'
             },
             {
                 name: 'Child Care Program',
                 subtitle: 'Ages 1.6 to 4.5 years old',
                 category: 'Daycare',
                 features: ['Up to 12 hrs nanny care (7am-7pm)', 'Breakfast & lunch included', 'Life skills & play-based learning', 'Everyday except Sundays'],
-                page: 'childcare_program.html'
+                page: 'childcare_program'
             },
             {
                 name: 'M.A.D. Studio',
                 subtitle: 'Fitness & After-school Programs',
                 category: 'Our Services',
                 features: ['Fitness Training • Hiphop Aerobics, Kickboxing', 'After School Program • Ballet, Taekwondo, Gymnastics, Pop Dancing', 'Studio Rental'],
-                page: 'mad.html'
+                page: 'mad'
             },
             {
                 name: 'Summer Blast',
                 subtitle: 'Year 14 • April to May',
                 category: 'Summer Program',
                 features: ['Academics, Music, Arts & Sports', 'Choose 1 or 2 courses plus free academics', 'Grand Recital at Island City Mall', 'Reserve your slot for only ₱1,000'],
-                page: 'summerblast.html'
+                page: 'summerblast'
             }
         ];
 
@@ -2302,7 +2302,7 @@
             try {
                 const r=await fetch('api/user_account.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();
                 if(!r.ok || !d.success) throw Error(d.message);
-                if(action==='delete'){localStorage.removeItem('userEmail');sessionStorage.removeItem('userEmail');location.href='login.html';return;}
+                if(action==='delete'){localStorage.removeItem('userEmail');sessionStorage.removeItem('userEmail');location.href='login';return;}
                 if(action==='profile') {rememberProfile();message.style.color='#237035';message.textContent='Profile saved successfully.';document.getElementById('account-save').textContent='Saved';updateWelcome(value('account-name'));}
                 else {document.getElementById('account-security-form').reset();message.textContent='Password changed.';}
             }catch(e){message.style.color='#b42318';message.textContent=e.message || 'Unable to save. Please try again.';if(action==='profile')document.getElementById('account-save').textContent='Save Profile';}finally{buttons.forEach(b=>b.disabled=false);document.getElementById('account-save').disabled=currentProfileValues()===profileSnapshot;}
@@ -2372,7 +2372,7 @@
             const isLoggedIn = await checkLoginStatus();
 
             if (!isLoggedIn) {
-                window.location.href = 'main.html';
+                window.location.href = './';
                 return;
             }
 
@@ -4155,7 +4155,7 @@
                 localStorage.removeItem('userEmail');
                 localStorage.removeItem('isVip');
                 sessionStorage.clear();
-                window.location.href = 'main.html';
+                window.location.href = './';
             }
         }
 

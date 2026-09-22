@@ -38,7 +38,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   <div id="login-screen">
     <div class="login-box">
       <div style="position:absolute; top:16px; left:16px; z-index:10;">
-        <a href="main.html" class="login-back-btn" id="login-back-btn"
+        <a href="./" class="login-back-btn" id="login-back-btn"
           title="Back to Home" aria-label="Back to Home" style="display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -152,7 +152,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const params = new URLSearchParams({ signup: '1' });
       if (ctx.returnTo) params.set('return', ctx.returnTo);
       if (ctx.program) params.set('program', ctx.program);
-      window.location.href = 'main.html?' + params.toString();
+      window.location.href = './?' + params.toString();
     });
   </script>
   <script>
@@ -289,7 +289,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
           returnToSignIn();
         } else {
           // Explicitly go to main.html
-          window.location.href = 'main.html';
+          window.location.href = './';
         }
       }, true);
       document.getElementById('reset-signin-btn').addEventListener('click', returnToSignIn);

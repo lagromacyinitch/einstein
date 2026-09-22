@@ -127,7 +127,7 @@
           <input type="search" placeholder="Search students, staff…" id="global-search" name="portal-directory-search" autocomplete="off" value="" readonly onfocus="this.removeAttribute('readonly')"
             oninput="handleGlobalSearch(this.value)">
         </div>
-        <a href="main.html?portal=admin&view=static" onclick="sessionStorage.setItem('active_portal','admin');sessionStorage.setItem('view_as_static','1');" class="nav-home-btn" style="padding:7px 14px;background:linear-gradient(135deg, #c49a45, #dfb76c);border:none;border-radius:6px;color:#3d2212;font-weight:600;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,0.1);" title="View Live Website">View Website</a>
+        <a href="./?portal=admin&view=static" onclick="sessionStorage.setItem('active_portal','admin');sessionStorage.setItem('view_as_static','1');" class="nav-home-btn" style="padding:7px 14px;background:linear-gradient(135deg, #c49a45, #dfb76c);border:none;border-radius:6px;color:#3d2212;font-weight:600;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,0.1);" title="View Live Website">View Website</a>
         <button class="topbar-btn" onclick="toggleNotif()"
           style="background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative"><img
             src="images/notif.png" alt="Notifications"
@@ -4474,7 +4474,7 @@
           const authBlocked = r.status === 403 || /admin( or staff)? access required\./i.test(res.message || '');
           if (authBlocked) {
             alert('Your administrator session has expired or was overwritten by a parent user login in another tab. Redirecting to login page...');
-            window.location.href = 'login.html';
+            window.location.href = 'login';
             return;
           }
           enrollments = getAllStoredEnrollments();
@@ -5122,7 +5122,7 @@
         if (!res.success) {
           if (response.status === 403 || /admin( or staff)? access required\./i.test(res.message || '')) {
             alert('Session expired. Please log in as admin again.');
-            window.location.href = 'login.html';
+            window.location.href = 'login';
             return;
           }
           alert('Failed to approve enrollment: ' + res.message);
@@ -5164,7 +5164,7 @@
         if (!res.success) {
           if (response.status === 403 || /admin( or staff)? access required\./i.test(res.message || '')) {
             alert('Session expired. Please log in as admin again.');
-            window.location.href = 'login.html';
+            window.location.href = 'login';
             return;
           }
           alert('Failed to reject enrollment: ' + res.message);
@@ -5429,7 +5429,7 @@
       localStorage.removeItem('adminSession');
       localStorage.removeItem('tutor_logged_sessions');
       sessionStorage.clear();
-      window.location.href = 'main.html';
+      window.location.href = './';
     }
 
     // ─── ENROLLMENT PAGE ──────────────────────────────────────────────────────────
@@ -8651,7 +8651,7 @@
           const el = document.getElementById(id); if (el) el.value = '';
         });
         if (d.require_relogin) {
-          setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+          setTimeout(() => { window.location.href = 'login'; }, 2000);
         }
       } catch (e) {
         showHcMsg('✗ ' + e.message, false);
@@ -9111,7 +9111,7 @@
         const r = await fetch('api/check_session.php', { credentials: 'include', cache: 'no-store' });
         const d = await r.json();
         if (!d || !d.logged_in || (d.role !== 'admin' && d.role !== 'staff')) {
-          window.location.href = 'main.html';
+          window.location.href = './';
           return;
         }
         isHeadAdminUser = !!d.is_head_admin;

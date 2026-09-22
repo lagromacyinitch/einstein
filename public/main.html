@@ -53,13 +53,13 @@
     </div>
 
     <!-- CONTINUOUS COLLAGE BACKGROUND -->
-    <iframe src="collage.html"
+    <iframe src="collage"
         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: -1; pointer-events: none; opacity: 1;"></iframe>
 
     <!-- PROFILE ICON (login or dashboard) -->
     <div class="login-icons" id="login-icons">
         <div class="login-btn-wrapper" style="position: relative;">
-            <a href="login.html" class="login-btn" id="login-icon-link" title="Sign in">
+            <a href="login" class="login-btn" id="login-icon-link" title="Sign in">
                 <img src="images/admin.png" alt="Sign in" id="login-icon-img" />
             </a>
             <span class="login-label" id="login-icon-label">Login</span>
@@ -100,7 +100,7 @@
             <p class="section-desc">From toddler care to academic tutorials and weekend workshops, we have a program for
                 every child's stage and interest.</p>
             <div class="programs-grid" style="margin-top:2.5rem;">
-                <a href="academic_tutorial.html" style="text-decoration:none;color:inherit;display:block;">
+                <a href="academic_tutorial" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3>Academic Tutorial</h3>
@@ -117,7 +117,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="workshop.html" style="text-decoration:none;color:inherit;display:block;">
+                <a href="workshop" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3>Weekend Workshop</h3>
@@ -134,7 +134,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="playschool.html" style="text-decoration:none;color:inherit;display:block;">
+                <a href="playschool" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3>PlaySchool</h3>
@@ -151,7 +151,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="childcare_program.html" style="text-decoration:none;color:inherit;display:block;">
+                <a href="childcare_program" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3>Child Care Program</h3>
@@ -168,7 +168,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="mad.html" style="text-decoration:none;color:inherit;display:block;">
+                <a href="mad" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3>M.A.D. Studio</h3>
@@ -184,7 +184,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="summerblast.html" style="text-decoration:none;color:inherit;display:block;">
+                <a href="summerblast" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3>Summer Blast</h3>
@@ -1116,31 +1116,31 @@
                 navLinks.querySelectorAll('.session-nav-item').forEach(el => el.remove());
 
                 if (data.logged_in && (data.role === 'admin' || data.role === 'staff')) {
-                    setQuickAccessIcon('admin.html', 'Admin Dashboard', 'Go to admin panel');
+                    setQuickAccessIcon('admin', 'Admin Dashboard', 'Go to admin panel');
                     const adminDashLi = document.createElement('li');
                     adminDashLi.className = 'session-nav-item';
-                    adminDashLi.innerHTML = `<a href="admin.html">Dashboard</a>`;
+                    adminDashLi.innerHTML = `<a href="admin">Dashboard</a>`;
                     navLinks.appendChild(adminDashLi);
 
                 } else if (data.logged_in && data.role === 'user') {
                     if (data.email) localStorage.setItem('userEmail', data.email);
                     if (data.user_id) sessionStorage.setItem('userId', data.user_id);
 
-                    setQuickAccessIcon('user.html', 'My Dashboard', 'Go to your dashboard');
+                    setQuickAccessIcon('user', 'My Dashboard', 'Go to your dashboard');
 
                     const dashboardLi = document.createElement('li');
                     dashboardLi.className = 'session-nav-item';
-                    dashboardLi.innerHTML = `<a href="user.html">Dashboard</a>`;
+                    dashboardLi.innerHTML = `<a href="user">Dashboard</a>`;
                     navLinks.appendChild(dashboardLi);
 
                 } else {
-                    setQuickAccessIcon('login.html', 'Login', 'Sign in');
+                    setQuickAccessIcon('login', 'Login', 'Sign in');
                 }
             } catch (e) {
                 console.error('Navbar update failed:', e);
                 const navLinks = document.getElementById('nav-links');
                 if (navLinks) navLinks.querySelectorAll('.session-nav-item').forEach(el => el.remove());
-                setQuickAccessIcon('login.html', 'Login', 'Sign in');
+                setQuickAccessIcon('login', 'Login', 'Sign in');
             }
         }
 
@@ -1186,7 +1186,7 @@
                 localStorage.removeItem('userEmail');
                 localStorage.removeItem('isVip');
                 sessionStorage.clear();
-                window.location.href = 'main.html';
+                window.location.href = './';
             }
         }
 

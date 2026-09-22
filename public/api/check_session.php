@@ -8,7 +8,7 @@ setSecurityHeaders();
 
 $portalPreference = $_GET['portal'] ?? $_GET['prefer'] ?? $_COOKIE['einstein_active_portal'] ?? '';
 $referer = $_SERVER['HTTP_REFERER'] ?? '';
-if (empty($portalPreference) && str_contains($referer, 'user.html')) {
+if (empty($portalPreference) && preg_match('~/user(\.html)?($|[?#])~', $referer)) {
     $portalPreference = 'user';
 }
 

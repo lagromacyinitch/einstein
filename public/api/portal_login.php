@@ -75,7 +75,7 @@ try {
             echo json_encode([
                 'success' => true,
                 'role' => 'admin',
-                'redirect' => 'admin.html',
+                'redirect' => 'admin',
                 'display_name' => 'Head Admin',
             ]);
             exit;
@@ -86,7 +86,7 @@ try {
             session_regenerate_id(true);
             // All DB accounts are Sub-Admin / Tutor — always redirect to admin.html
             $resolvedRole = 'admin';
-            $redirectPage = 'admin.html';
+            $redirectPage = 'admin';
 
             $_SESSION['role'] = $resolvedRole;
             $_SESSION['portal_username'] = $acc['username'];
@@ -156,7 +156,7 @@ try {
         'role' => 'user',
         'user_id' => (int) $decryptedUser['id'],
         'email' => $userEmail,
-        'redirect' => 'user.html',
+        'redirect' => 'user',
         'display_name' => trim($displayName),
     ]);
 

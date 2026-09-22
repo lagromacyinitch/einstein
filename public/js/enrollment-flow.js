@@ -793,20 +793,20 @@
       if (typeof window.loadEnrollments === 'function') {
         window.loadEnrollments();
       }
-      if (window.location.pathname.includes('user.html')) {
+      if (/\/user(\.html)?$/.test(window.location.pathname)) {
         window.location.reload();
       } else {
-        window.location.href = 'user.html';
+        window.location.href = 'user';
       }
     }
   };
 
   window.goToUserPortal = function () {
     hideEnrollmentModal();
-    if (window.location.pathname.includes('user.html')) {
+    if (/\/user(\.html)?$/.test(window.location.pathname)) {
       window.location.reload();
     } else {
-      window.location.href = 'user.html';
+      window.location.href = 'user';
     }
   };
 
@@ -1534,7 +1534,7 @@
   window.goToLoginPage = function () {
     const params = new URLSearchParams({ return: 'enroll' });
     if (programName) params.set('program', programName);
-    window.location.href = 'login.html?' + params.toString();
+    window.location.href = 'login?' + params.toString();
   };
 
   window.efStep1New = async function () {
@@ -1617,7 +1617,7 @@
       sessionStorage.setItem('userId', r.user_id);
       sessionStorage.setItem('einstein-login-role', 'user');
 
-      window.location.href = 'user.html';
+      window.location.href = 'user';
     } catch (e) {
       showError(e?.message || 'Server error — open http://localhost/ (not file://)');
     } finally {
@@ -1649,7 +1649,7 @@
       account.userId = userId;
 
       if (!programName) {
-        window.location.href = 'user.html';
+        window.location.href = 'user';
       } else {
         goTo(3); // Go to form after verification
       }
