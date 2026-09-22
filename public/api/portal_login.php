@@ -5,6 +5,7 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/admin_accounts.php';
 setSecurityHeaders();
 
 // ── Activity log helper ──────────────────────────────────────────────────────
@@ -48,40 +49,37 @@ try {
 
     $usernameLower = strtolower($username);
 
-    // ── 1. Check Head Admin (hardcoded config) ──────────────────────
-    if ($usernameLower === strtolower(PORTAL_ADMIN_USER)) {
-        if ($password !== PORTAL_ADMIN_PASS) {
-            throw new Exception('Incorrect email/username or password. Please try again.');
-        }
-        startPortalSession();
-        session_regenerate_id(true);
-        $_SESSION['role'] = 'admin';
-        $_SESSION['portal_username'] = PORTAL_ADMIN_USER;
-        $_SESSION['display_name'] = 'Head Admin';
-        $_SESSION['is_head_admin'] = true;
-        unset($_SESSION['user_id'], $_SESSION['email']);
-
-        logPortalActivity('Head Admin', 'Head Admin', 'LOGIN', 'Head Admin logged in to Admin Portal.');
-
-        ob_clean();
-        echo json_encode([
-            'success' => true,
-            'role' => 'admin',
-            'redirect' => 'admin.html',
-            'display_name' => 'Head Admin',
-        ]);
-        exit;
-    }
-
     // ── 2. (Removed) Old hardcoded staff/tutor accounts no longer used.
     //    All sub-admin/tutor accounts are now managed via the DB (admin_accounts table).
 
-    // ── 3. Check DB-backed Admin/Staff accounts (admin_accounts) ───
+    // ── 3. Check DB-backed Head Admin / Sub-Admin accounts (admin_accounts) ───
     try {
         $dbConn = getDB();
+        getHeadAdmin($dbConn); // creates the Head Admin row from .env on a fresh database
         $stmt = $dbConn->prepare("SELECT * FROM admin_accounts WHERE (LOWER(username)=? OR LOWER(COALESCE(email, ''))=?) AND is_active=1");
         $stmt->execute([$usernameLower, $usernameLower]);
         $acc = $stmt->fetch();
+
+        if ($acc && $acc['role'] === 'head_admin' && password_verify($password, $acc['password_hash'])) {
+            startPortalSession();
+            session_regenerate_id(true);
+            $_SESSION['role'] = 'admin';
+            $_SESSION['portal_username'] = $acc['username'];
+            $_SESSION['display_name'] = 'Head Admin';
+            $_SESSION['is_head_admin'] = true;
+            unset($_SESSION['user_id'], $_SESSION['email'], $_SESSION['sub_admin_id'], $_SESSION['tutor_id']);
+
+            logPortalActivity('Head Admin', 'Head Admin', 'LOGIN', 'Head Admin logged in to Admin Portal.');
+
+            ob_clean();
+            echo json_encode([
+                'success' => true,
+                'role' => 'admin',
+                'redirect' => 'admin.html',
+                'display_name' => 'Head Admin',
+            ]);
+            exit;
+        }
 
         if ($acc && password_verify($password, $acc['password_hash'])) {
             startPortalSession();

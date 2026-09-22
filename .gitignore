@@ -1,5 +1,6 @@
-# Local database credentials and environment-specific configuration.
-config.php
+# Local secrets. public/includes/config.php is committed and reads them from .env;
+# the old repo-root config.php still holds real values, so keep it out of git.
+/config.php
 .env
 
 # Local editor and operating-system files.
