@@ -1,0 +1,7 @@
+# Login, admin and portal pages carry <meta name="robots" content="noindex">
+# instead of being disallowed here: Google has to crawl a page to see noindex.
+User-agent: *
+Disallow: /api/
+Disallow: /includes/
+
+Sitemap: https://einsteincenter.dcsbisu.com/sitemap.xml
