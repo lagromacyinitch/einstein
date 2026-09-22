@@ -17,6 +17,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # config.php reads the database settings from includes/.env, which is
+      # gitignored; build it from secrets so the password never lives in git.
+      # includes/.htaccess blocks browsers from downloading it.
+      - name: Write includes/.env
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+        run: |
+          for name in DB_HOST DB_NAME DB_USER DB_PASS; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing repository secret $name"
+              exit 1
+            fi
+          done
+          {
+            echo "DB_HOST=$DB_HOST"
+            echo "DB_PORT=3306"
+            echo "DB_NAME=$DB_NAME"
+            echo "DB_USER=$DB_USER"
+            echo "DB_PASS=$DB_PASS"
+            echo "DB_AUTO_BOOTSTRAP=false"
+          } > public/includes/.env
+
       - name: Upload public/ via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
