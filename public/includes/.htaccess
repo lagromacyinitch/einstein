@@ -1,0 +1,7 @@
+# Server-side helpers only: included by PHP, never requested by browsers.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

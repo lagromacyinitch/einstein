@@ -8,1355 +8,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap"
     rel="stylesheet">
-  <style>
-/* Hide Microsoft Edge / IE native password reveal & clear buttons to prevent duplicate eye icons */
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear,
-input::-ms-reveal,
-input::-ms-clear {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
-}
-input[type="password"]::-webkit-credentials-auto-fill-button {
-  visibility: hidden !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  right: 0 !important;
-}
-
-    :root {
-      --brown-deep: #3d1f0a;
-      --brown-primary: #5c3317;
-      --brown-mid: #7a4420;
-      --brown-warm: #9b5e2e;
-      --brown-light: #c8956a;
-      --gold: #c9a84c;
-      --gold-light: #e0c47a;
-      --cream: #f5ede0;
-      --cream-dark: #ecdbc8;
-      --white: #fff;
-      --text-dark: #2a1505;
-      --text-mid: #5c3317;
-      --sidebar-w: 240px;
-      --radius: 12px;
-    }
-
-    *,
-    *::before,
-    *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Lato', sans-serif;
-      background: #f0e6d6;
-      color: var(--text-dark);
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* ── SIDEBAR ── */
-    #sidebar {
-      width: var(--sidebar-w);
-      min-height: 100vh;
-      background: var(--brown-deep);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      z-index: 100;
-    }
-
-    .sidebar-header {
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(201, 168, 76, .15);
-    }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .sidebar-logo .oval {
-      width: 128px;
-      height: 128px;
-      margin: 0 auto;
-      background: transparent;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .oval img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 50%;
-      display: block;
-    }
-
-    .sidebar-logo-text {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .sidebar-logo-text h2 {
-      font-family: 'Playfair Display', serif;
-      color: var(--gold-light);
-      font-size: 13px;
-      line-height: 1.2;
-    }
-
-    .sidebar-logo-text span {
-      color: rgba(255, 255, 255, .4);
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-    }
-
-    .nav-section-label {
-      color: rgba(201, 168, 76, .5);
-      font-size: 9px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 18px 20px 6px;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      padding: 10px 20px;
-      color: rgba(255, 255, 255, .6);
-      font-size: 13px;
-      cursor: pointer;
-      transition: all .2s;
-      position: relative;
-      text-decoration: none;
-      border-left: 3px solid transparent;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-    }
-
-    .nav-item:hover {
-      background: rgba(201, 168, 76, .08);
-      color: var(--gold-light);
-    }
-
-    .nav-item.active {
-      background: rgba(201, 168, 76, .12);
-      color: var(--gold-light);
-      border-left-color: var(--gold);
-    }
-
-    .nav-badge {
-      margin-left: auto;
-      background: var(--gold);
-      color: var(--brown-deep);
-      font-size: 10px;
-      font-weight: 700;
-      border-radius: 20px;
-      padding: 1px 7px;
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 16px 20px;
-      border-top: 1px solid rgba(201, 168, 76, .15);
-    }
-
-    .user-card {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: relative;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold), var(--brown-warm));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 700;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    .user-info {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .user-info h4 {
-      color: #fff;
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .user-info span {
-      color: rgba(255, 255, 255, .4);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .logout-btn {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, .3);
-      cursor: pointer;
-      font-size: 16px;
-      transition: color .2s;
-      flex-shrink: 0;
-    }
-
-    .logout-btn:hover {
-      color: var(--gold);
-    }
-
-    .user-menu {
-      position: absolute;
-      right: 12px;
-      bottom: calc(100% + 8px);
-      background: var(--brown-deep);
-      color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
-      min-width: 140px;
-      display: none;
-      z-index: 1000;
-    }
-
-    .user-menu.open {
-      display: block;
-    }
-
-    .user-menu-item {
-      display: block;
-      padding: 10px 12px;
-      background: none;
-      border: none;
-      width: 100%;
-      text-align: left;
-      font-size: 13px;
-      color: #fff;
-      cursor: pointer;
-    }
-
-    .user-menu-item:hover {
-      background: rgba(255, 255, 255, .04);
-    }
-
-    /* ── MAIN ── */
-    #main {
-      margin-left: var(--sidebar-w);
-      flex: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── TOPBAR ── */
-    .topbar {
-      background: #fff;
-      padding: 8px 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--cream-dark);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: 0 2px 8px rgba(61, 31, 10, .06);
-    }
-
-    .topbar-left h2 {
-      font-family: 'Playfair Display', serif;
-      font-weight: 700;
-      line-height: 1.3;
-      letter-spacing: normal;
-      font-size: 20px;
-      color: var(--brown-primary);
-    }
-
-    .topbar-left p {
-      font-size: 12px;
-      color: var(--brown-light);
-      margin-top: 1px;
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .topbar-btn {
-      background: none;
-      border: 1px solid var(--cream-dark);
-      border-radius: 8px;
-      padding: 8px 10px;
-      cursor: pointer;
-      color: var(--brown-mid);
-      font-size: 15px;
-      position: relative;
-      transition: all .2s;
-    }
-
-    .topbar-btn:hover {
-      background: var(--cream);
-      border-color: var(--gold);
-    }
-
-    .notif-dot {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background: var(--gold);
-    }
-
-    .search-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--cream);
-      border: 1px solid var(--cream-dark);
-      border-radius: 8px;
-      padding: 8px 14px;
-    }
-
-    .search-bar input {
-      border: none;
-      background: none;
-      outline: none;
-      font-size: 13px;
-      color: var(--text-dark);
-      width: 180px;
-    }
-
-    .search-bar span {
-      color: var(--brown-light);
-      font-size: 13px;
-    }
-
-    /* ── PAGES ── */
-    .page {
-      display: none;
-      padding: 18px;
-      animation: fadeIn .3s ease;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px)
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0)
-      }
-    }
-
-    /* ── STATS ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 18px;
-      margin-bottom: 26px;
-    }
-
-    .stat-card {
-      background: #fff;
-      border-radius: var(--radius);
-      padding: 22px 20px;
-      border: 1px solid var(--cream-dark);
-      position: relative;
-      overflow: hidden;
-      transition: transform .2s, box-shadow .2s;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(61, 31, 10, .1);
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--gold), var(--brown-light));
-    }
-
-    .stat-card h3 {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--brown-primary);
-    }
-
-    .stat-card p {
-      font-size: 12px;
-      color: var(--brown-light);
-      margin-top: 2px;
-    }
-
-    .stat-change {
-      font-size: 11px;
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .stat-change.up {
-      color: #2e7d32;
-    }
-
-    .stat-change.down {
-      color: #c62828;
-    }
-
-    /* ── GRID ── */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    .three-col {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .col-2-1 {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-    }
-
-    /* ── CARDS ── */
-    .card {
-      background: #fff;
-      border-radius: var(--radius);
-      border: 1px solid var(--cream-dark);
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-
-    .card-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--cream-dark);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .card-header h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 16px;
-      color: var(--brown-primary);
-    }
-
-    .card-header span {
-      font-size: 11px;
-      color: var(--brown-light);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .card-body {
-      padding: 20px;
-    }
-
-    /* ── TABLES ── */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead tr {
-      background: var(--cream);
-    }
-
-    th {
-      padding: 10px 14px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--brown-mid);
-      text-align: left;
-    }
-
-    td {
-      padding: 12px 14px;
-      font-size: 13px;
-      color: var(--text-dark);
-      border-bottom: 1px solid var(--cream-dark);
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr:hover td {
-      background: rgba(240, 230, 214, .4);
-    }
-
-    /* ── BADGES ── */
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .5px;
-    }
-
-    .badge-green {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .badge-gold {
-      background: #fff8e1;
-      color: #9e6c00;
-    }
-
-    .badge-brown {
-      background: #efebe9;
-      color: #4e342e;
-    }
-
-    .badge-red {
-      background: #ffebee;
-      color: #c62828;
-    }
-
-    .badge-blue {
-      background: #e3f2fd;
-      color: #1565c0;
-    }
-
-    /* ── BUTTONS ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 9px 18px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all .2s;
-      text-decoration: none;
-      font-family: inherit;
-    }
-
-    .btn-primary {
-      background: var(--brown-primary);
-      color: #fff;
-    }
-
-    .btn-primary:hover {
-      background: var(--brown-deep);
-    }
-
-    .btn-gold {
-      background: var(--gold);
-      color: var(--brown-deep);
-    }
-
-    .btn-gold:hover {
-      background: var(--gold-light);
-    }
-
-    .btn-outline {
-      background: none;
-      border: 1px solid var(--cream-dark);
-      color: var(--brown-mid);
-    }
-
-    .btn-outline:hover {
-      border-color: var(--gold);
-      color: var(--brown-primary);
-    }
-
-    .btn-sm {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
-
-    .btn-danger {
-      background: #ffebee;
-      color: #c62828;
-      border: 1px solid #ffcdd2;
-    }
-
-    .btn-danger:hover {
-      background: #c62828;
-      color: #fff;
-    }
-
-    .btn-success {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #c8e6c9;
-    }
-
-    .btn-success:hover {
-      background: #2e7d32;
-      color: #fff;
-    }
-
-    /* ── FORM ── */
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--brown-mid);
-      letter-spacing: .5px;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--cream-dark);
-      border-radius: 8px;
-      font-size: 13px;
-      color: var(--text-dark);
-      background: #fff;
-      outline: none;
-      transition: border-color .2s;
-      font-family: inherit;
-    }
-
-    .form-control:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(201, 168, 76, .1);
-    }
-
-    select.form-control {
-      cursor: pointer;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    /* ── PROGRESS ── */
-    .progress-bar {
-      background: var(--cream-dark);
-      border-radius: 20px;
-      height: 7px;
-      overflow: hidden;
-      margin-top: 6px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      border-radius: 20px;
-      background: linear-gradient(90deg, var(--gold), var(--brown-warm));
-      transition: width .5s;
-    }
-
-    /* ── ACTIVITY ── */
-    .activity-item {
-      display: flex;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--cream-dark);
-    }
-
-    .activity-item:last-child {
-      border-bottom: none;
-    }
-
-    .activity-content h4 {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-dark);
-    }
-
-    .activity-content p {
-      font-size: 12px;
-      color: var(--brown-light);
-      margin-top: 2px;
-    }
-
-    .activity-time {
-      margin-left: auto;
-      font-size: 11px;
-      color: var(--brown-light);
-      white-space: nowrap;
-    }
-
-    /* ── MINI CHART ── */
-    .mini-chart {
-      display: flex;
-      align-items: flex-end;
-      gap: 5px;
-      height: 50px;
-      margin-top: 10px;
-    }
-
-    .bar {
-      flex: 1;
-      border-radius: 4px 4px 0 0;
-      background: linear-gradient(to top, var(--brown-primary), var(--gold));
-      opacity: .8;
-      transition: opacity .2s;
-    }
-
-    .bar:hover {
-      opacity: 1;
-    }
-
-    /* ── MODAL ── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 500;
-      background: rgba(61, 31, 10, .5);
-      backdrop-filter: blur(4px);
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Assign-tutor modal must float above the enrollment-approval modal */
-    #modal-assign-tutor {
-      z-index: 600;
-    }
-
-    .modal-overlay.open {
-      display: flex;
-    }
-
-    .modal {
-      background: #fff;
-      border-radius: 16px;
-      width: 520px;
-      max-height: 90vh;
-      overflow-y: auto;
-      animation: fadeUp .3s ease;
-    }
-
-    .modal-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--cream-dark);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      background: #fff;
-      z-index: 1;
-    }
-
-    .modal-header h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 18px;
-      color: var(--brown-primary);
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      color: var(--brown-light);
-    }
-
-    .modal-body {
-      padding: 24px;
-    }
-
-    .modal-footer {
-      padding: 16px 24px;
-      border-top: 1px solid var(--cream-dark);
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    /* ── SECTION HEADER ── */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-
-    .section-header h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      color: var(--brown-primary);
-    }
-
-    .section-header p {
-      font-size: 13px;
-      color: var(--brown-light);
-      margin-top: 3px;
-    }
-
-    /* ── STAFF GRID ── */
-    .staff-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-
-    .staff-card {
-      background: #fff;
-      border-radius: var(--radius);
-      border: 1px solid var(--cream-dark);
-      padding: 20px;
-      text-align: center;
-      transition: all .2s;
-    }
-
-    .staff-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(61, 31, 10, .1);
-    }
-
-    .staff-avatar {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      margin: 0 auto 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(135deg, var(--brown-primary), var(--brown-warm));
-    }
-
-    .staff-card h4 {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--brown-primary);
-    }
-
-    .staff-card p {
-      font-size: 12px;
-      color: var(--brown-light);
-      margin: 3px 0 10px;
-    }
-
-    .staff-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      justify-content: center;
-    }
-
-    /* ── NOTIF PANEL ── */
-    .notif-panel {
-      position: fixed;
-      top: 0;
-      right: -340px;
-      width: 320px;
-      height: 100vh;
-      background: #fff;
-      box-shadow: -4px 0 20px rgba(61, 31, 10, .12);
-      z-index: 200;
-      transition: right .3s;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .notif-panel.open {
-      right: 0;
-    }
-
-    .notif-panel-header {
-      padding: 20px;
-      border-bottom: 1px solid var(--cream-dark);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .notif-panel-header h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 17px;
-      color: var(--brown-primary);
-    }
-
-    .notif-item {
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--cream-dark);
-      cursor: pointer;
-      transition: background .15s;
-    }
-
-    .notif-item:hover {
-      background: var(--cream);
-    }
-
-    .notif-item.unread {
-      border-left: 3px solid var(--gold);
-    }
-
-    .notif-item h4 {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-dark);
-    }
-
-    .notif-item p {
-      font-size: 12px;
-      color: var(--brown-light);
-      margin-top: 3px;
-    }
-
-    .notif-item time {
-      font-size: 10px;
-      color: var(--brown-light);
-      margin-top: 5px;
-      display: block;
-    }
-
-    /* ── PROGRAM PAGE SPECIFIC ── */
-    .program-empty {
-      padding: 48px 24px;
-      text-align: center;
-      color: var(--brown-light);
-    }
-
-    .program-empty .empty-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-
-    .program-empty h4 {
-      font-size: 16px;
-      color: var(--brown-mid);
-      margin-bottom: 6px;
-    }
-
-    .program-empty p {
-      font-size: 13px;
-    }
-
-    .enrollment-detail-section {
-      background: #f5ede0;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-    }
-
-    .enrollment-detail-section h4 {
-      margin-bottom: 12px;
-      color: #5c3317;
-      font-size: 14px;
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .detail-item label {
-      font-size: 10px;
-      color: #8D6A4E;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      display: block;
-    }
-
-    .detail-item strong {
-      display: block;
-      margin-top: 4px;
-      font-size: 13px;
-      color: #5c3317;
-    }
-
-    .detail-item.full-width {
-      grid-column: 1/-1;
-    }
-
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--cream);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--brown-light);
-      border-radius: 3px;
-    }
-
-    @media (max-width:1100px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .three-col,
-      .staff-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    .amount {
-      font-weight: 700;
-      color: var(--brown-primary);
-    }
-
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .chip {
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      background: var(--cream);
-      color: var(--brown-mid);
-      border: 1px solid var(--cream-dark);
-      cursor: pointer;
-      transition: all .2s;
-    }
-
-    .chip.active,
-    .chip:hover {
-      background: var(--brown-primary);
-      color: #fff;
-      border-color: var(--brown-primary);
-    }
-
-    .filter-bar {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .filter-bar .search-input {
-      padding: 8px 14px;
-      border: 1px solid var(--cream-dark);
-      border-radius: 8px;
-      font-size: 13px;
-      outline: none;
-      width: 220px;
-      font-family: inherit;
-    }
-
-    .filter-bar .search-input:focus {
-      border-color: var(--gold);
-    }
-
-    /* ══════════════════════════════════════════════
-       MOBILE RESPONSIVE — hamburger + sidebar slide
-       ══════════════════════════════════════════════ */
-    .hamburger-btn {
-      display: none;
-      background: none;
-      border: 1px solid var(--cream-dark);
-      border-radius: 8px;
-      padding: 8px 10px;
-      cursor: pointer;
-      font-size: 18px;
-      color: var(--brown-mid);
-      margin-right: 8px;
-      line-height: 1;
-    }
-
-    #sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .45);
-      z-index: 99;
-    }
-
-    #sidebar-overlay.open {
-      display: block;
-    }
-
-    @media (max-width: 768px) {
-      :root {
-        --sidebar-w: 0px;
-      }
-
-      #sidebar {
-        transform: translateX(-240px);
-        transition: transform .25s ease;
-        width: 240px !important;
-        z-index: 200;
-      }
-
-      #sidebar.mobile-open {
-        transform: translateX(0);
-      }
-
-      #main {
-        margin-left: 0 !important;
-      }
-
-      .hamburger-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .topbar {
-        padding: 8px 14px;
-      }
-
-      .topbar-left h2 {
-        font-size: 16px;
-      }
-
-      .search-bar {
-        display: none;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 10px;
-      }
-
-      .stat-card h3 {
-        font-size: 20px;
-      }
-
-      .card-body {
-        overflow-x: auto;
-      }
-
-      table {
-        min-width: 600px;
-      }
-
-      .form-row {
-        flex-direction: column;
-        gap: 0;
-      }
-
-      .modal {
-        width: 95vw !important;
-        max-width: 95vw !important;
-        margin: 0 auto;
-      }
-
-      .modal-body {
-        padding: 14px;
-      }
-
-      .three-col,
-      .staff-grid {
-        grid-template-columns: 1fr 1fr !important;
-      }
-
-      .page {
-        padding: 16px !important;
-      }
-
-      .section-header {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px;
-      }
-
-      .notif-panel {
-        width: 100vw;
-        right: 0;
-      }
-
-      .modal-footer {
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .modal-footer button {
-        flex: 1;
-        min-width: 100px;
-      }
-
-      .filter-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .filter-bar .search-input,
-      .filter-bar select,
-      .filter-bar input[type="month"] {
-        width: 100% !important;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .stats-grid {
-        grid-template-columns: 1fr !important;
-      }
-
-      .three-col,
-      .staff-grid {
-        grid-template-columns: 1fr !important;
-      }
-
-      .topbar-right .topbar-btn:not(:last-child) {
-        display: none;
-      }
-    }
-
-    @keyframes pulse-orange {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(194, 65, 12, 0.35); }
-      50%       { box-shadow: 0 0 0 4px rgba(194, 65, 12, 0); }
-    }
-
-    /* ── ACTIVITY LOG STYLES ── */
-    @keyframes alogPulse {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-
-      50% {
-        opacity: .4;
-        transform: scale(.85);
-      }
-    }
-
-    .alog-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .4px;
-      white-space: nowrap;
-    }
-
-    .alog-badge-login {
-      background: #e3f2fd;
-      color: #1565c0;
-    }
-
-    .alog-badge-add {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .alog-badge-edit {
-      background: #fff8e1;
-      color: #9e6c00;
-    }
-
-    .alog-badge-delete {
-      background: #ffebee;
-      color: #c62828;
-    }
-
-    .alog-badge-creds {
-      background: #f3e5f5;
-      color: #6a1b9a;
-    }
-
-    .alog-badge-view {
-      background: #e0f2f1;
-      color: #00695c;
-    }
-
-    .alog-badge-default {
-      background: #efebe9;
-      color: #4e342e;
-    }
-
-    .alog-row-new {
-      animation: alogNewRow .6s ease;
-    }
-
-    @keyframes alogNewRow {
-      from {
-        background: rgba(201, 168, 76, .15);
-      }
-
-      to {
-        background: transparent;
-      }
-    }
-
-    .alog-pg-btn {
-      padding: 5px 11px;
-      border-radius: 6px;
-      border: 1px solid var(--cream-dark);
-      background: #fff;
-      color: var(--brown-mid);
-      font-size: 12px;
-      cursor: pointer;
-      transition: all .15s;
-      font-family: inherit;
-    }
-
-    .alog-pg-btn:hover,
-    .alog-pg-btn.active {
-      background: var(--brown-primary);
-      color: #fff;
-      border-color: var(--brown-primary);
-    }
-  #page-pricemanagement .btn { background:transparent !important; color:var(--brown-primary) !important; border:1px solid var(--brown-primary) !important; box-shadow:none !important; }
-    #page-pricemanagement .btn:disabled { opacity:.45; cursor:not-allowed; }
-    .vip-section-columns { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start; }
-    .vip-section-columns .card { min-width:0;min-height:360px; }
-    .vip-section-columns table { width:100%; }
-    @media(max-width:1000px){.vip-section-columns{grid-template-columns:1fr;}}
-    </style>
-<script src="vip-price.js" defer></script>
+  <link rel="stylesheet" href="css/admin.css" />
+<script src="js/vip-price.js" defer></script>
 </head>
 
 <body>
@@ -4479,7 +3132,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       (async () => {
         try {
-          const res = await fetch('save_rates.php', {
+          const res = await fetch('api/save_rates.php', {
             method: 'POST', credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ section: 'madstudio', data: madData })
@@ -4656,7 +3309,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       (async () => {
         try {
-          const res = await fetch('save_rates.php', {
+          const res = await fetch('api/save_rates.php', {
             method: 'POST', credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ section: 'summerblast', data: sbData })
@@ -4739,7 +3392,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (button.disabled) return;
       button.disabled = true;
       try {
-        const response = await fetch('save_rates.php', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({section:'tutorial',data:updatedRates})});
+        const response = await fetch('api/save_rates.php', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({section:'tutorial',data:updatedRates})});
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.message || 'Unable to save prices.');
         siteSettings.tutorials = updatedRates; persistSettings(); renderTutorialPriceCards();
@@ -4873,7 +3526,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       try { window.dispatchEvent(new Event('storage')); } catch(e) {}
       // Persist to MySQL database via api_settings.php
       try {
-        const r = await fetch('api_settings.php', {
+        const r = await fetch('api/api_settings.php', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -4897,7 +3550,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
     async function loadDatabaseSettings() {
       try {
-        const res = await fetch('api_settings.php', { credentials: 'include' });
+        const res = await fetch('api/api_settings.php', { credentials: 'include' });
         const data = await res.json();
         if (data && data.success && data.settings) {
           siteSettings = Object.assign({}, siteSettings, data.settings);
@@ -5659,7 +4312,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
           if (section === 'workshop') payload.data = siteSettings.workshops;
           if (section === 'playschool') payload.data = siteSettings.playschool;
           if (section === 'tutorial') payload.data = siteSettings.tutorials;
-          const res = await fetch('save_rates.php', {
+          const res = await fetch('api/save_rates.php', {
             method: 'POST', credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -5743,7 +4396,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     }
     async function loadSlotCapacities() {
       try {
-        const response = await fetch('slot_capacities.php', {credentials:'same-origin', cache:'no-store'});
+        const response = await fetch('api/slot_capacities.php', {credentials:'same-origin', cache:'no-store'});
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error(data.message || 'Unable to load slot capacities.');
         applySlotCapacities(data);
@@ -5756,7 +4409,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       button.disabled = true;
       input.disabled = true;
       try {
-        const response = await fetch('slot_capacities.php', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({program:key,capacity:Number(input.value)})});
+        const response = await fetch('api/slot_capacities.php', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({program:key,capacity:Number(input.value)})});
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error(data.message || 'Unable to save capacity.');
         applySlotCapacities(data, key);
@@ -5779,7 +4432,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
     async function loadRatesFromServer() {
       try {
-        const r = await fetch('load_rates.php', { credentials: 'same-origin' });
+        const r = await fetch('api/load_rates.php', { credentials: 'same-origin' });
         const j = await r.json();
         if (j.success && j.rates) {
           // Merge server rates into siteSettings but do not overwrite other keys
@@ -5808,7 +4461,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function loadEnrollmentsFromServer() {
       await loadVipAdminData();
       try {
-        const r = await fetch('admin_get_enrollments.php', { credentials: 'same-origin' });
+        const r = await fetch('api/admin_get_enrollments.php', { credentials: 'same-origin' });
         const res = await r.json();
         if (res.success) {
           enrollments = res.enrollments;
@@ -5936,7 +4589,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     let vipAdminData = { events: [], members: {} };
     async function loadVipAdminData() {
       try {
-        const response = await fetch('vip_api.php?scope=admin', {credentials:'same-origin', cache:'no-store'});
+        const response = await fetch('api/vip_api.php?scope=admin', {credentials:'same-origin', cache:'no-store'});
         const data = await response.json();
         if (!data.success) return;
         vipAdminData = data;
@@ -6131,7 +4784,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         if(input.hidden){await refreshVipFee();input.value=window.vipFee;input.dataset.original=input.value;input.hidden=false;display.hidden=true;button.textContent='Save';button.disabled=true;return;}
         if(!input.reportValidity() || !input.value) return;
         button.disabled=true;
-        const r=await fetch('vip_price.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({price:input.value})});const d=await r.json();if(!r.ok||!d.success)throw Error(d.message);
+        const r=await fetch('api/vip_price.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({price:input.value})});const d=await r.json();if(!r.ok||!d.success)throw Error(d.message);
         await refreshVipFee();input.hidden=true;display.hidden=false;button.textContent='Edit Prices';button.disabled=false;showToast('VIP fee saved.');
       }catch(e){button.disabled=false;showToast(e.message,'error');}
     }
@@ -6253,8 +4906,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       try {
         const [resTutors, resAdmins] = await Promise.all([
-          fetch('tutors.php', { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ tutors: [] })),
-          fetch('manage_admins.php?action=list', { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ accounts: [] }))
+          fetch('api/tutors.php', { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ tutors: [] })),
+          fetch('api/manage_admins.php?action=list', { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ accounts: [] }))
         ]);
 
         const tutors = resTutors.tutors || [];
@@ -6435,7 +5088,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (!confirm(message)) return;
       button.disabled = true;
       try {
-        const response = await fetch('archive_student.php', {
+        const response = await fetch('api/archive_student.php', {
           method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'},
           body:JSON.stringify({enrollment_id:id, action:archived ? 'archive' : 'restore'})
         });
@@ -6455,7 +5108,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         if (verifiedAmount !== undefined && verifiedAmount !== null && !isNaN(verifiedAmount)) {
           payload.verified_payment_amount = verifiedAmount;
         }
-        const response = await fetch('admin_update_enrollment.php', {
+        const response = await fetch('api/admin_update_enrollment.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -6497,7 +5150,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function rejectEnrollment(id) {
       if (!confirm('Reject this enrollment?')) return;
       try {
-        const response = await fetch('admin_update_enrollment.php', {
+        const response = await fetch('api/admin_update_enrollment.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -6765,7 +5418,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function doLogout() {
       if (!confirm('Are you sure you want to logout?')) return;
       try {
-        await fetch('logout.php', { method: 'POST', credentials: 'include' });
+        await fetch('api/logout.php', { method: 'POST', credentials: 'include' });
       } catch (e) {
         console.error('Logout error:', e);
       }
@@ -7005,7 +5658,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         try {
           const payload = { enrollment_id: rRec.id, action: 'approve' };
           if (childVerified !== null) payload.verified_payment_amount = childVerified;
-          const r = await fetch('admin_update_enrollment.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          const r = await fetch('api/admin_update_enrollment.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
           const d = await r.json();
           if (d.success) done++;
         } catch(err) { console.error('approveParentGroup error', err); }
@@ -7023,7 +5676,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       let done = 0;
       for (const id of ids) {
         try {
-          const r = await fetch('admin_update_enrollment.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enrollment_id: id, action: 'reject' }) });
+          const r = await fetch('api/admin_update_enrollment.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enrollment_id: id, action: 'reject' }) });
           const d = await r.json();
           if (d.success) done++;
         } catch(err) { console.error('rejectParentGroup error', err); }
@@ -7680,7 +6333,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       try {
         for (const id of targetIds) {
-          const response = await fetch('admin_update_enrollment.php', {
+          const response = await fetch('api/admin_update_enrollment.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
@@ -7790,7 +6443,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         return;
       }
       try {
-        const resp = await fetch('check_receipt_amount.php?src=' + encodeURIComponent(srcUrl), { credentials: 'same-origin' });
+        const resp = await fetch('api/check_receipt_amount.php?src=' + encodeURIComponent(srcUrl), { credentials: 'same-origin' });
         const data = await resp.json();
         const hasAmount = !!(data && data.has_amount);
         receiptAmountCache[srcUrl] = hasAmount;
@@ -7989,7 +6642,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     </div>
   `;
 
-      fetch(`assign_tutor.php?enrollment_id=${e.id}`, { credentials: 'include' })
+      fetch(`api/assign_tutor.php?enrollment_id=${e.id}`, { credentials: 'include' })
         .then(r => r.json()).then(d => {
           const el = document.getElementById('detail-assigned-tutor-name');
           const btn = document.getElementById('btn-view-assign-tutor');
@@ -8285,7 +6938,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const button = modal.querySelector('.modal-footer .btn-primary');
       manualEnrollmentSaving = true; button.disabled = true; button.textContent = 'Saving…';
       try {
-        const response = await fetch('admin_create_enrollment.php', {method:'POST',credentials:'same-origin',body:payload});
+        const response = await fetch('api/admin_create_enrollment.php', {method:'POST',credentials:'same-origin',body:payload});
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.message || 'Unable to save enrollments.');
         enrollments.unshift(...result.enrollments); saveAllEnrollments(enrollments);
@@ -8386,7 +7039,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const tbody = document.getElementById('tutors-table-body');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:#8D6A4E">Loading…</td></tr>';
       try {
-        const r = await fetch('tutors.php', { credentials: 'include' });
+        const r = await fetch('api/tutors.php', { credentials: 'include' });
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         tutorsList = d.tutors || [];
@@ -8477,7 +7130,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         schedule: document.getElementById('tutor-schedule').value.trim(),
       };
       try {
-        const r = await fetch('tutors.php', {
+        const r = await fetch('api/tutors.php', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -8493,7 +7146,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function deleteTutor(id, name) {
       if (!confirm(`Remove ${name} from the tutor roster?`)) return;
       try {
-        const r = await fetch('tutors.php', {
+        const r = await fetch('api/tutors.php', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'delete', id }),
@@ -8569,7 +7222,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       // Load tutor list for modal
       try {
-        const r = await fetch('schedules.php?action=list_tutors', { credentials: 'same-origin' });
+        const r = await fetch('api/schedules.php?action=list_tutors', { credentials: 'same-origin' });
         const d = await r.json();
         if (d.success) {
           schedTutorsList = d.tutors || [];
@@ -8583,7 +7236,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const tbody = document.getElementById('sched-grid-body');
       tbody.innerHTML = '<tr><td colspan="11" style="padding:32px;text-align:center;color:#8D6A4E">Loading…</td></tr>';
       try {
-        const r = await fetch('schedules.php?action=list_all', { credentials: 'same-origin' });
+        const r = await fetch('api/schedules.php?action=list_all', { credentials: 'same-origin' });
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         schedulesList = d.schedules || [];
@@ -8682,7 +7335,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function saveSchedCell(rowId, day, el) {
       const val = el.textContent.trim();
       try {
-        const r = await fetch('schedules.php', {
+        const r = await fetch('api/schedules.php', {
           method: 'POST', credentials: 'same-origin',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ action:'update_cell', id:rowId, day, value:val })
@@ -8707,7 +7360,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const cleanVal = formatTimeslotDigits(val) || val;
       el.textContent = cleanVal;
       try {
-        const r = await fetch('schedules.php', {
+        const r = await fetch('api/schedules.php', {
           method: 'POST', credentials: 'same-origin',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ action:'update_timeslot', id:rowId, timeslot:cleanVal })
@@ -8761,7 +7414,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       // If already committed in backend, restore via backend API
       if (recentlyDeletedRowsCache[sId]) {
         try {
-          const r = await fetch('schedules.php', {
+          const r = await fetch('api/schedules.php', {
             method: 'POST', credentials: 'same-origin',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ action: 'restore', row: recentlyDeletedRowsCache[sId] })
@@ -8785,7 +7438,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       recentlyDeletedRowsCache[sId] = rowData;
 
       try {
-        const r = await fetch('schedules.php', {
+        const r = await fetch('api/schedules.php', {
           method: 'POST', credentials: 'same-origin',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ action:'delete', id: sId })
@@ -8883,7 +7536,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const tutor_id = matched ? matched.id : 0;
 
       try {
-        const r = await fetch('schedules.php', {
+        const r = await fetch('api/schedules.php', {
           method:'POST', credentials:'same-origin',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
@@ -8926,7 +7579,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       }
       tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:#8D6A4E">Loading…</td></tr>';
       try {
-        const r = await fetch(`sessions.php?action=list&tutor_id=${tutorId}&month=${month}`, { credentials: 'same-origin' });
+        const r = await fetch(`api/sessions.php?action=list&tutor_id=${tutorId}&month=${month}`, { credentials: 'same-origin' });
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         sessionsList = d.sessions || [];
@@ -8971,7 +7624,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const hours = document.getElementById('log-session-hours').value;
       if (!tutorId || !enrollId || !date) { alert('Tutor, Enrollment ID, and Date are required.'); return; }
       try {
-        const r = await fetch('sessions.php', {
+        const r = await fetch('api/sessions.php', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -8992,7 +7645,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function verifySession(id) {
       if (!confirm('Mark this session as verified?')) return;
       try {
-        const r = await fetch('sessions.php', {
+        const r = await fetch('api/sessions.php', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'verify', session_id: id }),
@@ -9007,7 +7660,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function deleteSession(id) {
       if (!confirm('Delete this session log?')) return;
       try {
-        const r = await fetch('sessions.php', {
+        const r = await fetch('api/sessions.php', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'delete', session_id: id }),
@@ -9104,7 +7757,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       try {
         const promises = ids.map(id => {
-          return fetch('admin_update_enrollment.php', {
+          return fetch('api/admin_update_enrollment.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
@@ -9146,7 +7799,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       try {
         const promises = ids.map(id => {
-          return fetch('admin_update_enrollment.php', {
+          return fetch('api/admin_update_enrollment.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
@@ -9276,7 +7929,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       // First render immediately from cache
       renderAnnouncementsPage();
       try {
-        const res = await fetch('api_announcements.php', { credentials: 'same-origin' });
+        const res = await fetch('api/api_announcements.php', { credentials: 'same-origin' });
         const data = await res.json();
         if (data && data.success && Array.isArray(data.announcements)) {
           adminAnnouncementsCache = data.announcements;
@@ -9329,7 +7982,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Posting...'; }
 
       try {
-        const res = await fetch('api_announcements.php', {
+        const res = await fetch('api/api_announcements.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -9362,7 +8015,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (!confirm('Delete this announcement?')) return;
       try {
         if (id) {
-          const res = await fetch('api_announcements.php', {
+          const res = await fetch('api/api_announcements.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
@@ -9393,7 +8046,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const tbody = document.getElementById('payroll-table-body');
       tbody.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:#8D6A4E">Loading…</td></tr>';
       try {
-        const r = await fetch(`sessions.php?action=tutors_summary&month=${month}`, { credentials: 'same-origin' });
+        const r = await fetch(`api/sessions.php?action=tutors_summary&month=${month}`, { credentials: 'same-origin' });
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         const tutors = d.tutors || [];
@@ -9506,7 +8159,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       // Check existing assignment
       if (eid) {
-        fetch(`assign_tutor.php?enrollment_id=${eid}`, { credentials: 'include' })
+        fetch(`api/assign_tutor.php?enrollment_id=${eid}`, { credentials: 'include' })
           .then(r => r.json()).then(d => {
             if (d && d.assignment) {
               document.getElementById('assign-current-name').textContent = d.assignment.full_name;
@@ -9535,7 +8188,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (!tutorsList.length) loadTutors();
 
       // Check existing assignment
-      fetch(`assign_tutor.php?enrollment_id=${rec.id}`, { credentials: 'include' })
+      fetch(`api/assign_tutor.php?enrollment_id=${rec.id}`, { credentials: 'include' })
         .then(r => r.json()).then(d => {
           if (d && d.assignment) {
             document.getElementById('assign-current-name').textContent = d.assignment.full_name;
@@ -9553,7 +8206,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const tid = parseInt(document.getElementById('assign-tutor-select').value);
       if (!eid || !tid) { alert('Please select a tutor.'); return; }
       try {
-        const r = await fetch('assign_tutor.php', {
+        const r = await fetch('api/assign_tutor.php', {
           method: 'POST', credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -9580,7 +8233,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const eid = parseInt(document.getElementById('assign-enrollment-id').value);
       if (!confirm('Remove the current tutor assignment?')) return;
       try {
-        const r = await fetch('assign_tutor.php', {
+        const r = await fetch('api/assign_tutor.php', {
           method: 'POST', credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'unassign', enrollment_id: eid }),
@@ -9670,7 +8323,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   </div>
 
 
-  <script src="security.js"></script>
+  <script src="js/security.js"></script>
   <script>
     // ═══════════════════════════════════════════════════════════════
     //  ADMIN ACCOUNT MANAGEMENT
@@ -9696,7 +8349,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       saBody.innerHTML = '<tr><td colspan="7" style="padding:18px;text-align:center;color:#8D6A4E">Loading accounts…</td></tr>';
 
       try {
-        const r = await fetch('manage_admins.php?action=list', { credentials: 'include' });
+        const r = await fetch('api/manage_admins.php?action=list', { credentials: 'include' });
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         
@@ -9755,7 +8408,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
     async function togglePricePermission(id, canEdit) {
       try {
-        const r = await fetch('manage_admins.php', {
+        const r = await fetch('api/manage_admins.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -9794,7 +8447,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     let _subAdminCache = [];
     async function openEditSubAdminModal(id) {
       if (!_subAdminCache.length) {
-        const r = await fetch('manage_admins.php?action=list', { credentials: 'include' });
+        const r = await fetch('api/manage_admins.php?action=list', { credentials: 'include' });
         const d = await r.json();
         _subAdminCache = d.accounts || [];
       }
@@ -9858,7 +8511,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       msgEl.style.display = 'none';
 
       try {
-        const r = await fetch('manage_admins.php', {
+        const r = await fetch('api/manage_admins.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -9885,7 +8538,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function deleteSubAdmin(id, name) {
       if (!confirm(`Remove sub-admin "${name}"? They will no longer be able to log in.`)) return;
       try {
-        const r = await fetch('manage_admins.php', {
+        const r = await fetch('api/manage_admins.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -9979,7 +8632,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       msgEl.style.display = 'none';
 
       try {
-        const r = await fetch('manage_admins.php', {
+        const r = await fetch('api/manage_admins.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -10017,7 +8670,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     // ── Load current head admin credentials into the form on page load ──
     (async function loadHeadCredentials() {
       try {
-        const r = await fetch('manage_admins.php?action=get_head_credentials', {
+        const r = await fetch('api/manage_admins.php?action=get_head_credentials', {
           method: 'GET', credentials: 'include'
         });
         const d = await r.json();
@@ -10056,7 +8709,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       msgEl.style.display = 'none';
 
       try {
-        const r = await fetch('manage_admins.php', {
+        const r = await fetch('api/manage_admins.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -10113,7 +8766,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
     async function loadSmtpSettings() {
       try {
-        const res = await fetch('api_settings.php?action=get_smtp', { credentials: 'same-origin' });
+        const res = await fetch('api/api_settings.php?action=get_smtp', { credentials: 'same-origin' });
         const d = await res.json();
         if (d && d.success && d.smtp) {
           const s = d.smtp;
@@ -10157,7 +8810,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       btn.textContent = 'Saving…';
 
       try {
-        const res = await fetch('api_settings.php', {
+        const res = await fetch('api/api_settings.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -10194,7 +8847,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       btn.textContent = 'Sending…';
       showSmtpMsg('', false); // clear
       try {
-        const res = await fetch('api_settings.php', {
+        const res = await fetch('api/api_settings.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -10228,7 +8881,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const tbody = document.getElementById('program-spans-tbody');
       if (!tbody) return;
       try {
-        const res = await fetch('api_program_spans.php', { cache: 'no-store' });
+        const res = await fetch('api/api_program_spans.php', { cache: 'no-store' });
         const d = await res.json();
         if (d && d.success && Array.isArray(d.spans)) {
           programSpansData = d.spans;
@@ -10331,7 +8984,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       btn.textContent = 'Saving…';
 
       try {
-        const res = await fetch('api_program_spans.php', {
+        const res = await fetch('api/api_program_spans.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
@@ -10456,7 +9109,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
     async function checkAdminPermissions() {
       try {
-        const r = await fetch('check_session.php', { credentials: 'include', cache: 'no-store' });
+        const r = await fetch('api/check_session.php', { credentials: 'include', cache: 'no-store' });
         const d = await r.json();
         if (!d || !d.logged_in || (d.role !== 'admin' && d.role !== 'staff')) {
           window.location.href = 'main.html';
@@ -10625,7 +9278,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       const date = document.getElementById('alog-filter-date')?.value || '';
       const offset = (alogCurrentPage - 1) * ALOG_PAGE_SIZE;
 
-      let url = `activity_log.php?action=list&limit=${ALOG_PAGE_SIZE}&offset=${offset}`;
+      let url = `api/activity_log.php?action=list&limit=${ALOG_PAGE_SIZE}&offset=${offset}`;
       if (actor) url += `&actor=${encodeURIComponent(actor)}`;
       if (type) url += `&type=${encodeURIComponent(type)}`;
       if (date) url += `&date=${encodeURIComponent(date)}`;
@@ -10740,7 +9393,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       try {
         const actor = (document.getElementById('alog-filter-actor')?.value || '').trim();
         const date = document.getElementById('alog-filter-date')?.value || '';
-        let url = `activity_log.php?action=list&limit=500&offset=0`;
+        let url = `api/activity_log.php?action=list&limit=500&offset=0`;
         if (actor) url += `&actor=${encodeURIComponent(actor)}`;
         if (date) url += `&date=${encodeURIComponent(date)}`;
 
@@ -10775,7 +9428,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     // ── Record activity from the frontend (page visits, etc.) ─────────────
     async function recordActivity(actionType, description) {
       try {
-        await fetch('activity_log.php', {
+        await fetch('api/activity_log.php', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -10812,7 +9465,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--brown-light)">Loading your schedule…</td></tr>`;
 
       try {
-        const r = await fetch('schedules.php?action=list_mine', { credentials: 'include' });
+        const r = await fetch('api/schedules.php?action=list_mine', { credentials: 'include' });
         const d = await r.json();
         if (d.success) {
           subadminSchedules = Array.isArray(d.schedules) ? d.schedules : [];
@@ -10909,7 +9562,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       renderSubadminHoursTable();
 
       try {
-        const res = await fetch('sessions.php?action=my_sessions', { credentials: 'same-origin' });
+        const res = await fetch('api/sessions.php?action=my_sessions', { credentials: 'same-origin' });
         const data = await res.json();
         if (data && data.success && Array.isArray(data.sessions)) {
           subadminSessions = data.sessions;
@@ -10986,7 +9639,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving...'; }
 
       try {
-        const res = await fetch('sessions.php', {
+        const res = await fetch('api/sessions.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -11179,7 +9832,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (receiptAmountCache[src] !== undefined) {
         applyLbBlur(receiptAmountCache[src]);
       } else {
-        fetch('check_receipt_amount.php?src=' + encodeURIComponent(src), { credentials: 'same-origin' })
+        fetch('api/check_receipt_amount.php?src=' + encodeURIComponent(src), { credentials: 'same-origin' })
           .then(r => r.json())
           .then(d => {
             const hasAmt = !!(d && d.has_amount);
@@ -11192,7 +9845,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
     async function reviewBalanceReceipts(id) {
       try {
-        const response = await fetch('admin_get_enrollments.php', {credentials:'same-origin', cache:'no-store'});
+        const response = await fetch('api/admin_get_enrollments.php', {credentials:'same-origin', cache:'no-store'});
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error(data.message || 'Unable to load receipts.');
         enrollments = data.enrollments;
@@ -11336,7 +9989,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
               } else if (receiptAmountCache[receipt.path] !== undefined) {
                 applyThumbBlur(receiptAmountCache[receipt.path]);
               } else {
-                fetch('check_receipt_amount.php?src=' + encodeURIComponent(receipt.path), { credentials: 'same-origin' })
+                fetch('api/check_receipt_amount.php?src=' + encodeURIComponent(receipt.path), { credentials: 'same-origin' })
                   .then(r => r.json())
                   .then(d => {
                     const hasAmt = !!(d && d.has_amount);
@@ -11469,7 +10122,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
               try {
                 if (hasPending && selectedReceipt) {
-                  const response = await fetch('admin_review_balance_receipt.php', {
+                  const response = await fetch('api/admin_review_balance_receipt.php', {
                     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       enrollment_id: record.id,
@@ -11483,7 +10136,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
                   if (!response.ok || !result.success) throw new Error(result.message || 'Receipt review failed.');
                   record.admin_notes = result.admin_notes;
                 } else if (action === 'approve') {
-                  const response = await fetch('admin_update_enrollment.php', {
+                  const response = await fetch('api/admin_update_enrollment.php', {
                     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       enrollment_id: record.id,
@@ -11539,7 +10192,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (button.disabled) return;
       button.disabled = true; button.textContent = 'Refreshing…';
       try {
-        const response = await fetch('admin_get_enrollments.php', {credentials:'same-origin',cache:'no-store'});
+        const response = await fetch('api/admin_get_enrollments.php', {credentials:'same-origin',cache:'no-store'});
         const result = await response.json();
         if (!response.ok || !result.success || !Array.isArray(result.enrollments)) throw new Error(result.message || 'Unable to refresh balances.');
         enrollments = result.enrollments;
@@ -11554,7 +10207,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (!isHeadAdminUser) return;
 
       // Always fetch fresh data so admin sees new balance receipts immediately
-      fetch('admin_get_enrollments.php', { credentials: 'same-origin', cache: 'no-store' })
+      fetch('api/admin_get_enrollments.php', { credentials: 'same-origin', cache: 'no-store' })
         .then(r => r.json())
         .then(data => {
           if (data.success && Array.isArray(data.enrollments)) {
@@ -11981,7 +10634,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
       try {
-        const resp = await fetch('admin_update_enrollment.php', {
+        const resp = await fetch('api/admin_update_enrollment.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -12029,7 +10682,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     async function undoBalancePayment(enrollmentId) {
       if (!confirm('Reset all recorded balance payments for this enrollment? This cannot be undone.')) return;
       try {
-        const resp = await fetch('admin_update_enrollment.php', {
+        const resp = await fetch('api/admin_update_enrollment.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -12095,7 +10748,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       button.disabled = true;
       status.textContent = 'Loading profile…';
       try {
-        const r = await fetch('tutor_profile.php', {credentials:'same-origin', cache:'no-store'});
+        const r = await fetch('api/tutor_profile.php', {credentials:'same-origin', cache:'no-store'});
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         tutorProfileToken = d.csrf_token;
@@ -12117,7 +10770,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       try {
         const payload = {csrf_token:tutorProfileToken};
         for (const [field,key] of Object.entries({name:'full_name',email:'email',phone:'phone'})) payload[key] = document.getElementById('subadmin-prof-' + field).value.trim();
-        const r = await fetch('tutor_profile.php', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const r = await fetch('api/tutor_profile.php', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         status.style.color = '#28733b';
@@ -12158,7 +10811,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       status.textContent = '';
       try {
         if (!tutorProfileToken) {
-          const r0 = await fetch('tutor_profile.php', {credentials:'same-origin', cache:'no-store'});
+          const r0 = await fetch('api/tutor_profile.php', {credentials:'same-origin', cache:'no-store'});
           const d0 = await r0.json();
           if (d0.csrf_token) tutorProfileToken = d0.csrf_token;
         }
@@ -12169,7 +10822,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
           new_password: newPass,
           confirm_password: confirmPass
         };
-        const r = await fetch('tutor_profile.php', {
+        const r = await fetch('api/tutor_profile.php', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -12191,7 +10844,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     }
 
   </script>
-  <script src="validation.js?v=12"></script>
+  <script src="js/validation.js?v=12"></script>
 
 </body>
 

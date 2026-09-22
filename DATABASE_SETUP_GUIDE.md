@@ -40,7 +40,7 @@ SHOW TABLES;
 ```
 
 #### 4. Config check
-Open `config.php` — the defaults already work for XAMPP:
+Open `public/includes/config.php` — the defaults already work for XAMPP:
 ```php
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -183,7 +183,7 @@ All your existing PHP queries work **without changes**. PDO abstracts the differ
 | `einstein_mysql_setup.sql` | Run once on XAMPP to create the database |
 | `einstein_supabase_migration.sql` | Run once in Supabase SQL Editor |
 | `config_supabase.php` | Replace `config.php` when switching to Supabase |
-| `config.php` | Active config — MySQL by default |
+| `public/includes/config.php` | Active config — MySQL by default (gitignored) |
 
 ---
 

@@ -8,7 +8,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="login-screen.css">
+  <link rel="stylesheet" href="css/login-screen.css">
 <style>
 /* Hide Microsoft Edge / IE native password reveal & clear buttons to prevent duplicate eye icons */
 input[type="password"]::-ms-reveal,
@@ -140,7 +140,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     </div>
   </div>
 
-  <script src="login-screen.js"></script>
+  <script src="js/login-screen.js"></script>
   <script>
     document.getElementById('login-signup-link').addEventListener('click', function (e) {
       e.preventDefault();
@@ -249,7 +249,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         showMessage(isResend ? 'Sending a new reset code...' : 'Sending your reset code...', 'info');
 
         try {
-          const response = await fetch(EinsteinLogin.apiUrl('forgot_password.php'), {
+          const response = await fetch(EinsteinLogin.apiUrl('api/forgot_password.php'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
@@ -322,7 +322,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         setButtonLoading(confirmButton, true, 'Updating password...');
         showMessage('Updating your password...', 'info');
         try {
-          const response = await fetch(EinsteinLogin.apiUrl('forgot_password.php'), {
+          const response = await fetch(EinsteinLogin.apiUrl('api/forgot_password.php'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
@@ -359,8 +359,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       });
     })();
   </script>
-<script src="security.js"></script>
-<script src="validation.js?v=12"></script>
+<script src="js/security.js"></script>
+<script src="js/validation.js?v=12"></script>
 </body>
 
 </html>

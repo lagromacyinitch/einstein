@@ -36,3 +36,4 @@ jobs:
             **/.git*
             **/.git*/**
             config.php
+            **/config.php

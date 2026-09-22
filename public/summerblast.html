@@ -704,10 +704,10 @@
         { group: 'Special Course', value: 'Special Course – ₱5,100', name: 'Special Course – ₱5,100', detail: '₱5,100 · 1 Special Course + 1 Any Course Free' }
       ];
     </script>
-    <script src="enrollment-flow.js?v=14"></script>
+    <script src="js/enrollment-flow.js?v=14"></script>
   </div>
-  <script src="security.js"></script>
-  <script src="validation.js?v=12"></script>
+  <script src="js/security.js"></script>
+  <script src="js/validation.js?v=12"></script>
   <script>
     (function applySummerblastRatesOnLoad() {
       function applyRates(sbPackages) {
@@ -731,7 +731,7 @@
       }
 
       function loadFromServer() {
-        fetch('load_rates.php', { credentials: 'same-origin' })
+        fetch('api/load_rates.php', { credentials: 'same-origin' })
           .then(function(r) { return r.json(); })
           .then(function(j) {
             if (j.success && j.rates && Array.isArray(j.rates.summerblast) && j.rates.summerblast.length) {

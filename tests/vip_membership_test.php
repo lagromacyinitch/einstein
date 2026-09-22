@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/../public/vip_membership.php';
+require __DIR__ . '/../public/includes/vip_membership.php';
 class VipTestResult {
  public function __construct(public $value) {}
  function fetchColumn() {return $this->value;}

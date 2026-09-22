@@ -1609,7 +1609,7 @@
         .client-account-menu button { width: 100%; border: 0; background: transparent; color: white; padding: 10px 12px; text-align: left; font: 14px 'Lato', sans-serif; border-radius: 6px; cursor: pointer; }
         .client-account-menu button:hover, .client-account-menu button:focus-visible { background: #ffffff15; }
     </style>
-<script src="vip-price.js" defer></script>
+<script src="js/vip-price.js" defer></script>
 </head>
 
 <body>
@@ -2112,11 +2112,11 @@
         </div>
     </div>
 
-    <script src="validation.js?v=12"></script>
+    <script src="js/validation.js?v=12"></script>
     <!-- NSFWJS: client-side nudity / inappropriate content detection -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
-    <script src="enrollment-flow.js?v=14"></script>
+    <script src="js/enrollment-flow.js?v=14"></script>
     <script>
         'use strict';
 
@@ -2249,7 +2249,7 @@
             document.getElementById('user-profile-modal').style.display='flex';
             accountToken='';
             try {
-                const r=await fetch('user_account.php',{credentials:'same-origin',cache:'no-store'});const d=await r.json();
+                const r=await fetch('api/user_account.php',{credentials:'same-origin',cache:'no-store'});const d=await r.json();
                 if(!r.ok || !d.success) throw Error(d.message);
                 accountToken=d.token;document.getElementById('account-name').value=d.name || '';document.getElementById('account-email').value=d.email;document.getElementById('account-phone').value=d.phone || '';document.getElementById('account-username').value=d.username || '';
                 returningPortalVisit=!!d.returning; updateWelcome(d.name);
@@ -2266,7 +2266,7 @@
         }
         async function loadWelcomeProfile() {
             try {
-                const response=await fetch('user_account.php',{credentials:'same-origin',cache:'no-store'});
+                const response=await fetch('api/user_account.php',{credentials:'same-origin',cache:'no-store'});
                 const data=await response.json();
                 if(response.ok && data.success) { returningPortalVisit=!!data.returning; updateWelcome(data.name); }
             } catch(_) {}
@@ -2296,7 +2296,7 @@
             if(action==='profile') document.getElementById('account-save').textContent='Saving…';
             const buttons=document.querySelectorAll('#user-profile-modal button');buttons.forEach(b=>b.disabled=true);
             try {
-                const r=await fetch('user_account.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();
+                const r=await fetch('api/user_account.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();
                 if(!r.ok || !d.success) throw Error(d.message);
                 if(action==='delete'){localStorage.removeItem('userEmail');sessionStorage.removeItem('userEmail');location.href='login.html';return;}
                 if(action==='profile') {rememberProfile();message.style.color='#237035';message.textContent='Profile saved successfully.';document.getElementById('account-save').textContent='Saved';updateWelcome(value('account-name'));}
@@ -2421,7 +2421,7 @@
 
         async function checkLoginStatus() {
             try {
-                const response = await fetch('check_session.php?portal=user', { credentials: 'include' });
+                const response = await fetch('api/check_session.php?portal=user', { credentials: 'include' });
                 const data = await response.json();
 
                 if (data.logged_in) {
@@ -2451,7 +2451,7 @@
 
         async function fetchClientProgramSpans() {
             try {
-                const res = await fetch('api_program_spans.php', { cache: 'no-store' });
+                const res = await fetch('api/api_program_spans.php', { cache: 'no-store' });
                 const d = await res.json();
                 if (d && d.success && d.map) {
                     clientProgramSpans = { ...clientProgramSpans, ...d.map };
@@ -2529,7 +2529,7 @@
         async function loadEnrollments(silent = false) {
             try {
                 await fetchClientProgramSpans();
-                const response = await fetch('get_enrollments.php', { cache: 'no-store', credentials: 'include' });
+                const response = await fetch('api/get_enrollments.php', { cache: 'no-store', credentials: 'include' });
                 const data = await response.json();
 
                 if (!data.success) {
@@ -2716,7 +2716,7 @@
 
         async function fetchUserAnnouncements() {
             try {
-                const res = await fetch('api_announcements.php');
+                const res = await fetch('api/api_announcements.php');
                 const data = await res.json();
                 if (data && data.success && Array.isArray(data.announcements)) {
                     userAnnouncementsCache = data.announcements;
@@ -3032,7 +3032,7 @@
             }
 
             try {
-                const res = await fetch('vip_api.php', {
+                const res = await fetch('api/vip_api.php', {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: { 'Content-Type': 'application/json' },
@@ -3744,7 +3744,7 @@
                 let body,headers;
                 if(balancePaymentMethod==='Walk-in'){body=JSON.stringify({reference_no:balancePaymentRef});headers={'Content-Type':'application/json'};}
                 else{body=new FormData();body.append('reference_no',balancePaymentRef);body.append('receipt',file);}
-                const response=await fetch(balancePaymentMethod==='Walk-in'?'submit_balance_walkin.php':'submit_balance_receipt.php',{method:'POST',credentials:'same-origin',headers,body});
+                const response=await fetch(balancePaymentMethod==='Walk-in'?'api/submit_balance_walkin.php':'api/submit_balance_receipt.php',{method:'POST',credentials:'same-origin',headers,body});
                 const data=await response.json();
                 if(!response.ok||!data.success)throw Error(data.message||'Unable to submit.');
                 message.style.color='#15803d';
@@ -3785,7 +3785,7 @@
         // Background sync payment QRs from api_settings.php
         (function syncUserPortalQrs() {
             try {
-                fetch('api_settings.php', { credentials: 'same-origin', cache: 'no-store' })
+                fetch('api/api_settings.php', { credentials: 'same-origin', cache: 'no-store' })
                     .then(r => r.json())
                     .then(data => {
                         if (data && data.success && data.settings && Array.isArray(data.settings.qrs) && data.settings.qrs.length > 0) {
@@ -4046,7 +4046,7 @@
             isSubmittingReEnroll = true;
 
             try {
-                const res = await fetch('api_re_enroll.php', {
+                const res = await fetch('api/api_re_enroll.php', {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: { 'Content-Type': 'application/json' },
@@ -4144,7 +4144,7 @@
             if (confirm('Are you sure you want to logout?')) {
                 stopEnrollmentPolling();
                 try {
-                    await fetch('logout.php', { method: 'POST', credentials: 'include' });
+                    await fetch('api/logout.php', { method: 'POST', credentials: 'include' });
                 } catch (e) {
                     console.error('Logout error:', e);
                 }
@@ -4219,7 +4219,7 @@
             }).join('');
         }
     </script>
-    <script src="security.js"></script>
+    <script src="js/security.js"></script>
 </body>
 
 </html>

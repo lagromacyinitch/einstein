@@ -4,7 +4,7 @@
  * Verifies that data stored in MySQL is AES-256 encrypted at rest (enc:v1:...)
  * and that decrypted fields are served accurately to the front-end.
  */
-require_once __DIR__ . '/../public/config.php';
+require_once __DIR__ . '/../public/includes/bootstrap.php';
 
 echo "========================================================\n";
 echo "  COMPUTER SCIENCE DATA SECURITY — AES-256 TEST SUITE\n";

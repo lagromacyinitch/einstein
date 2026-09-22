@@ -4,7 +4,7 @@
 // Run from CLI: php backfill_package_type.php
 // Or open in browser: http://localhost/EINSTEIN-WEB14/backfill_package_type.php
 
-require_once __DIR__ . '/../public/config.php';
+require_once __DIR__ . '/../public/includes/bootstrap.php';
 setSecurityHeaders();
 try {
     $db = getDB();

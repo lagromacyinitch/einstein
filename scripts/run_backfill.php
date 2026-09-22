@@ -2,9 +2,9 @@
 // run_backfill.php — run package_type backfill from admin UI (admin-only)
 header('Content-Type: application/json; charset=utf-8');
 try {
-    require_once __DIR__ . '/../public/config.php';
+    require_once __DIR__ . '/../public/includes/bootstrap.php';
     setSecurityHeaders();
-    require_once __DIR__ . '/../public/admin_auth.php';
+    require_once __DIR__ . '/../public/includes/admin_auth.php';
     $db = getDB();
     $rows = $db->query('SELECT id, program_name, package_name, package_type FROM program_packages')->fetchAll(PDO::FETCH_ASSOC);
     $toUpdate = [];
