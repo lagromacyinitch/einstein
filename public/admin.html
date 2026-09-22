@@ -8568,7 +8568,6 @@
     }
 
     let _initialHeadUsername = '';
-    let _initialHeadPassword = '';
 
     // ── Head Admin Credentials change tracking ──────────────────────
     function updateHcSaveBtnState() {
@@ -8643,7 +8642,6 @@
 
         showHcMsg('✓ ' + d.message, true);
         if (payload.new_username) _initialHeadUsername = payload.new_username;
-        if (payload.new_password) _initialHeadPassword = payload.new_password;
         // Clear new password fields
         ['hc-new-pass', 'hc-confirm-pass'].forEach(id => {
           const el = document.getElementById(id); if (el) el.value = '';
@@ -8676,11 +8674,8 @@
         const d = await r.json();
         if (!d.success) return;
         _initialHeadUsername = (d.username || '').trim();
-        _initialHeadPassword = (d.password || '').trim();
         const uEl = document.getElementById('hc-new-username');
-        const pEl = document.getElementById('hc-current-pass');
         if (uEl) uEl.value = _initialHeadUsername;
-        if (pEl) pEl.value = _initialHeadPassword;
         updateHcSaveBtnState();
       } catch(e) { /* silent – form just stays empty */ }
     })();

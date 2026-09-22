@@ -68,19 +68,6 @@ try {
         $account = $adminQuery->fetch();
     }
 
-    // If still not found, check whether it matches the Head Admin's stored email constant.
-    if (!$account) {
-        $headAdminEmail = defined('PORTAL_ADMIN_EMAIL') ? strtolower(trim(PORTAL_ADMIN_EMAIL)) : '';
-        $headAdminUser  = strtolower(trim(PORTAL_ADMIN_USER));
-        if (
-            ($headAdminEmail !== '' && $email === $headAdminEmail) ||
-            (filter_var($headAdminUser, FILTER_VALIDATE_EMAIL) && $email === $headAdminUser)
-        ) {
-            $account = ['id' => 0, 'acct_type' => 'head_admin'];
-        }
-    }
-
-
     if ($action === 'request_reset') {
         rateLimit('password_reset_request_' . hash('sha256', $ip . ':' . $emailHash), 3, 600);
 
@@ -176,20 +163,6 @@ try {
             'UPDATE users SET password_hash = ?, password_encrypted = NULL WHERE id = ?'
         );
         $updateAccount->execute([password_hash($newPassword, PASSWORD_DEFAULT), (int)$account['id']]);
-    } elseif ($account['acct_type'] === 'head_admin') {
-        // Head Admin password is stored in config.php and synchronized in admin_accounts.
-        $configPath = CONFIG_PATH;
-        $configContent = file_get_contents($configPath);
-        $configContent = preg_replace(
-            "/define\('PORTAL_ADMIN_PASS',\s*'[^']*'\);/",
-            "define('PORTAL_ADMIN_PASS', '" . addslashes($newPassword) . "');",
-            $configContent
-        );
-        file_put_contents($configPath, $configContent);
-        try {
-            $db->prepare("UPDATE admin_accounts SET password_hash = ?, updated_at = NOW() WHERE role = 'head_admin'")
-               ->execute([password_hash($newPassword, PASSWORD_DEFAULT)]);
-        } catch (Exception $e) {}
     } else {
         $updateAccount = $db->prepare(
             'UPDATE admin_accounts SET password_hash = ?, updated_at = NOW() WHERE id = ?'

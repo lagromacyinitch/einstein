@@ -17,16 +17,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # config.php reads the database settings from includes/.env, which is
-      # gitignored; build it from secrets so the password never lives in git.
+      # config.php reads every secret from includes/.env, which is gitignored;
+      # build it from secrets so no password lives in git.
       # includes/.htaccess blocks browsers from downloading it.
       - name: Write includes/.env
         env:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
+          AES_SECRET_KEY: ${{ secrets.AES_SECRET_KEY }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          HEAD_ADMIN_USER: ${{ secrets.HEAD_ADMIN_USER }}
+          HEAD_ADMIN_PASS: ${{ secrets.HEAD_ADMIN_PASS }}
         run: |
-          for name in DB_NAME DB_USER DB_PASS; do
+          for name in DB_NAME DB_USER DB_PASS AES_SECRET_KEY SMTP_USERNAME SMTP_PASSWORD; do
             if [ -z "${!name}" ]; then
               echo "::error::Missing repository secret $name"
               exit 1
@@ -40,7 +45,41 @@ jobs:
             echo "DB_USER=$DB_USER"
             echo "DB_PASS=$DB_PASS"
             echo "DB_AUTO_BOOTSTRAP=false"
+            echo "AES_SECRET_KEY=$AES_SECRET_KEY"
+            echo "SMTP_USERNAME=$SMTP_USERNAME"
+            echo "SMTP_PASSWORD=$SMTP_PASSWORD"
+            # Only used to create the Head Admin when the database has none.
+            echo "HEAD_ADMIN_USER=$HEAD_ADMIN_USER"
+            echo "HEAD_ADMIN_PASS=$HEAD_ADMIN_PASS"
           } > public/includes/.env
+
+      # Every encrypted column depends on AES_SECRET_KEY, and until config.php
+      # moved into git the key lived only in the server's copy. Refuse to deploy
+      # a key that differs from it. Only the result is printed, never the key.
+      - name: Check AES_SECRET_KEY against the live config.php
+        env:
+          FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          AES_SECRET_KEY: ${{ secrets.AES_SECRET_KEY }}
+        run: |
+          # Same lookup order as includes/bootstrap.php.
+          for path in includes/config.php config.php; do
+            if curl -sS --fail -o live-config.php --user "$FTP_USERNAME:$FTP_PASSWORD" "ftp://$FTP_SERVER/$path" 2>/dev/null; then
+              live_key=$(sed -n "s/^define('AES_SECRET_KEY', '\(.*\)');.*/\1/p" live-config.php)
+              rm -f live-config.php
+              if [ -z "$live_key" ]; then
+                echo "Live $path already reads the key from .env."
+              elif [ "$live_key" != "$AES_SECRET_KEY" ]; then
+                echo "::error::AES_SECRET_KEY does not match the key in the live $path"
+                exit 1
+              else
+                echo "AES_SECRET_KEY matches the live $path."
+              fi
+              exit 0
+            fi
+          done
+          echo "No config.php on the server; nothing to compare."
 
       - name: Upload public/ via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -54,11 +93,9 @@ jobs:
           # The subdomain FTP account logs straight into the site folder
           # (confirmed with the "Inspect FTP folders" workflow).
           server-dir: ./
-          # Receipts and config.php are gitignored, so they are never in the
-          # checkout; the action only deletes files it uploaded itself, so
-          # live receipts on the server are left alone.
+          # Receipts are gitignored, so they are never in the checkout; the
+          # action only deletes files it uploaded itself, so live receipts on
+          # the server are left alone.
           exclude: |
             **/.git*
             **/.git*/**
-            config.php
-            **/config.php
