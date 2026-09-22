@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../balance_helpers.php';
-require_once __DIR__ . '/../receipt_detection.php';
+require_once __DIR__ . '/../public/includes/balance_helpers.php';
+require_once __DIR__ . '/../public/includes/receipt_detection.php';
 function check($condition, $message) { if (!$condition) throw new RuntimeException($message); }
 $receipt = detectReceiptPayment("Transfer successful\nAmount\nPHP 3,000.00\nReference No.\n1234567890123");
 check($receipt && $receipt['amount'] === 3000, 'Read amount');

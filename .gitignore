@@ -9,5 +9,5 @@ config.php
 Thumbs.db
 
 # Private uploaded receipts and generated OCR cache.
-uploads/*
-!uploads/.htaccess
+public/uploads/*
+!public/uploads/.htaccess
