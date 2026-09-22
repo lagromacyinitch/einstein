@@ -2,8 +2,8 @@ name: Deploy to Hostinger
 
 on:
   push:
-    # Drop chore/deployment-hostinger once it is merged into main.
-    branches: [main, chore/deployment-hostinger]
+    # Drop ci/deploy-env once it is merged into main.
+    branches: [main, ci/deploy-env]
   workflow_dispatch:
 
 concurrency:
