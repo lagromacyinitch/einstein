@@ -2384,7 +2384,7 @@
       });
     } catch (err) {
       if (err?.name === 'TypeError' || (err?.message && err.message.includes('fetch'))) {
-        throw new Error('Connection failed — Please make sure Apache and MySQL are running in XAMPP and open http://localhost/EINSTEIN-WEB18/main.html in your browser.');
+        throw new Error('Connection failed — please check the website address and confirm that the hosting server and database are available.');
       }
       throw err;
     }

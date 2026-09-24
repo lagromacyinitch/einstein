@@ -106,7 +106,7 @@ require_once __DIR__ . '/../includes/balance_helpers.php';
     } elseif (str_contains($msg, "Table") && str_contains($msg, "doesn't exist")) {
         $hint = 'Tables missing. Run einstein_mysql_setup.sql in phpMyAdmin';
     } elseif (str_contains($msg, 'Connection refused') || str_contains($msg, 'SQLSTATE[HY000] [2002]')) {
-        $hint = 'MySQL is not running. Start it in XAMPP Control Panel';
+        $hint = 'The database server could not be reached. Verify DB_HOST, DB_PORT, and the Hostinger database status';
     } else {
         $hint = 'Check DB credentials in config.php';
     }

@@ -1,5 +1,8 @@
 # Local database credentials and environment-specific configuration.
 config.php
+.env
+.env.*
+!.env.example
 
 # Local editor and operating-system files.
 .vscode/

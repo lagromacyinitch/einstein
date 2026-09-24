@@ -164,7 +164,7 @@
 
       window.location.href = target;
     } catch (e) {
-      showError('Could not reach the server. Open the project through XAMPP at http://localhost/EINSTEIN-WEB18/ and try again.');
+      showError('Could not reach the server. Please open the website through its domain and check that the hosting server is available.');
     } finally {
       isLoggingIn = false;
       if (btn) {
