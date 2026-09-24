@@ -10,6 +10,7 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/admin_accounts.php';
 setSecurityHeaders();
 
 startPortalSession();
@@ -71,77 +72,11 @@ function normalizeName(string $value, string $fieldLabel): string
     return ucwords(strtolower($value));
 }
 
-// ── Ensure Head Admin account is mirrored in database (admin_accounts) ────
-function syncHeadAdminToDB(PDO $db, ?string $customUser = null, ?string $customPass = null): void
-{
-    try {
-        $db->exec("ALTER TABLE admin_accounts MODIFY COLUMN role VARCHAR(50) NOT NULL DEFAULT 'sub_admin'");
-    } catch (Exception $e) {}
-
-    $user = $customUser ?? (defined('PORTAL_ADMIN_USER') ? PORTAL_ADMIN_USER : 'sayaneatch@gmail.com');
-    $pass = $customPass ?? (defined('PORTAL_ADMIN_PASS') ? PORTAL_ADMIN_PASS : 'admin1');
-    $hash = password_hash($pass, PASSWORD_DEFAULT);
-    $allNav = json_encode(["dashboard","students","programs","finance","tutors","admin"]);
-
-    $stmt = $db->prepare("SELECT id FROM admin_accounts WHERE role = 'head_admin' OR LOWER(username) = ? OR LOWER(COALESCE(email, '')) = ? LIMIT 1");
-    $stmt->execute([strtolower($user), strtolower($user)]);
-    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($existing) {
-        $upd = $db->prepare("UPDATE admin_accounts SET display_name = 'Head Admin', username = ?, email = ?, password_hash = ?, role = 'head_admin', is_active = 1, can_edit_prices = 1, can_modify_records = 1, nav_permissions = ?, updated_at = NOW() WHERE id = ?");
-        $upd->execute([$user, $user, $hash, $allNav, $existing['id']]);
-    } else {
-        $ins = $db->prepare("INSERT INTO admin_accounts (display_name, username, email, password_hash, role, is_active, can_edit_prices, can_modify_records, nav_permissions, created_at) VALUES ('Head Admin', ?, ?, ?, 'head_admin', 1, 1, 1, ?, NOW())");
-        $ins->execute([$user, $user, $hash, $allNav]);
-    }
-}
-
-// ── Ensure admin_accounts table exists ─────────────────────────────
-function ensureAdminTable(PDO $db): void
-{
-    $db->exec("
-        CREATE TABLE IF NOT EXISTS admin_accounts (
-            id          INT AUTO_INCREMENT PRIMARY KEY,
-            display_name VARCHAR(120) NOT NULL,
-            username     VARCHAR(80)  NOT NULL UNIQUE,
-            password_hash VARCHAR(255) NOT NULL,
-            role         VARCHAR(50)  NOT NULL DEFAULT 'sub_admin',
-            is_active    TINYINT(1) NOT NULL DEFAULT 1,
-            can_edit_prices TINYINT(1) NOT NULL DEFAULT 0,
-            can_modify_records TINYINT(1) NOT NULL DEFAULT 1,
-            created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at   DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ");
-    // Safely add columns if table already exists without them
-    try {
-        $db->exec("ALTER TABLE admin_accounts ADD COLUMN can_edit_prices TINYINT(1) NOT NULL DEFAULT 0");
-    } catch (PDOException $e) {
-        // Column already exists — ignore
-    }
-    try {
-        $db->exec("ALTER TABLE admin_accounts ADD COLUMN can_modify_records TINYINT(1) NOT NULL DEFAULT 1");
-    } catch (PDOException $e) {
-        // Column already exists — ignore
-    }
-    try {
-        $db->exec("ALTER TABLE admin_accounts ADD COLUMN nav_permissions TEXT DEFAULT NULL");
-        $db->exec("ALTER TABLE admin_accounts MODIFY COLUMN username VARCHAR(191) NOT NULL");
-        $db->exec("ALTER TABLE admin_accounts ADD COLUMN email VARCHAR(191) DEFAULT NULL");
-    } catch (PDOException $e) {
-        // Column already exists — ignore
-    }
-    try {
-        $db->exec("ALTER TABLE admin_accounts MODIFY COLUMN role VARCHAR(50) NOT NULL DEFAULT 'sub_admin'");
-    } catch (Exception $e) {}
-
-    // Ensure head admin row exists and stays in sync with config
-    syncHeadAdminToDB($db);
-}
-
 try {
     $db = getDB();
     ensureAdminTable($db);
+    $headAdmin = getHeadAdmin($db);
+    $headUser  = strtolower($headAdmin['username'] ?? '');
     require_once __DIR__ . '/../includes/tutor_profile_helpers.php';
     ensureTutorProfileSchema($db);
     foreach ($db->query('SELECT * FROM admin_accounts WHERE is_active=1')->fetchAll(PDO::FETCH_ASSOC) as $account) linkTutorAccount($db,$account);
@@ -154,8 +89,7 @@ try {
             ob_clean();
             echo json_encode([
                 'success'  => true,
-                'username' => PORTAL_ADMIN_USER,
-                'password' => PORTAL_ADMIN_PASS,
+                'username' => $headAdmin['username'] ?? '',
             ]);
             break;
 
@@ -218,7 +152,7 @@ try {
             }
 
             // Prevent duplicate with head admin username
-            if (strtolower($username) === strtolower(PORTAL_ADMIN_USER)) {
+            if (strtolower($username) === $headUser) {
                 throw new Exception('That email is reserved for the Head Admin.');
             }
             // Prevent duplicate email in admin_accounts
@@ -269,7 +203,7 @@ try {
             if (!filter_var($username, FILTER_VALIDATE_EMAIL)) {
                 throw new Exception('Please enter a valid email address.');
             }
-            if (strtolower($username) === strtolower(PORTAL_ADMIN_USER)) {
+            if (strtolower($username) === $headUser) {
                 throw new Exception('That email is reserved for the Head Admin.');
             }
             $chkDup = $db->prepare("SELECT id FROM admin_accounts WHERE (LOWER(username) = ? OR LOWER(COALESCE(email, '')) = ?) AND id != ?");
@@ -330,7 +264,8 @@ try {
             $newPass     = $post['new_password'] ?? '';
             $confirmPass = $post['confirm_password'] ?? '';
 
-            if ($currentPass !== PORTAL_ADMIN_PASS) {
+            if (!$headAdmin) throw new Exception('Head Admin account not found.');
+            if (!password_verify($currentPass, $headAdmin['password_hash'])) {
                 throw new Exception('Current password is incorrect.');
             }
             // Accept a valid email OR a plain username (letters/numbers/._-).
@@ -347,48 +282,17 @@ try {
                 throw new Exception('New password must be at least 6 characters.');
             }
 
-            // Write updated constants to config.php
-            $configPath = CONFIG_PATH;
-            $configContent = file_get_contents($configPath);
-
             if ($newUser) {
-                $configContent = preg_replace(
-                    "/define\('PORTAL_ADMIN_USER',\s*'[^']*'\);/",
-                    "define('PORTAL_ADMIN_USER', '" . addslashes($newUser) . "');",
-                    $configContent
-                );
-                // If it is an email, also persist it as PORTAL_ADMIN_EMAIL for forgot-password OTP.
-                if (filter_var($newUser, FILTER_VALIDATE_EMAIL) !== false) {
-                    $emailLine = "define('PORTAL_ADMIN_EMAIL', '" . addslashes($newUser) . "'); // Head Admin recovery email – set via Admin > Credentials";
-                    if (preg_match("/define\\('PORTAL_ADMIN_EMAIL',/", $configContent)) {
-                        $configContent = preg_replace(
-                            "/define\\('PORTAL_ADMIN_EMAIL',\s*'[^']*'\\);[^\n]*/",
-                            $emailLine,
-                            $configContent
-                        );
-                    } else {
-                        $configContent = preg_replace(
-                            "/(define\\('PORTAL_ADMIN_PASS',\s*'[^']*'\\);)/",
-                            "$1\n" . $emailLine,
-                            $configContent
-                        );
-                    }
-                }
+                $uStmt = $db->prepare("SELECT id FROM admin_accounts WHERE (LOWER(username)=? OR LOWER(COALESCE(email,''))=?) AND id!=?");
+                $uStmt->execute([strtolower($newUser), strtolower($newUser), $headAdmin['id']]);
+                if ($uStmt->fetch()) throw new Exception('That email/username is already in use by another account.');
+                $db->prepare("UPDATE admin_accounts SET username=?, email=?, updated_at=NOW() WHERE id=?")
+                   ->execute([$newUser, $newUser, $headAdmin['id']]);
             }
             if ($newPass !== '') {
-                $configContent = preg_replace(
-                    "/define\('PORTAL_ADMIN_PASS',\s*'[^']*'\);/",
-                    "define('PORTAL_ADMIN_PASS', '" . addslashes($newPass) . "');",
-                    $configContent
-                );
+                $db->prepare("UPDATE admin_accounts SET password_hash=?, updated_at=NOW() WHERE id=?")
+                   ->execute([password_hash($newPass, PASSWORD_DEFAULT), $headAdmin['id']]);
             }
-
-            file_put_contents($configPath, $configContent);
-
-            // Sync with admin_accounts database table
-            $finalUser = $newUser ?: PORTAL_ADMIN_USER;
-            $finalPass = $newPass !== '' ? $newPass : PORTAL_ADMIN_PASS;
-            syncHeadAdminToDB($db, $finalUser, $finalPass);
 
             ob_clean();
             echo json_encode(['success' => true, 'message' => 'Head Admin credentials updated. Please log in again.', 'require_relogin' => true]);
@@ -420,7 +324,7 @@ try {
                 if (!filter_var($newUser, FILTER_VALIDATE_EMAIL)) {
                     throw new Exception('Please enter a valid email address.');
                 }
-                if (strtolower($newUser) === strtolower(PORTAL_ADMIN_USER)) {
+                if (strtolower($newUser) === $headUser) {
                     throw new Exception('That email is reserved for the Head Admin.');
                 }
                 // Check uniqueness (excluding self)

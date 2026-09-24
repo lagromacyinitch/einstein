@@ -23,7 +23,6 @@ function linkTutorAccount(PDO $db, array $account): int {
 }
 function validateTutorEmail(PDO $db, string $email, int $accountId): void {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email)>191) throw new Exception('Please enter a valid email address.');
-    if (defined('PORTAL_ADMIN_USER') && strcasecmp($email, PORTAL_ADMIN_USER)===0) throw new Exception('That email is reserved for the Head Admin.');
     $q=$db->prepare("SELECT id FROM admin_accounts WHERE id<>? AND (LOWER(email)=LOWER(?) OR LOWER(username)=LOWER(?))");
     $q->execute([$accountId,$email,$email]);
     if ($q->fetchColumn()) throw new Exception('That email is already used by another account.');

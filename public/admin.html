@@ -5,6 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Einstein Center — Admin Portal</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap"
     rel="stylesheet">
@@ -8569,7 +8573,6 @@
     }
 
     let _initialHeadUsername = '';
-    let _initialHeadPassword = '';
 
     // ── Head Admin Credentials change tracking ──────────────────────
     function updateHcSaveBtnState() {
@@ -8644,7 +8647,6 @@
 
         showHcMsg('✓ ' + d.message, true);
         if (payload.new_username) _initialHeadUsername = payload.new_username;
-        if (payload.new_password) _initialHeadPassword = payload.new_password;
         // Clear new password fields
         ['hc-new-pass', 'hc-confirm-pass'].forEach(id => {
           const el = document.getElementById(id); if (el) el.value = '';
@@ -8677,11 +8679,8 @@
         const d = await r.json();
         if (!d.success) return;
         _initialHeadUsername = (d.username || '').trim();
-        _initialHeadPassword = (d.password || '').trim();
         const uEl = document.getElementById('hc-new-username');
-        const pEl = document.getElementById('hc-current-pass');
         if (uEl) uEl.value = _initialHeadUsername;
-        if (pEl) pEl.value = _initialHeadPassword;
         updateHcSaveBtnState();
       } catch(e) { /* silent – form just stays empty */ }
     })();

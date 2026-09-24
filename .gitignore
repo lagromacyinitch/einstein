@@ -1,5 +1,6 @@
-# Local database credentials and environment-specific configuration.
-config.php
+# Local secrets. The committed public/includes/config.php reads credentials from
+# .env; keep the legacy project-root config.php and environment files private.
+/config.php
 .env
 .env.*
 !.env.example
