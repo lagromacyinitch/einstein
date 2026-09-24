@@ -1,7 +1,9 @@
-# Local secrets. public/includes/config.php is committed and reads them from .env;
-# the old repo-root config.php still holds real values, so keep it out of git.
+# Local secrets. The committed public/includes/config.php reads credentials from
+# .env; keep the legacy project-root config.php and environment files private.
 /config.php
 .env
+.env.*
+!.env.example
 
 # Local editor and operating-system files.
 .vscode/

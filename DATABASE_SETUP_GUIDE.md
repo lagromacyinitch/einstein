@@ -1,6 +1,6 @@
 # Einstein Center — Database Setup Guide
 
-Two options are provided. **Start with MySQL (Option 1)** for local XAMPP development, then follow **Option 2** when you're ready to deploy to Supabase.
+MySQL is used for both local XAMPP development and Hostinger production. Supabase remains documented as an optional alternative.
 
 ---
 
@@ -40,12 +40,14 @@ SHOW TABLES;
 ```
 
 #### 4. Config check
-Open `public/includes/config.php` — the defaults already work for XAMPP:
+Open `public/includes/config.php`; its defaults already work for XAMPP when no `.env` file is present:
 ```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');        // blank = default XAMPP
-define('DB_NAME', 'einstein_center');
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=einstein_center
+DB_USER=root
+DB_PASS=
+DB_AUTO_BOOTSTRAP=true
 ```
 
 No changes needed for local development.
@@ -58,7 +60,61 @@ Try the enrollment flow. If you see any DB error, run `test_setup.php` in your b
 
 ---
 
-## Option 2 — Supabase (Cloud / Production)
+## Option 2 — Hostinger (MySQL / MariaDB Production)
+
+The application uses PDO with MySQL-compatible SQL, so Hostinger Web/Cloud hosting can use the same schema. Hostinger’s Web/Cloud plans use MariaDB; the normal PHP connection host is `localhost` and the default port is `3306`.
+
+### 1. Create the database in hPanel
+
+Go to **Websites → Dashboard → Databases → Management**, then create a database and database user. Save these values:
+
+| Setting | Value |
+|---|---|
+| Host | `localhost` |
+| Port | `3306` |
+| Database name | The exact name shown by Hostinger, often prefixed with your account name |
+| Username | The exact MySQL user shown by Hostinger, often prefixed with your account name |
+| Password | The password you set for that database user |
+
+Hostinger documents the database name/user in **Databases Management** and confirms that the hostname for hosted databases is `localhost`.
+
+### 2. Import the schema
+
+Open the new database in Hostinger’s phpMyAdmin and choose **Import**. Before importing `einstein_mysql_setup.sql`, remove these two local-only statements from the copy being imported:
+
+```sql
+CREATE DATABASE IF NOT EXISTS einstein_center ...;
+USE einstein_center;
+```
+
+The database must already be selected in phpMyAdmin. The remaining `CREATE TABLE`, `ALTER TABLE`, and seed statements can be imported as-is. This avoids the database-creation privilege error common on shared hosting.
+
+### 3. Configure the application
+
+Copy `.env.example` to `.env` and replace the placeholders:
+
+```ini
+DB_DRIVER=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=YOUR_HOSTINGER_DATABASE_NAME
+DB_USER=YOUR_HOSTINGER_DATABASE_USER
+DB_PASS=YOUR_HOSTINGER_DATABASE_PASSWORD
+DB_CHARSET=utf8mb4
+DB_AUTO_BOOTSTRAP=false
+```
+
+Upload `config.php`, `.env`, the PHP/HTML/JS files, `uploads/`, and `logs/` to the website’s document root (normally `public_html`). Keep `.env` private; do not place it in a public download location or commit it to Git.
+
+### 4. Verify
+
+Open the website through its real HTTPS domain and test registration, login, enrollment, receipt upload, and the admin portal. If you receive “Access denied,” re-check the exact Hostinger database name, user, and password. If tables are missing, re-import the schema into the selected Hostinger database.
+
+Hostinger references: [upload and set up a database](https://www.hostinger.com/support/1864324-how-to-upload-and-set-up-your-database-at-hostinger/) and [find MySQL database details](https://www.hostinger.com/support/1583552-how-to-find-your-mysql-database-details-in-hostinger/).
+
+---
+
+## Option 3 — Supabase (Cloud / Production)
 
 **Files:** `einstein_supabase_migration.sql` · `config_supabase.php`
 

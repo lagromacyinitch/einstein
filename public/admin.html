@@ -6221,9 +6221,10 @@
       const img = document.getElementById('modal-payment-image');
       const shotRec = records.find(r => r.payment_screenshot);
       if (shotRec) {
+        const shotSrc = receiptAssetUrl(shotRec.payment_screenshot);
         live.style.display = 'block'; noShot.style.display = 'none'; mock.style.display = 'none';
-        img.src = shotRec.payment_screenshot;
-        checkAndApplyPaymentProofSecurity(img, shotRec.payment_screenshot);
+        img.src = shotSrc;
+        checkAndApplyPaymentProofSecurity(img, shotSrc);
       } else {
         live.style.display = 'none'; noShot.style.display = 'block'; mock.style.display = 'block';
         document.getElementById('modal-receipt-ref').textContent = refNos || '—';
@@ -9796,6 +9797,16 @@
     // ── Internal dataset used for filtering ──────────────────
     let _bmData = []; // Array of { enrollment, totalFee, paidAmount, balanceDue, isSettled, status }
 
+    function receiptAssetUrl(src) {
+      const value = String(src || '').trim();
+      if (!value || /^(?:https?:|data:|blob:|\/)/i.test(value)) return value;
+      // In the local XAMPP layout, HTML lives in /public while uploads are one
+      // level above it. Production deployments place both beside each other.
+      return /^uploads\//i.test(value) && /\/public(?:\/|$)/i.test(window.location.pathname)
+        ? '../' + value
+        : value;
+    }
+
     function openReceiptLightbox(src) {
       let lb = document.getElementById('modal-receipt-lightbox');
       if (!lb) {
@@ -9820,7 +9831,8 @@
       }
       const lbImg = document.getElementById('modal-receipt-lightbox-img');
       const lbBtn = document.getElementById('receipt-lightbox-blur');
-      lbImg.src = src;
+      const resolvedSrc = receiptAssetUrl(src);
+      lbImg.src = resolvedSrc;
       lb.style.display = 'flex';
 
       const applyLbBlur = (hasAmt) => {
@@ -9828,14 +9840,14 @@
         lbBtn.textContent = hasAmt ? 'Blur Photo' : 'Unblur Photo';
       };
 
-      if (receiptAmountCache[src] !== undefined) {
-        applyLbBlur(receiptAmountCache[src]);
+      if (receiptAmountCache[resolvedSrc] !== undefined) {
+        applyLbBlur(receiptAmountCache[resolvedSrc]);
       } else {
-        fetch('api/check_receipt_amount.php?src=' + encodeURIComponent(src), { credentials: 'same-origin' })
+        fetch('api/check_receipt_amount.php?src=' + encodeURIComponent(resolvedSrc), { credentials: 'same-origin' })
           .then(r => r.json())
           .then(d => {
             const hasAmt = !!(d && d.has_amount);
-            receiptAmountCache[src] = hasAmt;
+            receiptAmountCache[resolvedSrc] = hasAmt;
             applyLbBlur(hasAmt);
           })
           .catch(() => applyLbBlur(true));

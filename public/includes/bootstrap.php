@@ -8,6 +8,8 @@
  */
 if (!defined('EINSTEIN_ROOT')) {
     define('EINSTEIN_ROOT', dirname(__DIR__));
-    define('CONFIG_PATH', is_file(__DIR__ . '/config.php') ? __DIR__ . '/config.php' : EINSTEIN_ROOT . '/config.php');
+    // EINSTEIN_ROOT is the public web root; the project-level config lives one
+    // directory above it when there is no public/includes/config.php override.
+    define('CONFIG_PATH', is_file(__DIR__ . '/config.php') ? __DIR__ . '/config.php' : dirname(EINSTEIN_ROOT) . '/config.php');
 }
 require_once CONFIG_PATH;

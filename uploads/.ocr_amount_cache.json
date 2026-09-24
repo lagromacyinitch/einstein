@@ -1,0 +1,27 @@
+{
+    "c4624b3e7b964830fd43e9e11b084ebd": {
+        "has_amount": true,
+        "amount": 500,
+        "updated_at": 1789522518
+    },
+    "80443814d55234c439a3ba988682a86c": {
+        "has_amount": false,
+        "amount": null,
+        "updated_at": 1789522519
+    },
+    "235e5de9ad4aa87d52b7a667fbe1b76b": {
+        "has_amount": true,
+        "amount": 100,
+        "updated_at": 1789534971
+    },
+    "d032f56283aa6204eb662112e7f57c67": {
+        "has_amount": false,
+        "amount": null,
+        "updated_at": 1789613765
+    },
+    "43bb4b3759724bb56055cd24abb4c257": {
+        "has_amount": true,
+        "amount": 500,
+        "updated_at": 1789713881
+    }
+}

@@ -28,23 +28,51 @@ $src = ltrim(str_replace('\\', '/', $src), '/');
 // Remove project base prefix if present
 $src = preg_replace('#^EINSTEIN-WEB18/#i', '', $src);
 
-$realProject = realpath(EINSTEIN_ROOT);
-$targetPath = realpath(EINSTEIN_ROOT . '/' . $src);
+$publicRoot = realpath(EINSTEIN_ROOT);
+$projectRoot = realpath(dirname(EINSTEIN_ROOT));
+$allowedRoots = array_values(array_filter([$publicRoot, $projectRoot]));
+$isAllowedPath = static function (?string $path) use ($allowedRoots): bool {
+    if (!$path || !file_exists($path)) return false;
+    foreach ($allowedRoots as $root) {
+        if ($path === $root || str_starts_with($path, $root . DIRECTORY_SEPARATOR)) return true;
+    }
+    return false;
+};
 
-if (!$targetPath || !file_exists($targetPath) || !str_starts_with($targetPath, $realProject)) {
-    // If not found directly, check inside uploads
-    $basename = basename($src);
-    $inUploads = realpath(EINSTEIN_ROOT . '/uploads/' . $basename);
-    if ($inUploads && file_exists($inUploads)) {
-        $targetPath = $inUploads;
-    } else {
-        echo json_encode(['success' => false, 'has_amount' => false, 'message' => 'File not found.']);
-        exit;
+$targetPath = null;
+foreach (array_unique(array_filter([
+    realpath(EINSTEIN_ROOT . '/' . $src),
+    $projectRoot ? realpath($projectRoot . '/' . $src) : false,
+])) as $candidate) {
+    if ($isAllowedPath($candidate)) {
+        $targetPath = $candidate;
+        break;
     }
 }
 
+if (!$targetPath) {
+    // If not found directly, check both possible uploads locations.
+    $basename = basename($src);
+    foreach (array_unique(array_filter([
+        $publicRoot ? realpath($publicRoot . '/uploads/' . $basename) : false,
+        $projectRoot ? realpath($projectRoot . '/uploads/' . $basename) : false,
+    ])) as $candidate) {
+        if ($isAllowedPath($candidate)) {
+            $targetPath = $candidate;
+            break;
+        }
+    }
+}
+
+if (!$targetPath) {
+    echo json_encode(['success' => false, 'has_amount' => false, 'message' => 'File not found.']);
+    exit;
+}
+
 // Check cache file in uploads
-$cacheFile = EINSTEIN_ROOT . '/uploads/.ocr_amount_cache.json';
+$cacheFile = ($projectRoot && file_exists($projectRoot . '/uploads/.ocr_amount_cache.json'))
+    ? $projectRoot . '/uploads/.ocr_amount_cache.json'
+    : EINSTEIN_ROOT . '/uploads/.ocr_amount_cache.json';
 $cache = [];
 if (file_exists($cacheFile)) {
     $cachedRaw = @file_get_contents($cacheFile);

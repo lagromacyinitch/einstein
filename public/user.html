@@ -3451,6 +3451,7 @@
 
         function viewReceiptImage(src, title) {
             if (!src) return;
+            const resolvedSrc = receiptAssetUrl(src);
             let dialog = document.getElementById('receipt-viewer-dialog');
             if (!dialog) {
                 dialog = document.createElement('dialog');
@@ -3473,10 +3474,20 @@
             const img = dialog.querySelector('#receipt-viewer-img');
             const link = dialog.querySelector('#receipt-viewer-link');
             const titleEl = dialog.querySelector('#receipt-viewer-title');
-            if (img) img.src = src;
-            if (link) link.href = src;
+            if (img) img.src = resolvedSrc;
+            if (link) link.href = resolvedSrc;
             if (titleEl) titleEl.textContent = title || 'Payment Proof';
             dialog.showModal();
+        }
+
+        function receiptAssetUrl(src) {
+            const value = String(src || '').trim();
+            if (!value || /^(?:https?:|data:|blob:|\/)/i.test(value)) return value;
+            // In the local XAMPP layout, HTML lives in /public while uploads are
+            // one level above it. Production deployments place both beside each other.
+            return /^uploads\//i.test(value) && /\/public(?:\/|$)/i.test(window.location.pathname)
+                ? '../' + value
+                : value;
         }
 
         function openClientPaymentInfoModal(refNo) {
