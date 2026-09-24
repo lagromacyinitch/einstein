@@ -150,6 +150,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             list-style: none;
             display: flex;
             gap: 2rem;
+            margin-left: auto;
         }
 
         nav ul a {
@@ -190,25 +191,25 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             border-radius: 3px;
         }
 
-        /* LOGIN ICON (bottom-left) */
+        /* LOGIN ICON (topbar, beside Membership) */
         .login-icons {
-            position: fixed;
-            left: 2rem;
-            bottom: 20px;
+            position: static;
             display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            z-index: 99;
+            align-items: center;
+            flex-shrink: 0;
+            margin-left: 0.25rem;
+            z-index: 101;
         }
 
         .login-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             text-decoration: none;
             transition: all 0.3s ease;
+            border-radius: 50%;
         }
 
         .login-btn:hover {
@@ -217,29 +218,13 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         }
 
         .login-btn img {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             object-fit: contain;
         }
 
         .login-label {
-            position: absolute;
-            left: 65px;
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .login-btn-wrapper:hover .login-label {
-            opacity: 1;
+            display: none;
         }
 
         /* HERO */
