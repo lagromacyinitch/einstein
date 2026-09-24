@@ -23,5 +23,10 @@
         "has_amount": true,
         "amount": 500,
         "updated_at": 1789713881
+    },
+    "24d11fb2ba083345334a6302792c928f": {
+        "has_amount": false,
+        "amount": null,
+        "updated_at": 1790217011
     }
 }

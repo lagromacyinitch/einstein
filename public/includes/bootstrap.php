@@ -2,14 +2,15 @@
 /**
  * Shared entry point for every PHP file: defines the site root and loads config.php.
  *
- * config.php is gitignored and lives only on each machine/server. Its home is
- * includes/config.php; the site-root location is still accepted so a server
- * that has not moved its copy yet keeps working.
+ * The local XAMPP setup keeps its private config at the project root, while
+ * the deployed layout keeps the environment-driven config beside this file.
+ * Prefer the local root config when it exists, then fall back to the deployed
+ * public/includes/config.php.
  */
 if (!defined('EINSTEIN_ROOT')) {
     define('EINSTEIN_ROOT', dirname(__DIR__));
-    // EINSTEIN_ROOT is the public web root; the project-level config lives one
-    // directory above it when there is no public/includes/config.php override.
-    define('CONFIG_PATH', is_file(__DIR__ . '/config.php') ? __DIR__ . '/config.php' : dirname(EINSTEIN_ROOT) . '/config.php');
+    $localConfigPath = dirname(EINSTEIN_ROOT) . '/config.php';
+    $deployedConfigPath = __DIR__ . '/config.php';
+    define('CONFIG_PATH', is_file($localConfigPath) ? $localConfigPath : $deployedConfigPath);
 }
 require_once CONFIG_PATH;
