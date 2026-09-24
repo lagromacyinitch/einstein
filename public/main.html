@@ -5,51 +5,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Einstein Child Care & Learning Center</title>
-    <meta name="description" content="Einstein Center for Modern Education in Tagbilaran, Bohol offers child care, PlaySchool, academic tutorials, weekend workshops, Summer Blast and M.A.D. Studio. Enroll online." />
-    <link rel="canonical" href="https://einsteincenter.dcsbisu.com/" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "name": "Einstein Center for Modern Education",
-          "alternateName": ["Einstein Center", "Einstein Child Care & Learning Center"],
-          "url": "https://einsteincenter.dcsbisu.com/"
-        },
-        {
-          "@type": "EducationalOrganization",
-          "name": "Einstein Center for Modern Education",
-          "url": "https://einsteincenter.dcsbisu.com/",
-          "logo": "https://einsteincenter.dcsbisu.com/images/logo.jpg",
-          "sameAs": ["https://www.facebook.com/einsteincenter.ph"],
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "2nd Floor, ARDC Building, CPG North Avenue",
-            "addressLocality": "Tagbilaran City",
-            "addressRegion": "Bohol",
-            "addressCountry": "PH"
-          }
-        }
-      ]
-    }
-    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=Abril+Fatface&family=Great+Vibes&family=Alex+Brush&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="css/main.css" />
-<script src="js/vip-price.js" defer></script>
+    <script src="js/vip-price.js" defer></script>
 </head>
 
 <body>
 
     <!-- HIRING BANNER -->
-    <div id="hiring-banner"
+    <div id="hiring-banner" z
         style="display:none; background:#ffeb3b; color:#3e2723; text-align:center; padding:10px; font-weight:bold; font-size:14px; z-index: 1000; position:relative;">
-        📢 We Are Hiring Staff/Tutors! Join our growing family. Contact us today.
+        📢 We Are Hiring Staff/Tutors! Join our growing family. Coxntact us today.
     </div>
 
     <!-- CONTINUOUS COLLAGE BACKGROUND -->
@@ -70,7 +38,10 @@
     <nav>
         <div class="nav-logo" style="display: flex; align-items: center; gap: 12px;">
             <img src="images/logo2.jpg" alt="Einstein Logo" style="height: 45px; width: auto;" />
-            <span style="font-family:'Playfair Display',serif;font-size:clamp(.9rem,1.5vw,1.2rem);font-weight:700;line-height:1.3;letter-spacing:normal;text-transform:none;color:#fff">EINSTEIN- <span style="font-weight:400;letter-spacing:normal;text-transform:none">Center For Modern Education</span></span>
+            <span
+                style="font-family:'Playfair Display',serif;font-size:clamp(.9rem,1.5vw,1.2rem);font-weight:700;line-height:1.3;letter-spacing:normal;text-transform:none;color:#fff">EINSTEIN-
+                <span style="font-weight:400;letter-spacing:normal;text-transform:none">Center For Modern
+                    Education</span></span>
         </div>
         <ul id="nav-links">
             <li><a href="#programs">Programs</a></li>
@@ -196,7 +167,8 @@
                                 <li>Academics, Music, Arts &amp; Sports</li>
                                 <li>Choose 1 or 2 courses plus free academics</li>
                                 <li>Grand Recital at Island City Mall</li>
-                                <li>Reserve your slot for only <span data-summerblast="Registration Fee">₱900</span></li>
+                                <li>Reserve your slot for only <span data-summerblast="Registration Fee">₱900</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -858,12 +830,12 @@
                     const sData = await sRes.json();
                     if (sData && sData.success && sData.settings) {
                         let curSettings = {};
-                        try { curSettings = JSON.parse(localStorage.getItem('einsteinSettings')) || {}; } catch (e) {}
+                        try { curSettings = JSON.parse(localStorage.getItem('einsteinSettings')) || {}; } catch (e) { }
                         const merged = Object.assign({}, curSettings, sData.settings);
                         if (Array.isArray(sData.settings.qrs)) merged.qrs = sData.settings.qrs;
-                        try { localStorage.setItem('einsteinSettings', JSON.stringify(merged)); } catch(e){}
+                        try { localStorage.setItem('einsteinSettings', JSON.stringify(merged)); } catch (e) { }
                     }
-                } catch(se) {}
+                } catch (se) { }
 
                 const r = await fetch('api/load_rates.php', { credentials: 'same-origin' });
                 const j = await r.json();
@@ -923,7 +895,8 @@
                         <p
                             style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.1rem; margin: 0 0 0.1rem 0;">
                             VIP Club Membership</p>
-                        <div class="price" data-vip-fee style="font-size: 1.3rem; margin: 0.1rem 0 0.1rem 0; font-weight: 600;">₱500
+                        <div class="price" data-vip-fee
+                            style="font-size: 1.3rem; margin: 0.1rem 0 0.1rem 0; font-weight: 600;">₱500
                         </div>
                         <p style="font-size: 0.7rem; margin: 0.1rem 0;"><strong>Get up to 15% DISCOUNT</strong></p>
                         <p style="font-size: 0.65rem; margin: 0;">on regular services for two years</p>
@@ -1003,7 +976,8 @@
     <footer>
         <div style="margin-bottom:1.1rem;">
             <strong style="display:block;font-size:1.1rem;color:#fff;font-weight:700;">Since 2012</strong>
-            <span style="display:block;font-size:0.82rem;color:rgba(255,255,255,0.65);margin-top:2px;">Years of trusted service</span>
+            <span style="display:block;font-size:0.82rem;color:rgba(255,255,255,0.65);margin-top:2px;">Years of trusted
+                service</span>
         </div>
         <p><strong>Einstein Child Care & Learning Center</strong></p>
         <p>2nd Floor of ARDC Building, CPG North Avenue, Tagbilaran</p>
@@ -1144,7 +1118,7 @@
             }
         }
 
-        (function() {
+        (function () {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('view') !== 'static') {
                 sessionStorage.removeItem('view_as_static');
@@ -1153,7 +1127,7 @@
             if (isStaticView) {
                 const enableStaticPreview = () => {
                     document.body.classList.add('static-preview-mode');
-                    document.addEventListener('click', function(e) {
+                    document.addEventListener('click', function (e) {
                         if (e.target.closest('nav, header, #login-icon-link')) return; // Topbar buttons and links remain fully interactive
                         const blocked = e.target.closest('#programs .programs-grid a, button, a.btn, a.cta-btn, .enroll-btn, [onclick*="openEnrollment"], [onclick*="openModal"], [onclick*="toggleAuthModal"]');
                         if (blocked) {
@@ -1474,12 +1448,12 @@
         // Apply Summer Blast rates from a given array of rate objects
         function applySummerblastData(sbArr) {
             if (!Array.isArray(sbArr)) return;
-            sbArr.forEach(function(s) {
+            sbArr.forEach(function (s) {
                 if (!s || !s.name || !s.rate) return;
                 var numVal = parseFloat(String(s.rate).replace(/[^0-9.]/g, ''));
                 if (!numVal) return;
                 var formatted = '\u20b1' + numVal.toLocaleString();
-                document.querySelectorAll('[data-summerblast="' + s.name + '"]').forEach(function(el) {
+                document.querySelectorAll('[data-summerblast="' + s.name + '"]').forEach(function (el) {
                     el.textContent = formatted;
                 });
             });
@@ -1488,8 +1462,8 @@
         // Fetch Summer Blast rates from the server and apply them
         function fetchAndApplySummerblastRates() {
             fetch('api/load_rates.php', { credentials: 'same-origin' })
-                .then(function(r) { return r.json(); })
-                .then(function(j) {
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
                     if (j.success && j.rates && Array.isArray(j.rates.summerblast) && j.rates.summerblast.length) {
                         applySummerblastData(j.rates.summerblast);
                         // Merge into localStorage so future applySiteSettings calls are aware
@@ -1497,13 +1471,13 @@
                             var s = JSON.parse(localStorage.getItem('einsteinSettings') || '{}') || {};
                             s.summerblast = j.rates.summerblast;
                             localStorage.setItem('einsteinSettings', JSON.stringify(s));
-                        } catch(e) {}
+                        } catch (e) { }
                     }
                 })
-                .catch(function() {});
+                .catch(function () { });
         }
 
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', function () {
             applySiteSettings();
             // Always also fetch from server so live DB prices override stale localStorage
             fetchAndApplySummerblastRates();
