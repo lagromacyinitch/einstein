@@ -197,7 +197,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             display: flex;
             align-items: center;
             flex-shrink: 0;
-            margin-left: 0.25rem;
+            margin-left: 0.9rem;
             z-index: 101;
         }
 
