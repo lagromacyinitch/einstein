@@ -24,6 +24,13 @@ try {
                 throw new RuntimeException('You do not have an active VIP membership to unsubscribe.');
             }
             $db->prepare('INSERT INTO vip_unsubscriptions (user_id, unsubscribed_at) VALUES (?, NOW()) ON DUPLICATE KEY UPDATE unsubscribed_at=VALUES(unsubscribed_at)')->execute([$userId]);
+            // End the current VIP enrollment lifecycle in the enrollments table as
+            // well. This makes the admin VIP Members List drop the member on its
+            // next refresh, while the vip_unsubscriptions row remains available
+            // for the admin notification feed.
+            $db->prepare("UPDATE enrollments
+                SET status='cancelled', payment_status='cancelled', updated_at=NOW()
+                WHERE user_id=? AND LOWER(program) LIKE '%vip%'")->execute([$userId]);
         }
     }
     if (!$admin) {

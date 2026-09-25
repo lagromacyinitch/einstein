@@ -1290,11 +1290,20 @@
             </div>
             <div class="card-body">
               <p style="font-size:13px;color:#8D6A4E;margin-bottom:16px;">
-                Change your login email address and/or password. You will be asked to log in again after saving.
+                Update your name, login email address, and/or password. Current password is required only when changing the password.
               </p>
               <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px;">
                 <div class="form-group" style="margin:0;">
-                  <label style="font-weight:700;color:var(--brown-primary)">Email Address</label>
+                  <label style="font-weight:700;color:var(--brown-primary)" for="hc-display-name">Name</label>
+                  <input type="text" id="hc-display-name" class="form-control" placeholder="Enter your name"
+                    maxlength="120" pattern="[A-Za-z]+([ ][A-Za-z]+)*" autocomplete="name"
+                    oninput="updateHcSaveBtnState()">
+                  <p id="hc-name-help" style="font-size:11px;color:#8D6A4E;margin:5px 0 0;">
+                    Letters and spaces only.
+                  </p>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:700;color:var(--brown-primary)" for="hc-new-username">Email Address</label>
                   <input type="text" id="hc-new-username" class="form-control" placeholder=""
                     oninput="updateHcSaveBtnState()" autocomplete="off">
                   <p style="font-size:11px;color:#8D6A4E;margin:5px 0 0;">
@@ -1303,7 +1312,7 @@
                 </div>
                 <div class="form-group" style="margin:0;">
                   <label style="font-weight:700;color:var(--brown-primary)">Current Password <span
-                      style="color:#c62828">*</span></label>
+                      style="color:#8D6A4E;font-weight:400;font-size:11px">(required for password changes)</span></label>
                   <div style="position:relative;">
                     <input type="password" id="hc-current-pass" class="form-control"
                       placeholder="" autocomplete="off"
@@ -8724,30 +8733,48 @@
     }
 
     let _initialHeadUsername = '';
+    let _initialHeadDisplayName = '';
+    const HEAD_ADMIN_NAME_PATTERN = /^[A-Za-z]+(?:[ ]+[A-Za-z]+)*$/;
+
+    function isValidHeadAdminName(value) {
+      return value.length > 0 && value.length <= 120 && HEAD_ADMIN_NAME_PATTERN.test(value);
+    }
 
     // ── Head Admin Credentials change tracking ──────────────────────
     function updateHcSaveBtnState() {
       const btn = document.getElementById('hc-save-btn');
       if (!btn) return;
-      const curPass = (document.getElementById('hc-current-pass')?.value || '').trim();
       const newPass = (document.getElementById('hc-new-pass')?.value || '').trim();
       const confPass = (document.getElementById('hc-confirm-pass')?.value || '').trim();
+      const displayNameEl = document.getElementById('hc-display-name');
+      const newDisplayName = (displayNameEl?.value || '').trim();
       const newUname = (document.getElementById('hc-new-username')?.value || '').trim();
+
+      const nameValid = isValidHeadAdminName(newDisplayName);
+      const nameHelp = document.getElementById('hc-name-help');
+      if (displayNameEl) {
+        displayNameEl.setCustomValidity(nameValid ? '' : 'Name may contain letters and spaces only.');
+        displayNameEl.style.borderColor = newDisplayName && !nameValid ? '#c62828' : '';
+      }
+      if (nameHelp) {
+        nameHelp.textContent = nameValid ? 'Letters and spaces only.' : 'Name may contain letters and spaces only.';
+        nameHelp.style.color = newDisplayName && !nameValid ? '#c62828' : '#8D6A4E';
+      }
 
       // Check if username was modified from currently active value
       const usernameChanged = newUname.length > 0 && newUname.toLowerCase() !== _initialHeadUsername.toLowerCase();
+      const displayNameChanged = nameValid && newDisplayName !== _initialHeadDisplayName;
 
       // Check password inputs
       const passEntered = newPass.length > 0 || confPass.length > 0;
       const passValid = newPass.length >= 6 && newPass === confPass;
+      const hasAnyChange = displayNameChanged || usernameChanged || passEntered;
 
-      // Has changes ONLY if current password is provided AND either:
-      // 1) Username/email changed (and no invalid new password is typed)
-      // 2) Valid new password is typed (min 6 chars and matches confirmation)
-      const hasChanges = curPass.length > 0 && (
-        (usernameChanged && (!passEntered || passValid)) ||
-        (!usernameChanged && passValid)
-      );
+      // Enable for a name-only or email-only change, and keep the button
+      // disabled when every editable field is unchanged. The current password
+      // is still validated when the user clicks Save.
+      const hasChanges = nameValid && hasAnyChange
+        && (!passEntered || passValid);
 
       btn.disabled = !hasChanges;
       btn.style.opacity = hasChanges ? '1' : '0.5';
@@ -8762,16 +8789,23 @@
       const payload = {
         action: 'change_head_credentials',
         current_password: document.getElementById('hc-current-pass').value,
+        display_name: document.getElementById('hc-display-name').value.trim(),
         new_username: document.getElementById('hc-new-username').value.trim(),
         new_password: document.getElementById('hc-new-pass').value,
         confirm_password: document.getElementById('hc-confirm-pass').value
       };
 
-      if (!payload.current_password) {
-        showHcMsg('Current password is required.', false); return;
+      if (!isValidHeadAdminName(payload.display_name)) {
+        showHcMsg('Name may contain letters and spaces only.', false); return;
       }
-      if (!payload.new_password && !payload.new_username) {
-        showHcMsg('Please enter a new password or email/username.', false); return;
+      const usernameChanged = payload.new_username.length > 0
+        && payload.new_username.toLowerCase() !== _initialHeadUsername.toLowerCase();
+      const displayNameChanged = payload.display_name !== _initialHeadDisplayName;
+      if (!payload.new_password && !usernameChanged && !displayNameChanged) {
+        showHcMsg('Please enter a new name, password, or email/username.', false); return;
+      }
+      if (payload.new_password && !payload.current_password) {
+        showHcMsg('Current password is required when changing the password.', false); return;
       }
       if (payload.new_password && payload.new_password !== payload.confirm_password) {
         showHcMsg('New passwords do not match.', false); return;
@@ -8797,9 +8831,14 @@
         if (!d.success) throw new Error(d.message);
 
         showHcMsg('✓ ' + d.message, true);
+        _initialHeadDisplayName = (d.display_name || payload.display_name).trim();
+        const sidebarName = document.getElementById('user-name-sidebar');
+        const sidebarAvatar = document.getElementById('user-avatar-sidebar');
+        if (sidebarName) sidebarName.textContent = _initialHeadDisplayName;
+        if (sidebarAvatar) sidebarAvatar.textContent = _initialHeadDisplayName.charAt(0).toUpperCase();
         if (payload.new_username) _initialHeadUsername = payload.new_username;
         // Clear new password fields
-        ['hc-new-pass', 'hc-confirm-pass'].forEach(id => {
+        ['hc-current-pass', 'hc-new-pass', 'hc-confirm-pass'].forEach(id => {
           const el = document.getElementById(id); if (el) el.value = '';
         });
         if (d.require_relogin) {
@@ -8830,6 +8869,13 @@
         const d = await r.json();
         if (!d.success) return;
         _initialHeadUsername = (d.username || '').trim();
+        _initialHeadDisplayName = (d.display_name || 'Head Admin').trim();
+        const nEl = document.getElementById('hc-display-name');
+        if (nEl) nEl.value = _initialHeadDisplayName;
+        const sidebarName = document.getElementById('user-name-sidebar');
+        const sidebarAvatar = document.getElementById('user-avatar-sidebar');
+        if (sidebarName) sidebarName.textContent = _initialHeadDisplayName;
+        if (sidebarAvatar) sidebarAvatar.textContent = _initialHeadDisplayName.charAt(0).toUpperCase();
         const uEl = document.getElementById('hc-new-username');
         if (uEl) uEl.value = _initialHeadUsername;
         updateHcSaveBtnState();
@@ -9327,9 +9373,10 @@
         const avatarEl = document.getElementById('user-avatar-sidebar');
 
         if (isHeadAdminUser) {
-          if (nameEl) nameEl.textContent = 'Head Admin';
+          const headDisplayName = (d.display_name || 'Head Admin').trim();
+          if (nameEl) nameEl.textContent = headDisplayName;
           if (roleEl) roleEl.textContent = 'HEAD ADMIN';
-          if (avatarEl) avatarEl.textContent = 'H';
+          if (avatarEl) avatarEl.textContent = headDisplayName.charAt(0).toUpperCase();
         } else {
           const displayName = d.display_name || 'Sub Admin';
           if (nameEl) nameEl.textContent = displayName;

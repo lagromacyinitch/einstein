@@ -90,6 +90,7 @@ try {
             echo json_encode([
                 'success'  => true,
                 'username' => $headAdmin['username'] ?? '',
+                'display_name' => $headAdmin['display_name'] ?? 'Head Admin',
             ]);
             break;
 
@@ -277,11 +278,19 @@ try {
             $confirmPass = $post['confirm_password'] ?? '';
 
             if (!$headAdmin) throw new Exception('Head Admin account not found.');
-            if (!password_verify($currentPass, $headAdmin['password_hash'])) {
-                throw new Exception('Current password is incorrect.');
-            }
+
+            $submittedDisplayName = trim((string)($post['display_name'] ?? ''));
+            $existingDisplayName = trim((string)($headAdmin['display_name'] ?? 'Head Admin'));
+            $newDisplayName = normalizeName(
+                $submittedDisplayName !== '' ? $submittedDisplayName : $existingDisplayName,
+                'Name'
+            );
+            $displayNameChanged = $newDisplayName !== $existingDisplayName;
+            $usernameChanged = $newUser !== ''
+                && strcasecmp($newUser, (string)($headAdmin['username'] ?? '')) !== 0;
+
             // Accept a valid email OR a plain username (letters/numbers/._-).
-            if ($newUser) {
+            if ($usernameChanged) {
                 $newUserIsEmail = filter_var($newUser, FILTER_VALIDATE_EMAIL) !== false;
                 if (!$newUserIsEmail && !preg_match('/^[a-zA-Z0-9_.\-]+$/', $newUser)) {
                     throw new Exception('Username may only contain letters, numbers, underscores, hyphens and dots — or use a valid email address.');
@@ -294,21 +303,45 @@ try {
                 throw new Exception('New password must be at least 6 characters.');
             }
 
-            if ($newUser) {
+            if (!$usernameChanged && $newPass === '' && !$displayNameChanged) {
+                throw new Exception('No changes submitted.');
+            }
+
+            if ($newPass !== '' && !password_verify($currentPass, $headAdmin['password_hash'])) {
+                throw new Exception('Current password is incorrect.');
+            }
+
+            if ($usernameChanged) {
                 $uStmt = $db->prepare("SELECT id FROM admin_accounts WHERE (LOWER(username)=? OR LOWER(COALESCE(email,''))=?) AND id!=?");
                 $uStmt->execute([strtolower($newUser), strtolower($newUser), $headAdmin['id']]);
                 if ($uStmt->fetch()) throw new Exception('That email/username is already in use by another account.');
-                $db->prepare("UPDATE admin_accounts SET username=?, email=?, updated_at=NOW() WHERE id=?")
-                   ->execute([$newUser, $newUser, $headAdmin['id']]);
-            }
-            if ($newPass !== '') {
-                $db->prepare("UPDATE admin_accounts SET password_hash=?, updated_at=NOW() WHERE id=?")
-                   ->execute([password_hash($newPass, PASSWORD_DEFAULT), $headAdmin['id']]);
             }
 
+            if ($usernameChanged && $newPass !== '') {
+                $db->prepare("UPDATE admin_accounts SET display_name=?, username=?, email=?, password_hash=?, updated_at=NOW() WHERE id=?")
+                   ->execute([$newDisplayName, $newUser, $newUser, password_hash($newPass, PASSWORD_DEFAULT), $headAdmin['id']]);
+            } elseif ($usernameChanged) {
+                $db->prepare("UPDATE admin_accounts SET display_name=?, username=?, email=?, updated_at=NOW() WHERE id=?")
+                   ->execute([$newDisplayName, $newUser, $newUser, $headAdmin['id']]);
+            } elseif ($newPass !== '') {
+                $db->prepare("UPDATE admin_accounts SET display_name=?, password_hash=?, updated_at=NOW() WHERE id=?")
+                   ->execute([$newDisplayName, password_hash($newPass, PASSWORD_DEFAULT), $headAdmin['id']]);
+            } else {
+                $db->prepare("UPDATE admin_accounts SET display_name=?, updated_at=NOW() WHERE id=?")
+                   ->execute([$newDisplayName, $headAdmin['id']]);
+            }
+
+            $_SESSION['display_name'] = $newDisplayName;
+            $requireRelogin = $usernameChanged || $newPass !== '';
+
             ob_clean();
-            echo json_encode(['success' => true, 'message' => 'Head Admin credentials updated. Please log in again.', 'require_relogin' => true]);
-            logActivity($db, 'CHANGE_HEAD_CREDENTIALS', 'Head Admin changed own login credentials' . ($newUser ? " (new username: {$newUser})" : '') . ($newPass !== '' ? ', password changed' : '') . ".");
+            echo json_encode([
+                'success' => true,
+                'message' => $requireRelogin ? 'Head Admin credentials updated. Please log in again.' : 'Head Admin name updated successfully.',
+                'display_name' => $newDisplayName,
+                'require_relogin' => $requireRelogin,
+            ]);
+            logActivity($db, 'CHANGE_HEAD_CREDENTIALS', 'Head Admin updated profile' . ($displayNameChanged ? " (name: {$newDisplayName})" : '') . ($usernameChanged ? " (new username: {$newUser})" : '') . ($newPass !== '' ? ', password changed' : '') . ".");
             break;
 
         // ── SUB-ADMIN changes their OWN credentials ────────────────

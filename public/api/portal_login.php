@@ -61,22 +61,23 @@ try {
         $acc = $stmt->fetch();
 
         if ($acc && $acc['role'] === 'head_admin' && password_verify($password, $acc['password_hash'])) {
+            $headDisplayName = trim((string)($acc['display_name'] ?? '')) ?: 'Head Admin';
             startPortalSession();
             session_regenerate_id(true);
             $_SESSION['role'] = 'admin';
             $_SESSION['portal_username'] = $acc['username'];
-            $_SESSION['display_name'] = 'Head Admin';
+            $_SESSION['display_name'] = $headDisplayName;
             $_SESSION['is_head_admin'] = true;
             unset($_SESSION['user_id'], $_SESSION['email'], $_SESSION['sub_admin_id'], $_SESSION['tutor_id']);
 
-            logPortalActivity('Head Admin', 'Head Admin', 'LOGIN', 'Head Admin logged in to Admin Portal.');
+            logPortalActivity($headDisplayName, 'Head Admin', 'LOGIN', $headDisplayName . ' logged in to Admin Portal.');
 
             ob_clean();
             echo json_encode([
                 'success' => true,
                 'role' => 'admin',
                 'redirect' => 'admin.html',
-                'display_name' => 'Head Admin',
+                'display_name' => $headDisplayName,
             ]);
             exit;
         }
