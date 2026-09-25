@@ -357,26 +357,61 @@
     'vip': 'VIP Club Membership',
   };
 
-  function isCurrentUserVipActive() {
-    if (window.isUserVipActive === true) return true;
-    if (window.isUserVip === true) return true;
-    if (window.clientVipState && window.clientVipState.active === true) return true;
+  function syncVipClientState(state) {
+    if (!state || typeof state !== 'object') {
+      window.clientVipState = null;
+      window.isUserVipActive = false;
+      window.isUserVip = false;
+      window.isUserVipPending = false;
+      try {
+        sessionStorage.removeItem('isVip');
+        localStorage.removeItem('isVip');
+        sessionStorage.removeItem('vipPending');
+        localStorage.removeItem('vipPending');
+      } catch (_) {}
+      return;
+    }
+
+    const active = state.active === true;
+    // A request submitted after an unsubscribe is a new lifecycle. The server
+    // normally returns this combination as false/true, but keep the client
+    // defensive so an old cached unsubscribe cannot lock the control.
+    const pending = state.pending === true && !active && state.unsubscribed !== true;
+    window.clientVipState = { ...state, active, pending };
+    window.isUserVipActive = active;
+    window.isUserVip = active;
+    window.isUserVipPending = pending;
+
     try {
-      if (sessionStorage.getItem('isVip') === 'true') return true;
-      if (localStorage.getItem('isVip') === 'true') return true;
+      if (active) {
+        sessionStorage.setItem('isVip', 'true');
+        localStorage.setItem('isVip', 'true');
+      } else {
+        sessionStorage.removeItem('isVip');
+        localStorage.removeItem('isVip');
+      }
+      if (pending) {
+        sessionStorage.setItem('vipPending', 'true');
+        localStorage.setItem('vipPending', 'true');
+      } else {
+        sessionStorage.removeItem('vipPending');
+        localStorage.removeItem('vipPending');
+      }
     } catch (_) {}
+  }
+
+  function isCurrentUserVipActive() {
+    if (window.clientVipState && typeof window.clientVipState.active === 'boolean') {
+      return window.clientVipState.active;
+    }
     return false;
   }
   window.isCurrentUserVipActive = isCurrentUserVipActive;
 
   function isCurrentUserVipPending() {
-    if (window.isUserVipPending === true) return true;
-    if (window.clientVipState && window.clientVipState.pending === true) return true;
-    if (Array.isArray(window.allEnrollments) && window.allEnrollments.some(e => e && e.status === 'pending' && String(e.program || '').toLowerCase().includes('vip'))) return true;
-    try {
-      if (sessionStorage.getItem('vipPending') === 'true') return true;
-      if (localStorage.getItem('vipPending') === 'true') return true;
-    } catch (_) {}
+    if (window.clientVipState && typeof window.clientVipState.pending === 'boolean') {
+      return window.clientVipState.pending && window.clientVipState.unsubscribed !== true;
+    }
     return false;
   }
   window.isCurrentUserVipPending = isCurrentUserVipPending;
@@ -566,11 +601,21 @@
   window.goTo = goTo;   // expose so onclick="goTo(n)" works in HTML
 
   window.openEnrollmentFlow = async function (prog) {
-    if (String(prog).toLowerCase().includes('vip') && isCurrentUserVipActive()) {
-      alert('You are already an active VIP Club Member! Center-wide discounts are already active on your account.');
-      return;
+    const isVipProgram = String(prog).toLowerCase().includes('vip');
+    if (isVipProgram) {
+      // Refresh from the logged-in user's server state before deciding whether
+      // VIP enrollment is blocked. Cached flags can belong to an old session.
+      await loadLatestGuardianProfile();
+      if (isCurrentUserVipActive()) {
+        alert('You are already an active VIP Club Member! Center-wide discounts are already active on your account.');
+        return;
+      }
+      if (isCurrentUserVipPending()) {
+        alert('Your VIP Club Membership application is currently awaiting administrator approval.');
+        return;
+      }
     }
-    if (String(prog).toLowerCase().includes('vip')) { try { await window.refreshVipFee(); } catch(e) { alert(e.message); return; } }
+    if (isVipProgram) { try { await window.refreshVipFee(); } catch(e) { alert(e.message); return; } }
     programName = prog;
     formData = { program: prog, joinVip: false };
     account = { email: '', password: '', phone: '', userId: null, isNewAccount: false, channel: 'email' };
@@ -588,18 +633,11 @@
       if (data.logged_in && (data.role === 'user' || !data.role)) {
         localStorage.setItem('userEmail', data.email || '');
         sessionStorage.setItem('userId', data.user_id || '');
-        const isVip = !!data.is_vip;
-        window.isUserVipActive = isVip;
-        sessionStorage.setItem('isVip', isVip ? 'true' : 'false');
-        localStorage.setItem('isVip', isVip ? 'true' : 'false');
-        window.isUserVip = isVip;
+        syncVipClientState({ active: !!data.is_vip, pending: !!data.vip_pending });
         await window.openEnrollmentFlowLoggedIn(prog);
         return;
       } else if (!data.logged_in) {
-        window.isUserVipActive = false;
-        window.isUserVip = false;
-        sessionStorage.removeItem('isVip');
-        localStorage.removeItem('isVip');
+        syncVipClientState(null);
       }
     } catch (e) {
       console.error('Session check failed:', e);
@@ -615,37 +653,13 @@
     try {
       const response = await fetch(apiUrl('api/get_enrollments.php'), { cache: 'no-store', credentials: 'include' });
       const data = await response.json();
-      if (data && data.vip_membership) {
-        if (typeof data.vip_membership.active === 'boolean') {
-          const isVip = !!data.vip_membership.active;
-          if (isVip) {
-            window.isUserVipActive = true;
-            window.isUserVip = true;
-            try {
-              sessionStorage.setItem('isVip', 'true');
-              localStorage.setItem('isVip', 'true');
-            } catch (_) {}
-            if (window.clientVipState) window.clientVipState.active = true;
-          }
-        }
-        if (data.vip_membership.pending) {
-          window.isUserVipPending = true;
-          try {
-            sessionStorage.setItem('vipPending', 'true');
-            localStorage.setItem('vipPending', 'true');
-          } catch (_) {}
-          if (window.clientVipState) window.clientVipState.pending = true;
-        }
-      }
-      if (data && Array.isArray(data.enrollments)) {
-        const hasPendingVip = data.enrollments.some(e => e && e.status === 'pending' && String(e.program || '').toLowerCase().includes('vip'));
-        if (hasPendingVip) {
-          window.isUserVipPending = true;
-          try {
-            sessionStorage.setItem('vipPending', 'true');
-            localStorage.setItem('vipPending', 'true');
-          } catch (_) {}
-        }
+      if (data && data.success) {
+        // Always replace the previous state, including false values. This is
+        // what clears a stale pending flag after approval, rejection, or
+        // unsubscribe.
+        syncVipClientState(data.vip_membership || null);
+      } else if (data && data.success === false) {
+        syncVipClientState(null);
       }
       if (!data.success || !Array.isArray(data.enrollments) || !data.enrollments.length) return;
 
@@ -663,31 +677,28 @@
   }
 
   window.openEnrollmentFlowLoggedIn = async function (prog, prefill) {
-    if (String(prog).toLowerCase().includes('vip') && (isCurrentUserVipActive() || isCurrentUserVipPending())) {
-      if (isCurrentUserVipActive()) {
-        alert('You are already an active VIP Club Member! Center-wide discounts are already active on your account.');
-      } else {
-        alert('Your VIP Club Membership application is currently awaiting administrator approval.');
+    const isVipProgram = String(prog).toLowerCase().includes('vip');
+    if (isVipProgram) {
+      await loadLatestGuardianProfile();
+      if (isCurrentUserVipActive() || isCurrentUserVipPending()) {
+        if (isCurrentUserVipActive()) {
+          alert('You are already an active VIP Club Member! Center-wide discounts are already active on your account.');
+        } else {
+          alert('Your VIP Club Membership application is currently awaiting administrator approval.');
+        }
+        return;
       }
-      return;
     }
-    if (String(prog).toLowerCase().includes('vip')) { try { await window.refreshVipFee(); } catch(e) { alert(e.message); return; } }
+    if (isVipProgram) { try { await window.refreshVipFee(); } catch(e) { alert(e.message); return; } }
     programName = prog;
     formData = { program: prog, joinVip: false };
     try {
       const response = await fetch(apiUrl('api/check_session.php?portal=user'), { credentials: 'include', cache: 'no-store' });
       const data = await response.json();
       if (data.logged_in && (data.role === 'user' || !data.role)) {
-        const isVip = !!data.is_vip;
-        window.isUserVipActive = isVip;
-        window.isUserVip = isVip;
-        sessionStorage.setItem('isVip', isVip ? 'true' : 'false');
-        localStorage.setItem('isVip', isVip ? 'true' : 'false');
-        if (data.vip_pending) {
-          window.isUserVipPending = true;
-          sessionStorage.setItem('vipPending', 'true');
-          localStorage.setItem('vipPending', 'true');
-        }
+        syncVipClientState({ active: !!data.is_vip, pending: !!data.vip_pending });
+      } else if (!data.logged_in) {
+        syncVipClientState(null);
       }
     } catch(e) {}
 
@@ -695,10 +706,6 @@
 
     if (isCurrentUserVipActive() || isCurrentUserVipPending()) {
       formData.joinVip = false;
-      if (isCurrentUserVipActive()) {
-        window.isUserVipActive = true;
-        window.isUserVip = true;
-      }
     }
 
     try { await syncEinsteinSettings(); } catch(e) {}
@@ -1658,6 +1665,10 @@
       if (!programName) {
         window.location.href = 'user.html';
       } else {
+        // OTP verification has just created the authenticated session. Fetch
+        // the current VIP state before rendering the enrollment form so a
+        // stale flag cannot disable the option for a new/non-VIP client.
+        await loadLatestGuardianProfile();
         goTo(3); // Go to form after verification
       }
     } catch (e) {
