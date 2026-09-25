@@ -1235,7 +1235,7 @@
             <div class="form-group"><label>Phone / SMS</label><input type="text" id="set-phone" class="form-control"
                 inputmode="numeric" pattern="[0-9]*" maxlength="15" oninput="this.value=this.value.replace(/\D/g,''); checkSettingsInfoChanged()">
             </div>
-            <div class="form-group"><label>Facebook Link</label><input type="text" id="set-fb" class="form-control" data-validate="facebook"
+            <div class="form-group"><label>Facebook Name</label><input type="text" id="set-fb" class="form-control" data-validate="facebook"
                 inputmode="text" oninput="this.value=this.value.replace(/[<>&quot;'`\\]/g,''); checkSettingsInfoChanged()">
             </div>
           </div>
@@ -1250,9 +1250,28 @@
         </div>
         <div class="card-body">
           <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
-            <input type="checkbox" id="set-hiring" style="width:18px;height:18px;" onchange="saveSettings()">
+            <input type="checkbox" id="set-hiring" style="width:18px;height:18px;" onchange="saveHiringAnnouncement()">
             Display "We Are Hiring Staff/Tutors" banner on main site
           </label>
+        </div>
+      </div>
+
+      <!-- Editable homepage copy -->
+      <div class="card" id="card-homepage-content">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div>
+            <h3 style="margin:0;">Homepage Content</h3>
+            <p style="margin:4px 0 0;color:var(--brown-light);font-size:12px;">
+              Edit the headings, descriptions, program details, Summer Blast copy, Important Dates, facilities, and other text shown on the public homepage.
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-save-homepage-content" onclick="saveHomepageContent()" disabled style="opacity:.5;cursor:not-allowed;">Save Homepage Content</button>
+        </div>
+        <div class="card-body">
+          <div id="homepage-content-status" style="display:none;margin-bottom:14px;padding:10px 12px;border-radius:8px;font-size:13px;"></div>
+          <div id="homepage-content-editor">
+            <div style="padding:24px;text-align:center;color:var(--brown-light);">Loading homepage content…</div>
+          </div>
         </div>
       </div>
 
@@ -3470,6 +3489,126 @@
       });
     }
 
+    // ── HOMEPAGE CONTENT EDITOR ─────────────────────────────────────────────
+    let homepageContentFields = [];
+    let homepageContentOriginal = '{}';
+
+    function homepageContentValueForForm(field) {
+      if (field.type === 'list') {
+        return Array.isArray(field.value) ? field.value.join('\n') : '';
+      }
+      return field.value == null ? '' : String(field.value);
+    }
+
+    function readHomepageContentForm() {
+      const values = {};
+      document.querySelectorAll('[data-homepage-field]').forEach((input) => {
+        const key = input.getAttribute('data-homepage-field');
+        if (!key) return;
+        if (input.getAttribute('data-homepage-type') === 'list') {
+          values[key] = input.value.split(/\r\n|\r|\n/).map(item => item.trim()).filter(Boolean);
+        } else {
+          values[key] = input.value;
+        }
+      });
+      return values;
+    }
+
+    function updateHomepageContentSaveState() {
+      const btn = document.getElementById('btn-save-homepage-content');
+      if (!btn) return;
+      const changed = JSON.stringify(readHomepageContentForm()) !== homepageContentOriginal;
+      btn.disabled = !changed;
+      btn.style.opacity = changed ? '1' : '.5';
+      btn.style.cursor = changed ? 'pointer' : 'not-allowed';
+    }
+
+    function renderHomepageContentEditor(fields) {
+      const editor = document.getElementById('homepage-content-editor');
+      if (!editor) return;
+      homepageContentFields = Array.isArray(fields) ? fields : [];
+      const groups = [];
+      const bySection = {};
+      homepageContentFields.forEach(field => {
+        const section = field.section || 'Homepage';
+        if (!bySection[section]) {
+          bySection[section] = [];
+          groups.push(section);
+        }
+        bySection[section].push(field);
+      });
+
+      editor.innerHTML = groups.map(section => `
+        <section class="homepage-editor-section" style="border:1px solid #eadcc9;border-radius:12px;margin-bottom:16px;overflow:hidden;background:#fff;">
+          <div style="padding:12px 15px;background:#fbf5ee;border-bottom:1px solid #eadcc9;font-weight:700;color:var(--brown-primary);font-size:14px;">${escHtml(section)}</div>
+          <div style="padding:15px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:13px 16px;">
+            ${bySection[section].map(field => {
+              const isList = field.type === 'list';
+              const value = escHtml(homepageContentValueForForm(field));
+              return `<div class="form-group" style="margin:0;${isList ? 'grid-column:1/-1;' : ''}">
+                <label style="font-size:12px;font-weight:700;color:var(--brown-primary);display:block;margin-bottom:5px;">${escHtml(field.label || field.key)}</label>
+                ${isList
+                  ? `<textarea class="form-control" rows="${Math.min(8, Math.max(3, (Array.isArray(field.value) ? field.value.length : 3)))}" data-homepage-field="${escHtml(field.key)}" data-homepage-type="list" placeholder="One item per line">${value}</textarea><small style="display:block;color:var(--brown-light);font-size:11px;margin-top:4px;">One item per line</small>`
+                  : field.type === 'textarea'
+                    ? `<textarea class="form-control" rows="3" data-homepage-field="${escHtml(field.key)}">${value}</textarea>`
+                    : `<input type="text" class="form-control" data-homepage-field="${escHtml(field.key)}" value="${value}">`}
+              </div>`;
+            }).join('')}
+          </div>
+        </section>
+      `).join('');
+
+      editor.querySelectorAll('[data-homepage-field]').forEach(input => {
+        input.addEventListener('input', updateHomepageContentSaveState);
+      });
+      homepageContentOriginal = JSON.stringify(readHomepageContentForm());
+      updateHomepageContentSaveState();
+    }
+
+    function showHomepageContentStatus(message, success) {
+      const el = document.getElementById('homepage-content-status');
+      if (!el) return;
+      el.textContent = message;
+      el.style.display = 'block';
+      el.style.background = success ? '#e8f5e9' : '#fce4e4';
+      el.style.color = success ? '#2e7d32' : '#c62828';
+    }
+
+    async function loadHomepageContent() {
+      try {
+        const response = await fetch('api/api_homepage_content.php', { credentials: 'same-origin', cache: 'no-store' });
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || 'Unable to load homepage content.');
+        renderHomepageContentEditor(data.fields || []);
+      } catch (error) {
+        showHomepageContentStatus(error.message || 'Unable to load homepage content.', false);
+      }
+    }
+
+    async function saveHomepageContent() {
+      const button = document.getElementById('btn-save-homepage-content');
+      if (!button || button.disabled) return;
+      button.disabled = true;
+      button.textContent = 'Saving…';
+      try {
+        const response = await fetch('api/api_homepage_content.php', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: readHomepageContentForm() })
+        });
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || 'Unable to save homepage content.');
+        homepageContentOriginal = JSON.stringify(readHomepageContentForm());
+        showHomepageContentStatus('Homepage content saved to the database.', true);
+      } catch (error) {
+        showHomepageContentStatus(error.message || 'Unable to save homepage content.', false);
+      } finally {
+        button.textContent = 'Save Homepage Content';
+        updateHomepageContentSaveState();
+      }
+    }
+
     function editVipDiscounts() {
       const b = document.getElementById('discount-edit-btn');
       b.textContent = 'Save Discounts'; b.onclick = saveVipDiscounts; b.disabled = true;
@@ -3624,7 +3763,9 @@
       }
       if (document.getElementById('set-address')) {
         const btn = document.getElementById('btn-save-settings-info');
-        if (btn && btn.disabled) {
+        const hiringToggle = document.getElementById('set-hiring');
+        const hiringChanged = hiringToggle && hiringToggle.checked !== !!siteSettings.hiring;
+        if (btn && btn.disabled && !hiringChanged) {
           showToast('No changes detected to save.');
           return;
         }
@@ -3633,12 +3774,20 @@
         siteSettings.info.phone = (document.getElementById('set-phone')?.value || '').trim().replace(/[^\d+ -]/g, '');
         siteSettings.info.fb = (document.getElementById('set-fb')?.value || '').trim().replace(/[<>"'`\\]/g, '');
 
-        const hiringToggle = document.getElementById('set-hiring');
         if (hiringToggle) {
           siteSettings.hiring = hiringToggle.checked;
         }
         updateSettingsInfoBaseline();
       }
+      await persistSettings();
+    }
+
+    // Save the banner visibility independently. This must not depend on the
+    // Einstein Information fields or a potentially stale localStorage value.
+    async function saveHiringAnnouncement() {
+      const hiringToggle = document.getElementById('set-hiring');
+      if (!hiringToggle) return;
+      siteSettings.hiring = hiringToggle.checked;
       await persistSettings();
     }
 
@@ -4365,6 +4514,7 @@
       await checkAdminPermissions();
       renderSettings();
       loadDatabaseSettings();
+      loadHomepageContent();
       cancelVipDiscounts();
       loadAllData();
       // Auto-poll every 30s — silently checks for new pending enrollments
@@ -4452,7 +4602,6 @@
             siteSettings.summerblast = j.rates.summerblast;
           }
           ensureRatesDefaults();
-          persistSettings();
           renderTutorialPriceCards();
           renderChildcareRates(); renderWorkshopRates(); renderPlayschoolRates(); renderTutorialRates();
           renderSummerBlastRates();
@@ -4914,8 +5063,8 @@
           fetch('api/manage_admins.php?action=list', { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ accounts: [] }))
         ]);
 
-        const tutors = resTutors.tutors || [];
-        const subAdmins = resAdmins.accounts || [];
+        const tutors = (resTutors.tutors || []).filter(t => String(t.role || '').toLowerCase() !== 'head_admin');
+        const subAdmins = (resAdmins.accounts || []).filter(a => String(a.role || '').toLowerCase() !== 'head_admin');
 
         // ── Sub-Admins table ──
         if (saBody) {
@@ -7047,7 +7196,7 @@
         const r = await fetch('api/tutors.php', { credentials: 'include' });
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
-        tutorsList = d.tutors || [];
+        tutorsList = (d.tutors || []).filter(t => String(t.role || '').toLowerCase() !== 'head_admin');
         renderTutorsTable();
         populateTutorDropdowns();
       } catch (err) {
@@ -8358,7 +8507,9 @@
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         
-        const accounts = d.accounts || [];
+        // Keep the Head Admin out of the My Team table. Head Admin credentials
+        // are managed from Settings and are never part of the sub-admin list.
+        const accounts = (d.accounts || []).filter(a => String(a.role || '').toLowerCase() !== 'head_admin');
 
         const saCount = document.getElementById('team-subadmin-count');
         if (saCount) saCount.textContent = accounts.length;

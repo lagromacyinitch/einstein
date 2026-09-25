@@ -201,6 +201,12 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             z-index: 101;
         }
 
+        /* The View Website preview already adds a Dashboard link to the nav.
+           Keep the duplicate profile/login shortcut on the normal homepage only. */
+        body.static-preview-mode #login-icons {
+            display: none;
+        }
+
         .login-btn {
             display: flex;
             align-items: center;
@@ -1647,4 +1653,42 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         #madstudio [style*="rgba(255,255,255,0.04)"]:last-child,
         #madstudio [style*="rgba(218,181,92,0.06)"]:last-child {
             margin-bottom: 0 !important;
+        }
+
+        #summerblast .summer-description {
+            max-width: 760px;
+            margin-top: 0.7rem;
+            white-space: pre-line;
+        }
+
+        #summerblast .important-dates {
+            margin-top: 2.5rem;
+            padding: 1.25rem 1.5rem 1.35rem;
+            border-radius: 6px;
+            background: var(--maroon);
+            color: #f7ead9;
+        }
+
+        #summerblast .important-dates h4 {
+            margin: 0 0 0.7rem;
+            color: #e8c896;
+            font-size: 0.72rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        #summerblast .important-dates-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.32rem;
+            font-size: 0.86rem;
+            line-height: 1.35;
+        }
+
+        #summerblast .important-dates-grid span {
+            color: #d8b995;
+        }
+
+        #summerblast .important-dates-grid strong {
+            color: #fff;
         }
