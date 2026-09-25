@@ -26,6 +26,11 @@ function ensureAdminTable(PDO $db): void
     ");
     // Safely add columns if table already exists without them
     try {
+        $db->exec("ALTER TABLE admin_accounts ADD COLUMN display_name VARCHAR(120) NOT NULL DEFAULT 'Head Admin'");
+    } catch (PDOException $e) {
+        // Column already exists — ignore
+    }
+    try {
         $db->exec("ALTER TABLE admin_accounts ADD COLUMN can_edit_prices TINYINT(1) NOT NULL DEFAULT 0");
     } catch (PDOException $e) {
         // Column already exists — ignore

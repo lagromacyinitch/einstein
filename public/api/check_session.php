@@ -91,6 +91,15 @@ function checkAdminSessionData(): ?array {
                     $canEditPrices = false;
                 }
             }
+        } else {
+            try {
+                $db = getDB();
+                $headStmt = $db->query("SELECT display_name FROM admin_accounts WHERE role = 'head_admin' ORDER BY id ASC LIMIT 1");
+                $headName = trim((string)$headStmt->fetchColumn());
+                if ($headName !== '') $_SESSION['display_name'] = $headName;
+            } catch (Exception $e) {
+                // Keep the current session display name if the lookup is unavailable.
+            }
         }
         $data = [
             'logged_in'          => true,
