@@ -1166,7 +1166,7 @@
           <div style="border:1px solid ${ci === 0 ? '#c4a97e' : '#e5d9ce'};border-radius:10px;padding:14px 16px;margin-bottom:12px;position:relative;box-sizing:border-box">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
               <span style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:.06em">Child ${ci + 1}</span>
-              ${ci > 0 ? `<button onclick="removeChild(${ci})" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:18px;padding:0" title="Remove child">✕</button>` : ''}
+              ${ci > 0 ? `<button type="button" onclick="window.removeEnrollmentChild(${ci})" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:18px;padding:0" title="Remove child">✕</button>` : ''}
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;overflow:hidden">
               <div class="ef-field" style="margin:0;min-width:0">
@@ -1900,7 +1900,7 @@
     if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
   };
 
-  window.removeChild = function (ci) {
+  window.removeEnrollmentChild = function (ci) {
     collectChildrenFromDOM();
     formData.children_list = (formData.children_list || []).filter((_, i) => i !== ci);
     const body = qs('#efBody');

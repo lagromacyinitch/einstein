@@ -96,7 +96,9 @@ try {
         // ── LIST all sub-admins & head admin (admin access required) ─────
         case 'list':
             if (!$hasAdminAccess) throw new Exception('Admin access required.');
-            $stmt = $db->query("SELECT id, display_name, username, COALESCE(email, username) AS email, role, is_active, can_edit_prices, can_modify_records, nav_permissions, created_at, updated_at FROM admin_accounts ORDER BY CASE WHEN role = 'head_admin' THEN 0 ELSE 1 END, id ASC");
+            // Head Admin credentials are managed separately and must never appear in
+            // the My Team account table, even when a sub-admin has Full Access.
+            $stmt = $db->query("SELECT id, display_name, username, COALESCE(email, username) AS email, role, is_active, can_edit_prices, can_modify_records, nav_permissions, created_at, updated_at FROM admin_accounts WHERE role <> 'head_admin' ORDER BY id ASC");
             $rows = $stmt->fetchAll();
             ob_clean();
             echo json_encode(['success' => true, 'accounts' => $rows]);
@@ -129,6 +131,11 @@ try {
             $id = (int)($post['id'] ?? 0);
             $canModify = isset($post['can_modify_records']) ? (int)(bool)$post['can_modify_records'] : 0;
             if (!$id) throw new Exception('Account ID required.');
+            $chk = $db->prepare("SELECT role FROM admin_accounts WHERE id = ?");
+            $chk->execute([$id]);
+            if ($chk->fetchColumn() === 'head_admin') {
+                throw new Exception('The Head Admin account cannot be modified.');
+            }
             $stmt = $db->prepare("UPDATE admin_accounts SET can_modify_records = ?, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$canModify, $id]);
             ob_clean();
@@ -199,6 +206,11 @@ try {
 
             if (!$id || !$username) {
                 throw new Exception('ID, name and email are required.');
+            }
+            $targetStmt = $db->prepare("SELECT role FROM admin_accounts WHERE id = ? LIMIT 1");
+            $targetStmt->execute([$id]);
+            if ($targetStmt->fetchColumn() === 'head_admin') {
+                throw new Exception('The Head Admin account cannot be modified.');
             }
             if (!filter_var($username, FILTER_VALIDATE_EMAIL)) {
                 throw new Exception('Please enter a valid email address.');

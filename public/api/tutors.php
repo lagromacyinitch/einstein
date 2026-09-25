@@ -35,7 +35,9 @@ try {
     $action = $_GET['action'] ?? ($_POST['action'] ?? (json_decode(file_get_contents('php://input'), true)['action'] ?? ''));
 
     if ($method === 'GET') {
-        $rows = $db->query("SELECT * FROM tutors WHERE is_active = true ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        // The Head Admin is linked to a tutor profile for account syncing, but is
+        // not a regular tutor and must not appear in the Tutor management table.
+        $rows = $db->query("SELECT t.* FROM tutors t WHERE t.is_active = true AND NOT EXISTS (SELECT 1 FROM admin_accounts a WHERE a.tutor_id = t.id AND a.role = 'head_admin') ORDER BY t.full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'tutors' => $rows]);
         exit;
     }
@@ -68,6 +70,11 @@ try {
         $rate = $body['hourly_rate'] ?? null;
         if (!$id || !$name) throw new Exception('ID and name required.');
         if ($rate === null || $rate === '' || !is_numeric($rate)) throw new Exception('Hourly rate must contain numbers only.');
+        $headTutor = $db->prepare("SELECT id FROM admin_accounts WHERE tutor_id = ? AND role = 'head_admin' LIMIT 1");
+        $headTutor->execute([$id]);
+        if ($headTutor->fetchColumn()) {
+            throw new Exception('The Head Admin tutor profile cannot be modified.');
+        }
         $linked=$db->prepare('SELECT id FROM admin_accounts WHERE tutor_id=?');
         $linked->execute([$id]);
         $accountId=(int)$linked->fetchColumn();
@@ -92,6 +99,11 @@ try {
     } elseif ($action === 'delete') {
         $id = intval($body['id'] ?? 0);
         if (!$id) throw new Exception('ID required.');
+        $headTutor = $db->prepare("SELECT id FROM admin_accounts WHERE tutor_id = ? AND role = 'head_admin' LIMIT 1");
+        $headTutor->execute([$id]);
+        if ($headTutor->fetchColumn()) {
+            throw new Exception('The Head Admin tutor profile cannot be removed.');
+        }
         $db->prepare("UPDATE tutors SET is_active=false WHERE id=?")->execute([$id]);
         echo json_encode(['success' => true, 'message' => 'Tutor removed.']);
 
