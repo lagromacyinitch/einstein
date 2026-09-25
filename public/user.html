@@ -1926,7 +1926,7 @@
             </div>
 
             <div id="balance-methods" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"></div>
-            <div id="balance-upload" style="margin-top:20px"><label for="balance-receipt-file">Upload payment receipt</label><input id="balance-receipt-file" type="file" accept="image/jpeg,image/png,image/webp" style="display:block;margin:12px 0"><small>JPG, PNG or WEBP, up to 5 MB. Balance updates after admin approval.</small></div>
+            <div id="balance-upload" style="margin-top:20px"><label for="balance-receipt-file">Upload payment receipt</label><input id="balance-receipt-file" type="file" accept="image/jpeg,image/png,image/webp" onchange="validateBalanceReceiptUpload(this)" style="display:block;margin:12px 0"><small>JPG, PNG or WEBP, up to 5 MB. Only clear payment confirmations are accepted. Balance updates after admin approval.</small></div>
             <p id="balance-submit-message" role="status" style="margin:16px 0"></p>
             <button id="balance-submit-button" class="page-banner-btn" onclick="submitClientBalance()">Submit</button>
 
@@ -2120,7 +2120,8 @@
     <!-- NSFWJS: client-side nudity / inappropriate content detection -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
-    <script src="js/enrollment-flow.js?v=14"></script>
+    <script src="js/receipt-validation.js?v=2"></script>
+    <script src="js/enrollment-flow.js?v=15"></script>
     <script>
         'use strict';
 
@@ -3752,8 +3753,16 @@
             const button=document.getElementById('balance-submit-button'),message=document.getElementById('balance-submit-message');
             if(button.disabled) return;
             if(!balancePaymentRef || !balancePaymentMethod){message.style.color='#b91c1c';message.textContent='Choose a payment method.';return;}
-            const file=document.getElementById('balance-receipt-file').files[0];
+            const fileInput=document.getElementById('balance-receipt-file');
+            const file=fileInput.files[0];
             if(balancePaymentMethod!=='Walk-in' && !file){message.style.color='#b91c1c';message.textContent='Attach your payment receipt.';return;}
+            if(balancePaymentMethod!=='Walk-in' && file && fileInput.dataset.receiptValidationState!=='valid'){
+                message.style.color='#b91c1c';
+                message.textContent=fileInput.dataset.receiptValidationState==='pending'
+                    ? 'Please wait while the receipt image is being verified.'
+                    : (window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid image. Please upload a valid payment receipt (GCash, BPI, SeaBank, etc.).');
+                return;
+            }
             button.disabled=true;message.style.color='#8b6f47';message.textContent='Submitting…';
             try{
                 let body,headers;
@@ -3776,6 +3785,47 @@
                 message.textContent=e.message || 'Unable to submit.';
             }finally{
                 button.disabled=false;
+            }
+        }
+
+        async function validateBalanceReceiptUpload(input) {
+            const message = document.getElementById('balance-submit-message');
+            const file = input && input.files ? input.files[0] : null;
+            if (!file) {
+                input.dataset.receiptValidationState = 'empty';
+                return;
+            }
+
+            input.dataset.receiptValidationState = 'pending';
+            message.style.color = '#8b6f47';
+            message.textContent = 'Verifying payment receipt...';
+
+            try {
+                if (typeof window.validatePaymentReceiptFile !== 'function') throw Error('Receipt validator is unavailable');
+                const result = await window.validatePaymentReceiptFile(file, {
+                    onProgress: (status) => {
+                        message.style.color = '#8b6f47';
+                        message.textContent = status;
+                    }
+                });
+                if (input.files?.[0] !== file) return;
+                if (!result.valid) {
+                    input.dataset.receiptValidationState = 'invalid';
+                    input.value = '';
+                    message.style.color = '#b91c1c';
+                    message.textContent = result.message || window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid image. Please upload a valid payment receipt (GCash, BPI, SeaBank, etc.).';
+                    return;
+                }
+                input.dataset.receiptValidationState = 'valid';
+                message.style.color = '#15803d';
+                message.textContent = 'Verified payment receipt. It is ready to submit.';
+            } catch (error) {
+                console.warn('Balance receipt validation failed:', error);
+                if (input.files?.[0] !== file) return;
+                input.dataset.receiptValidationState = 'invalid';
+                input.value = '';
+                message.style.color = '#b91c1c';
+                message.textContent = window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid image. Please upload a valid payment receipt (GCash, BPI, SeaBank, etc.).';
             }
         }
 
@@ -3818,7 +3868,9 @@
         function openBalancePaymentInfoModal(refNo, name, due) {
             balancePaymentRef=refNo||'';balancePaymentMethod='';
             document.getElementById('balance-submit-message').textContent='';
-            document.getElementById('balance-receipt-file').value='';
+            const receiptInput = document.getElementById('balance-receipt-file');
+            receiptInput.value='';
+            receiptInput.dataset.receiptValidationState='empty';
             document.getElementById('balance-upload').hidden=false;
             const qrs = getUserPaymentQrs();
             const qrCards = qrs.map(q => {

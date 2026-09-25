@@ -12,6 +12,7 @@
   let programName = '';
   let paymentMethod = '';  // Track selected payment method: 'qr' or 'walk-in'
   let authScreen = 'choose';  // 'choose' | 'login' | 'signup'
+  let receiptPreviewUrl = '';
 
   // ── NSFW / Inappropriate Content Detection ──
   let nsfwModel = null;
@@ -857,9 +858,15 @@
     qs('#efBody').scrollTop = 0;
     attachHandlers(n);
 
-    // Warm up NSFW model before payment screenshot upload
+    // Warm up the receipt validators before payment screenshot upload
     if (n === 4 || n === '3b') {
-      try { loadNsfwModel(); } catch (e) { }
+      try {
+        if (typeof window.preloadPaymentReceiptValidation === 'function') {
+          window.preloadPaymentReceiptValidation();
+        } else {
+          loadNsfwModel();
+        }
+      } catch (e) { }
     }
   }
 
@@ -1992,9 +1999,16 @@
 
 
   window.efStep4 = async function () {
-    const file = qs('#ef_file')?.files?.[0];
+    const input = qs('#ef_file');
+    const file = input?.files?.[0];
     if (paymentMethod !== 'Walk-In' && !file) {
       showError('Please upload your payment screenshot.');
+      return;
+    }
+    if (paymentMethod !== 'Walk-In' && file && input?.dataset.receiptValidationState !== 'valid') {
+      showError(input.dataset.receiptValidationState === 'pending'
+        ? 'Please wait while the receipt image is being verified.'
+        : (window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid image. Please upload a valid payment receipt (GCash, BPI, SeaBank, etc.).'));
       return;
     }
     clearError();
@@ -2216,118 +2230,71 @@
     const zone = qs('#efUploadZone');
     const previewContainer = qs('#efUploadPreview');
 
+    if (receiptPreviewUrl) {
+      URL.revokeObjectURL(receiptPreviewUrl);
+      receiptPreviewUrl = '';
+    }
     if (previewContainer) previewContainer.innerHTML = '';
 
     if (!file) {
+      input.dataset.receiptValidationState = 'empty';
       if (el) el.textContent = 'JPG · PNG · WEBP  ·  Max 5MB';
       if (zone) zone.classList.remove('ef-upload-selected');
       return;
     }
 
-    // Must be image type
-    if (!file.type || !file.type.startsWith('image/')) {
-      showError('Please upload an image file (JPG, PNG, or WEBP).');
-      input.value = '';
-      if (el) el.textContent = 'JPG · PNG · WEBP  ·  Max 5MB';
-      if (zone) zone.classList.remove('ef-upload-selected');
-      return;
-    }
-
-    // Size limit (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showError('File is too large. Maximum size is 5MB.');
-      input.value = '';
-      if (el) el.textContent = 'JPG · PNG · WEBP  ·  Max 5MB';
-      if (zone) zone.classList.remove('ef-upload-selected');
-      return;
-    }
-
+    input.dataset.receiptValidationState = 'pending';
     clearError();
-    if (el) el.innerHTML = `<span style="color:#5E3A21;font-weight:600">🔍 Verifying image security...</span>`;
-
-    const objectUrl = URL.createObjectURL(file);
+    if (el) el.innerHTML = `<span style="color:#5E3A21;font-weight:600">Verifying payment receipt...</span>`;
 
     try {
-      const model = await loadNsfwModel();
-      let isUnpleasant = false;
+      if (typeof window.validatePaymentReceiptFile !== 'function') {
+        throw new Error('Receipt validator is unavailable');
+      }
 
-      const img = new Image();
-      img.src = objectUrl;
-
-      await new Promise((resolve) => {
-        img.onload = resolve;
-        img.onerror = resolve;
+      const result = await window.validatePaymentReceiptFile(file, {
+        onProgress: (message) => {
+          if (el) el.innerHTML = `<span style="color:#5E3A21;font-weight:600">${esc(message)}</span>`;
+        }
       });
 
-      // 1. Analyze for Gore, Surgery, Visceral Organs, Blood & Irrelevant Content
-      const sensitiveCheck = analyzeImageForSensitiveContent(img);
-      if (sensitiveCheck.isSensitive) {
-        isUnpleasant = true;
-      }
+      // Ignore a result from a file that has already been replaced.
+      if (input.files?.[0] !== file) return;
 
-      // 2. Analyze with NSFWJS model if available
-      if (model && !isUnpleasant) {
-        try {
-          const predictions = await model.classify(img);
-          const pPorn = predictions.find(p => p.className === 'Porn')?.probability || 0;
-          const pHentai = predictions.find(p => p.className === 'Hentai')?.probability || 0;
-          const pSexy = predictions.find(p => p.className === 'Sexy')?.probability || 0;
-
-          if (pPorn > 0.40 || pHentai > 0.40 || (pPorn + pHentai) > 0.45 || pSexy > 0.70) {
-            isUnpleasant = true;
-          }
-        } catch (clfErr) {
-          console.warn('NSFW classification error:', clfErr);
-        }
-      }
-
-      if (isUnpleasant) {
-        // Blur the image preview and reject the upload
+      if (!result.valid) {
+        input.dataset.receiptValidationState = 'invalid';
         input.value = '';
         if (zone) zone.classList.remove('ef-upload-selected');
-        if (el) el.innerHTML = `<span style="color:#dc2626;font-weight:600">⚠️ Inappropriate image detected (Blurred & Rejected)</span>`;
-
-        if (previewContainer) {
-          previewContainer.innerHTML = `
-            <div style="position:relative;margin-top:12px;border-radius:12px;overflow:hidden;border:2px solid #ef4444;background:#fef2f2;padding:12px;text-align:center;">
-              <div style="position:relative;display:inline-block;overflow:hidden;border-radius:8px;max-height:180px;width:100%;">
-                <img src="${objectUrl}" style="width:100%;max-height:180px;object-fit:cover;filter:blur(24px) contrast(75%);transform:scale(1.1);pointer-events:none;" alt="Blurred preview">
-                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.52);color:#fff;padding:8px;">
-                  <span style="font-size:26px;line-height:1;">🚫</span>
-                  <strong style="font-size:13px;margin-top:6px;letter-spacing:0.5px;color:#fff;">BLURRED & REJECTED</strong>
-                  <span style="font-size:11px;opacity:0.9;color:#fecaca;">Sensitive or inappropriate image detected</span>
-                </div>
-              </div>
-              <p style="margin:10px 0 0;font-size:12px;color:#b91c1c;font-weight:600;line-height:1.4;">
-                ⚠️ This photo was detected as inappropriate and cannot be submitted. Please upload a genuine payment receipt or transaction screenshot only.
-              </p>
-            </div>
-          `;
-        }
-        showError('⚠️ The selected image was detected as inappropriate/unpleasant content and has been blurred and rejected. Please attach a valid payment screenshot.');
+        if (el) el.innerHTML = `<span style="color:#dc2626;font-weight:600">${esc(result.message || window.PAYMENT_RECEIPT_INVALID_MESSAGE)}</span>`;
+        showError(result.message || window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid image. Please upload a valid payment receipt (GCash, BPI, SeaBank, etc.).');
         return;
       }
 
-      // Safe image:
+      input.dataset.receiptValidationState = 'valid';
+      receiptPreviewUrl = URL.createObjectURL(file);
       if (el) {
-        el.innerHTML = `<span style="color:#166534;font-weight:600">✓ ${esc(file.name)}</span> <span style="color:#8D6A4E;">(${(file.size / 1024).toFixed(1)} KB)</span>`;
+        el.innerHTML = `<span style="color:#166534;font-weight:600">Verified receipt: ${esc(file.name)}</span> <span style="color:#8D6A4E;">(${(file.size / 1024).toFixed(1)} KB)</span>`;
       }
       if (zone) zone.classList.add('ef-upload-selected');
       if (previewContainer) {
         previewContainer.innerHTML = `
           <div style="margin-top:10px;display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 12px;">
-            <img src="${objectUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid #86efac;" alt="Receipt preview">
+            <img src="${receiptPreviewUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid #86efac;" alt="Receipt preview">
             <div style="text-align:left;flex:1;min-width:0;">
-              <div style="font-size:12px;font-weight:600;color:#166534;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">✓ ${esc(file.name)}</div>
-              <div style="font-size:11px;color:#15803d;">Payment screenshot ready to submit</div>
+              <div style="font-size:12px;font-weight:600;color:#166534;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Verified: ${esc(file.name)}</div>
+              <div style="font-size:11px;color:#15803d;">Valid payment receipt ready to submit</div>
             </div>
           </div>
         `;
       }
     } catch (err) {
       console.warn('File processing error:', err);
-      if (el) el.textContent = file.name;
-      if (zone) zone.classList.add('ef-upload-selected');
+      if (input.files?.[0] !== file) return;
+      input.dataset.receiptValidationState = 'invalid';
+      input.value = '';
+      if (el) el.innerHTML = `<span style="color:#dc2626;font-weight:600">${esc(window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid image. Please upload a valid payment receipt (GCash, BPI, SeaBank, etc.).')}</span>`;
+      if (zone) zone.classList.remove('ef-upload-selected');
+      showError(window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid image. Please upload a valid payment receipt (GCash, BPI, SeaBank, etc.).');
     }
   };
 
