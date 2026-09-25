@@ -2121,7 +2121,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
     <script src="js/receipt-validation.js?v=2"></script>
-    <script src="js/enrollment-flow.js?v=15"></script>
+    <script src="js/enrollment-flow.js?v=17"></script>
     <script>
         'use strict';
 
@@ -2367,6 +2367,7 @@
         let allEnrollments = [];
         let enrollmentPollTimer = null;
         let lastEnrollmentSnapshot = '';
+        let lastVipStateSnapshot = '';
         const ENROLLMENT_POLL_MS = 20000;
 
         async function initializePage() {
@@ -2545,7 +2546,8 @@
                 window.clientVipState = data.vip_membership || null;
                 const list = data.enrollments || [];
                 const snapshot = enrollmentSnapshot(list);
-                const changed = snapshot !== lastEnrollmentSnapshot;
+                const vipStateSnapshot = JSON.stringify(data.vip_membership || null);
+                const changed = snapshot !== lastEnrollmentSnapshot || vipStateSnapshot !== lastVipStateSnapshot;
 
                 if (silent && !changed) {
                     setSyncStatus('Live • last checked ' + new Date().toLocaleTimeString());
@@ -2553,6 +2555,7 @@
                 }
 
                 lastEnrollmentSnapshot = snapshot;
+                lastVipStateSnapshot = vipStateSnapshot;
                 allEnrollments = list;
 
                 const activeCount = data.stats.active || 0;
@@ -2876,7 +2879,9 @@
             const vipState = window.clientVipState || {};
             const isUnsubscribed = !!vipState.unsubscribed;
             const isVipActive = !!vipState.active;
-            const hasPendingVip = enrollments.some(e => e.status === 'pending' && isVipRecord(e));
+            // Use the server-computed lifecycle state. A historical pending row
+            // must not keep the enrollment control disabled after unsubscribe.
+            const hasPendingVip = vipState.pending === true;
             const confirmedVip = enrollments.find(e => e.status === 'confirmed' && isVipRecord(e));
 
             // 1. Unsubscribed State (Client explicitly unsubscribed)
@@ -3964,7 +3969,7 @@
 
         function handleEnroll(programName) {
             if (String(programName).toLowerCase().includes('vip')) {
-                const isVip = !!(window.clientVipState?.active || (typeof isCurrentUserVipActive === 'function' ? isCurrentUserVipActive() : false) || localStorage.getItem('isVip') === 'true');
+                const isVip = !!(window.clientVipState?.active || (typeof isCurrentUserVipActive === 'function' ? isCurrentUserVipActive() : false));
                 if (isVip) {
                     alert('You are already an active VIP Club Member! Center-wide discounts are already active on your account.');
                     return;
@@ -4175,7 +4180,7 @@
 
         function handleRenewVip() {
             if (window.clientVipState?.active) return;
-            const hasPendingVip = (allEnrollments || []).some(e => e.status === 'pending' && String(e.program || '').toLowerCase().includes('vip'));
+            const hasPendingVip = window.clientVipState?.pending === true;
             if (hasPendingVip) {
                 alert('Your VIP application is currently awaiting admin approval.');
                 return;

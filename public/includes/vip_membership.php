@@ -29,13 +29,23 @@ function vipState($db, int $userId): array {
         $expiry = $start->modify('+' . $years . ' years');
     }
     $days = $expiry ? (int) ceil(($expiry->getTimestamp() - time()) / 86400) : null;
-    $qPending = $db->prepare("SELECT COUNT(*) FROM enrollments WHERE user_id=? AND status='pending' AND LOWER(program) LIKE '%vip%'");
-    $qPending->execute([$userId]);
+    // An unsubscribe ends the previous VIP lifecycle. Any pending record from
+    // before that point must not keep the re-join control locked. A new request
+    // submitted after unsubscribing is a fresh lifecycle and may be pending.
+    $pendingSql = "SELECT COUNT(*) FROM enrollments WHERE user_id=? AND status='pending' AND LOWER(program) LIKE '%vip%'";
+    $pendingParams = [$userId];
+    if ($unsubscribed) {
+        $pendingSql .= ' AND created_at > ?';
+        $pendingParams[] = $unsubscribed;
+    }
+    $qPending = $db->prepare($pendingSql);
+    $qPending->execute($pendingParams);
     $hasPending = ((int) $qPending->fetchColumn()) > 0;
 
     return ['years' => $years, 'active' => $days !== null && $days > 0,
         'joined_at' => $joined ? $joined->format(DATE_ATOM) : null,
         'expires_at' => $expiry ? $expiry->format(DATE_ATOM) : null,
-        'days_left' => $days, 'unsubscribed' => (bool) $unsubscribed && !$expiry,
+        'days_left' => $days,
+        'unsubscribed' => (bool) $unsubscribed && !$expiry && !$hasPending,
         'pending' => $hasPending];
 }
