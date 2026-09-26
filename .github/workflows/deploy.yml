@@ -30,6 +30,7 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           HEAD_ADMIN_USER: ${{ secrets.HEAD_ADMIN_USER }}
           HEAD_ADMIN_PASS: ${{ secrets.HEAD_ADMIN_PASS }}
+          MIGRATION_TOKEN: ${{ secrets.MIGRATION_TOKEN }}
         run: |
           for name in DB_NAME DB_USER DB_PASS AES_SECRET_KEY SMTP_USERNAME SMTP_PASSWORD; do
             if [ -z "${!name}" ]; then
@@ -51,6 +52,8 @@ jobs:
             # Only used to create the Head Admin when the database has none.
             echo "HEAD_ADMIN_USER=$HEAD_ADMIN_USER"
             echo "HEAD_ADMIN_PASS=$HEAD_ADMIN_PASS"
+            # Lets the migration step below call api/run_migrations.php.
+            echo "MIGRATION_TOKEN=$MIGRATION_TOKEN"
           } > public/includes/.env
 
       # Every encrypted column depends on AES_SECRET_KEY, and until config.php
@@ -81,6 +84,13 @@ jobs:
           done
           echo "No config.php on the server; nothing to compare."
 
+      # Migrations are kept in database/migrations/, but only public/ is
+      # uploaded; ship them into includes/, which browsers cannot read.
+      - name: Stage database migrations
+        run: |
+          mkdir -p public/includes/migrations
+          cp database/migrations/*.sql public/includes/migrations/
+
       - name: Upload public/ via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -99,3 +109,17 @@ jobs:
           exclude: |
             **/.git*
             **/.git*/**
+
+      # The database only accepts connections from the server itself, so the
+      # server runs the new database/migrations/*.sql files (just uploaded above).
+      - name: Run database migrations
+        env:
+          MIGRATION_TOKEN: ${{ secrets.MIGRATION_TOKEN }}
+        run: |
+          if [ -z "$MIGRATION_TOKEN" ]; then
+            echo "::warning::MIGRATION_TOKEN secret is not set; skipping database migrations."
+            exit 0
+          fi
+          curl -sS --fail-with-body -X POST \
+            -H "X-Migration-Token: $MIGRATION_TOKEN" \
+            https://einsteincenter.dcsbisu.com/api/run_migrations.php
