@@ -5,6 +5,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Einstein Child Care & Learning Center</title>
+    <!-- Section routes (/programs/workshop, /membership) are served by this file (see .htaccess),
+         so resolve relative URLs from the site root. -->
+    <base href="/" />
+    <script>
+        // A copy in a subfolder (e.g. localhost/EINSTEIN-WEB18/) resolves from that folder instead.
+        document.querySelector('base').href = location.pathname.replace(/\/(programs(\/[^/]*)?|membership)\/?$/, '/');
+    </script>
+    <!-- Section routes are the same page; search engines should index just the homepage. -->
+    <link rel="canonical" href="https://einsteincenter.dcsbisu.com/" />
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=Abril+Fatface&family=Great+Vibes&family=Alex+Brush&display=swap"
         rel="stylesheet" />
@@ -38,14 +47,14 @@
                     Education</span></span>
         </div>
         <ul id="nav-links">
-            <li><a href="#programs" data-homepage-text="nav.programs">Programs</a></li>
-            <li><a href="#tutorial" data-homepage-text="nav.tutorial">Tutorial</a></li>
-            <li><a href="#workshop" data-homepage-text="nav.workshop">Workshop</a></li>
-            <li><a href="#playschool" data-homepage-text="nav.playschool">Playschool</a></li>
-            <li><a href="#childcare" data-homepage-text="nav.childcare">Child Care</a></li>
-            <li><a href="#madstudio" data-homepage-text="nav.madstudio">M.A.D. Studio</a></li>
-            <li><a href="#summerblast" data-homepage-text="nav.summerblast">Summer Blast</a></li>
-            <li><a href="#contact" data-homepage-text="nav.membership">Membership</a></li>
+            <li><a href="programs" data-section="programs" data-homepage-text="nav.programs">Programs</a></li>
+            <li><a href="programs/tutorial" data-section="tutorial" data-homepage-text="nav.tutorial">Tutorial</a></li>
+            <li><a href="programs/workshop" data-section="workshop" data-homepage-text="nav.workshop">Workshop</a></li>
+            <li><a href="programs/playschool" data-section="playschool" data-homepage-text="nav.playschool">Playschool</a></li>
+            <li><a href="programs/childcare" data-section="childcare" data-homepage-text="nav.childcare">Child Care</a></li>
+            <li><a href="programs/madstudio" data-section="madstudio" data-homepage-text="nav.madstudio">M.A.D. Studio</a></li>
+            <li><a href="programs/summerblast" data-section="summerblast" data-homepage-text="nav.summerblast">Summer Blast</a></li>
+            <li><a href="membership" data-section="contact" data-homepage-text="nav.membership">Membership</a></li>
         </ul>
         <!-- PROFILE ICON (login or dashboard) -->
         <div class="login-icons" id="login-icons">
@@ -1069,19 +1078,30 @@
     </footer>
 
     <script>
-        const sectionNavLinks = Array.from(document.querySelectorAll('nav ul a[href^="#"]'));
+        // Menu links are section routes (/programs, /programs/workshop, /membership) on this same page:
+        // data-section names the section they scroll to.
+        const HOME_ROOT = new URL('./', document.baseURI).pathname;
+        const sectionNavLinks = Array.from(document.querySelectorAll('nav ul a[data-section]'));
         const sectionTargets = sectionNavLinks
-            .map(link => {
-                const targetId = link.getAttribute('href').slice(1);
-                return targetId ? document.getElementById(targetId) : null;
-            })
+            .map(link => document.getElementById(link.dataset.section))
             .filter(Boolean);
 
         function setActiveNavSection(sectionId) {
             sectionNavLinks.forEach(link => {
-                const isActive = link.getAttribute('href') === `#${sectionId}`;
-                link.classList.toggle('active', isActive);
+                link.classList.toggle('active', link.dataset.section === sectionId);
             });
+        }
+
+        function sectionUrl(sectionId) {
+            const link = sectionNavLinks.find(l => l.dataset.section === sectionId);
+            return HOME_ROOT + (link ? link.getAttribute('href') : '') + location.search;
+        }
+
+        function sectionFromUrl() {
+            const route = location.pathname.slice(HOME_ROOT.length).replace(/\/$/, '');
+            const link = sectionNavLinks.find(l => l.getAttribute('href') === route);
+            // location.hash: links from before routing, like ./#programs
+            return link ? link.dataset.section : location.hash.slice(1) || null;
         }
 
         function getClosestSectionId() {
@@ -1104,31 +1124,69 @@
         }
 
         function syncActiveSectionFromViewport() {
-            const sectionId = getClosestSectionId() || (window.location.hash ? window.location.hash.slice(1) : null);
-            setActiveNavSection(sectionId);
+            setActiveNavSection(getClosestSectionId());
         }
 
-        // Scroll to sections without putting #section in the address bar.
+        // Each history entry keeps its own scroll position (history.state.scrollY), restored below.
+        // The browser's own restoration records the wrong spot for entries pushed mid smooth-scroll.
+        history.scrollRestoration = 'manual';
+        let saveScrollTimer;
+        function saveScrollPosition() {
+            try { history.replaceState({ ...history.state, scrollY: window.scrollY }, ''); } catch (e) { }
+        }
+
+        function scrollToSection(sectionId, smooth) {
+            const target = sectionId && document.getElementById(sectionId);
+            // scrollTo, not scrollIntoView: the program pages show this page in a background
+            // iframe, and scrollIntoView would scroll their page too.
+            const top = target ? target.getBoundingClientRect().top + window.scrollY : 0;
+            window.scrollTo({ top, behavior: smooth ? 'smooth' : 'instant' });
+        }
+
+        // 'instant' because the page sets scroll-behavior: smooth, which would animate restores.
+        function restoreScroll(y) {
+            window.scrollTo({ top: y, behavior: 'instant' });
+        }
+
+        // Menu clicks scroll to the section and put its route in the address bar.
         sectionNavLinks.forEach(link => {
             link.addEventListener('click', e => {
-                const target = document.getElementById(link.getAttribute('href').slice(1));
+                const target = document.getElementById(link.dataset.section);
                 if (!target) return;
                 e.preventDefault();
-                target.scrollIntoView({ behavior: 'smooth' });
+                const url = sectionUrl(target.id);
+                if (url !== location.pathname + location.search) {
+                    saveScrollPosition();
+                    history.pushState(null, '', url);
+                }
+                scrollToSection(target.id, true);
                 setActiveNavSection(target.id);
             });
         });
 
-        // Links like ./#programs from the program pages still land on the section; then drop the hash.
-        if (location.hash) {
-            window.addEventListener('load', () => {
-                document.getElementById(location.hash.slice(1))?.scrollIntoView();
-                history.replaceState(history.state, '', location.pathname + location.search);
-            });
-        }
+        // Back/Forward: return to where that entry was left, else to its section.
+        window.addEventListener('popstate', e => {
+            if (typeof e.state?.scrollY === 'number') restoreScroll(e.state.scrollY);
+            else scrollToSection(sectionFromUrl(), false);
+        });
+
+        // Reload, or Back from another page: return to the saved position. Otherwise opening
+        // /programs/workshop (or an old ./#workshop link) lands on that section.
+        window.addEventListener('load', () => {
+            const navType = performance.getEntriesByType('navigation')[0]?.type;
+            const initialSection = sectionFromUrl();
+            if ((navType === 'reload' || navType === 'back_forward') && typeof history.state?.scrollY === 'number') {
+                restoreScroll(history.state.scrollY);
+            } else if (initialSection) {
+                scrollToSection(initialSection, false);
+            }
+            if (initialSection) history.replaceState(history.state, '', sectionUrl(initialSection));
+        });
         window.addEventListener('load', syncActiveSectionFromViewport);
         window.addEventListener('scroll', () => {
             window.requestAnimationFrame(syncActiveSectionFromViewport);
+            clearTimeout(saveScrollTimer);
+            saveScrollTimer = setTimeout(saveScrollPosition, 200);
         }, { passive: true });
 
         const observer = new IntersectionObserver((entries) => {

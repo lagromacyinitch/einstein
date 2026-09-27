@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard - Einstein Center</title>
     <meta name="robots" content="noindex" />
+    <!-- /user/<tab> is served by this file (see .htaccess), so resolve relative URLs (api/, js/, images/) from the site root. -->
+    <base href="/">
+    <script>
+        // A copy in a subfolder (e.g. localhost/EINSTEIN-WEB18/user) resolves from that folder instead.
+        document.querySelector('base').href = location.pathname.replace(/\/user(\/.*)?$/, '/');
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -2252,6 +2258,18 @@
             if (e.key === 'Escape') closeUserDrawer();
         });
 
+        // Routes: /user is Programs (dashboard), /user/<tab> the other tabs.
+        const USER_ROOT = new URL('user', document.baseURI).pathname;
+        const USER_TABS = ['dashboard', 'enrollments', 'vip', 'balance', 'announcements'];
+        function userPageUrl(pageId) {
+            return (pageId === 'dashboard' ? USER_ROOT : USER_ROOT + '/' + pageId) + location.search;
+        }
+        function userPageFromUrl() {
+            // location.hash: links from before routing, like /user#balance
+            const slug = location.pathname.slice(USER_ROOT.length).replace(/^\/|\/$/g, '') || location.hash.substring(1);
+            return USER_TABS.includes(slug) ? slug : 'dashboard';
+        }
+
         // fromHistory: the tab change came from Back/Forward or page load, so don't add another history entry.
         function showUserPage(pageId, btn, fromHistory) {
             if (pageId === 'profile') {
@@ -2260,8 +2278,7 @@
                 return;
             }
 
-            const validPages = ['dashboard', 'enrollments', 'vip', 'balance', 'announcements'];
-            if (!validPages.includes(pageId)) pageId = 'dashboard';
+            if (!USER_TABS.includes(pageId)) pageId = 'dashboard';
 
             // Hide all pages
             document.querySelectorAll('.user-page').forEach(p => {
@@ -2297,17 +2314,15 @@
             // Smooth scroll to top of content
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            // Each tab is its own history entry so Back/Forward move between tabs; the URL stays /user.
-            if (!fromHistory && history.state?.userPage !== pageId) {
+            // Each tab is its own history entry so Back/Forward move between tabs.
+            if (!fromHistory && userPageUrl(pageId) !== location.pathname + location.search) {
                 try {
-                    history.pushState({ userPage: pageId }, '', location.pathname + location.search);
+                    history.pushState(null, '', userPageUrl(pageId));
                 } catch (e) { }
             }
         }
 
-        window.addEventListener('popstate', e => {
-            if (e.state?.userPage) showUserPage(e.state.userPage, null, true);
-        });
+        window.addEventListener('popstate', () => showUserPage(userPageFromUrl(), null, true));
 
         function drawerNavigate(section, btn) {
             showUserPage(section, btn);
@@ -2426,12 +2441,11 @@
             await initializePage();
             initDrawerUserInfo();
 
-            // Reopen the tab this history entry was on (survives refresh), else an old #tab link, else Programs.
-            let initialPage = history.state?.userPage || location.hash.substring(1);
-            if (!['dashboard', 'enrollments', 'vip', 'balance', 'announcements'].includes(initialPage)) initialPage = 'dashboard';
+            // Open the tab in the URL, and tidy the URL (drops old #tab hashes, trailing slashes, unknown tabs).
+            const initialPage = userPageFromUrl();
             showUserPage(initialPage, null, true);
             try {
-                history.replaceState({ userPage: initialPage }, '', location.pathname + location.search);
+                history.replaceState(null, '', userPageUrl(initialPage));
             } catch (e) { }
         });
 

@@ -18,6 +18,14 @@ RewriteCond %{REQUEST_URI} !/google[0-9a-f]+\.html$
 RewriteCond %{THE_REQUEST} \s(/[^?\s]*?)\.html[?\s]
 RewriteRule ^ %1 [R=301,L,NE]
 
+# Portal sections: /admin/students and /user/enrollments are served by admin.html
+# and user.html, whose scripts open the section named in the URL.
+RewriteRule ^(admin|user)/[a-z0-9-]+/?$ $1.html [L]
+
+# Homepage sections: /programs, /programs/workshop and /membership are served by
+# main.html, which scrolls to the section named in the URL.
+RewriteRule ^(programs(/[a-z]+)?|membership)/?$ main.html [L]
+
 # Serve /playschool from playschool.html.
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}.html -f
