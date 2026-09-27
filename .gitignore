@@ -5,6 +5,9 @@
 .env.*
 !.env.example
 
+# Dev dependencies (tests/responsive_audit.js).
+node_modules/
+
 # Local editor and operating-system files.
 .vscode/
 .idea/

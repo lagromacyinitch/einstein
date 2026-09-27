@@ -1,0 +1,11 @@
+{
+  "name": "einstein",
+  "private": true,
+  "description": "Dev tooling only; the site itself is deployed from public/.",
+  "scripts": {
+    "test:responsive": "node tests/responsive_audit.js"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}
