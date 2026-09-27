@@ -61,7 +61,7 @@
         <div class="oval"><img src="images/logo2.jpg" alt="Logo"
             onerror="this.style.display='none';this.parentElement.textContent='E'"></div>
       </div>
-
+      <button class="sidebar-close-btn" type="button" onclick="closeMobileSidebar()" aria-label="Close menu">✕</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding-right:4px;">
       <div class="nav-section-label" data-nav-section-label="dashboard">Main</div>
@@ -120,11 +120,12 @@
       </div>
     </div>
   </nav>
+  <div id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
 
   <div id="main">
     <div class="topbar">
       <div class="topbar-left" style="display:flex;align-items:center;gap:4px">
-        <button class="hamburger-btn" onclick="toggleMobileSidebar()" aria-label="Menu">☰</button>
+        <button class="hamburger-btn" id="sidebar-toggle" onclick="toggleMobileSidebar()" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
         <h2 id="page-title">Dashboard</h2>
       </div>
       <div class="topbar-right">
@@ -8301,22 +8302,21 @@
     // ══════════════════════════════════════════════════════════════════════
     // MOBILE SIDEBAR
     // ══════════════════════════════════════════════════════════════════════
+    function setMobileSidebarOpen(open) {
+      document.getElementById('sidebar')?.classList.toggle('mobile-open', open);
+      document.getElementById('sidebar-overlay')?.classList.toggle('open', open);
+      document.getElementById('sidebar-toggle')?.setAttribute('aria-expanded', String(open));
+    }
     function toggleMobileSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebar-overlay');
-      const isOpen = sidebar.classList.contains('mobile-open');
-      if (isOpen) {
-        sidebar.classList.remove('mobile-open');
-        overlay.classList.remove('open');
-      } else {
-        sidebar.classList.add('mobile-open');
-        overlay.classList.add('open');
-      }
+      setMobileSidebarOpen(!document.getElementById('sidebar').classList.contains('mobile-open'));
     }
     function closeMobileSidebar() {
-      document.getElementById('sidebar')?.classList.remove('mobile-open');
-      document.getElementById('sidebar-overlay')?.classList.remove('open');
+      setMobileSidebarOpen(false);
     }
+    // The open sidebar covers the ☰ button, so also close it with the ✕ button, a tap outside, or Escape.
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && document.getElementById('sidebar')?.classList.contains('mobile-open')) closeMobileSidebar();
+    });
     // Close sidebar when a nav item is clicked on mobile
     document.querySelectorAll('#sidebar .nav-item').forEach(btn => {
       btn.addEventListener('click', () => {

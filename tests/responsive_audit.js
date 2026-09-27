@@ -10,7 +10,8 @@
  * Checks: 0px horizontal overflow (measured with overflow-x:hidden on html/body
  * switched off, as iOS ignores it), no controls cut off by overflow:hidden
  * boxes, 44×44px tap targets on phones, the admin notifications panel, admin
- * modals at 390px, the homepage menu and the user-portal top bar height.
+ * modals at 390px, the admin sidebar and homepage menu opening/closing, the
+ * homepage nav fitting on one row and the user-portal top bar height.
  *
  * Setup: npm install (uses an installed Chrome or Edge; no browser download).
  *
@@ -231,6 +232,35 @@ async function auditAdmin(page, width) {
     const ok = !initial.visible && opened.visible && opened.fits && !closed.visible;
     record('admin:notif-panel', width, 'opens/closes', ok,
       ok ? '' : `initial visible=${initial.visible}, opened visible=${opened.visible} fits=${opened.fits}, closed visible=${closed.visible}`);
+  }
+
+  if (width <= 414) {
+    // The open sidebar covers ☰, so it must close with ✕, a tap outside it, and Escape.
+    const isOpen = () => page.evaluate(() => {
+      const r = document.getElementById('sidebar').getBoundingClientRect();
+      return r.right > 0 && r.left < innerWidth;
+    });
+    const errors = [];
+    const onError = e => errors.push(e.message);
+    page.on('pageerror', onError);
+    const tries = {};
+    for (const [how, close] of [
+      ['✕', opts => page.click('.sidebar-close-btn', opts)],
+      ['tap outside', () => page.mouse.click(width - 20, 400)],
+      ['Escape', () => page.keyboard.press('Escape')],
+    ]) {
+      if (await isOpen()) { tries[how] = false; continue; } // stuck open from the last try; ☰ is covered
+      await page.click('.hamburger-btn');
+      await page.waitForTimeout(350);
+      const opened = await isOpen();
+      await close({ timeout: 2000 }).catch(() => {});
+      await page.waitForTimeout(350);
+      tries[how] = opened && !(await isOpen());
+    }
+    page.off('pageerror', onError);
+    const failed = Object.keys(tries).filter(k => !tries[k]);
+    record('admin:sidebar', width, 'opens/closes', !failed.length && !errors.length,
+      [failed.length ? `does not close with: ${failed.join(', ')}` : '', errors.join('; ')].filter(Boolean).join(' — '));
   }
 
   if (width === 390) {
