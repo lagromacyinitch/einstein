@@ -1115,6 +1115,37 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       line-height: 1;
     }
 
+    /* Close button inside the sidebar; only needed on phones, where the open sidebar covers ☰. */
+    .sidebar-close-btn {
+      display: none;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 30px;
+      height: 30px;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .08);
+      color: rgba(255, 255, 255, .6);
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+
+    /* Keep a 44px tap area around the smaller button. */
+    .sidebar-close-btn::after {
+      content: '';
+      position: absolute;
+      inset: -7px;
+    }
+
+    .sidebar-close-btn:hover {
+      background: rgba(255, 255, 255, .15);
+      color: #fff;
+    }
+
     #sidebar-overlay {
       display: none;
       position: fixed;
@@ -1141,6 +1172,14 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       #sidebar.mobile-open {
         transform: translateX(0);
+      }
+
+      .sidebar-header {
+        position: relative;
+      }
+
+      .sidebar-close-btn {
+        display: flex;
       }
 
       #main {
