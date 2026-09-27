@@ -6,8 +6,8 @@
   'use strict';
 
   const ROLE_TARGETS = {
-    admin: 'admin.html',
-    user: 'user.html',
+    admin: 'admin',
+    user: 'user',
   };
 
   function qs(sel, root) {
@@ -28,7 +28,7 @@
     if (opts.returnTo) p.set('return', opts.returnTo);
     if (opts.program) p.set('program', opts.program);
     const q = p.toString();
-    return 'login.html' + (q ? '?' + q : '');
+    return 'login' + (q ? '?' + q : '');
   }
 
   function getApiBaseUrl() {
@@ -81,9 +81,9 @@
         action: 'enroll',
         program: ctx.program,
       }));
-      return 'main.html';
+      return './';
     }
-    if (ctx.returnTo === 'dashboard') return 'user.html';
+    if (ctx.returnTo === 'dashboard') return 'user';
     if (data.redirect) return data.redirect;
     return ROLE_TARGETS.user;
   }
@@ -149,7 +149,7 @@
       const target = resolveRedirect(data, ctx);
 
       if (window.EinsteinLoginConfig && window.EinsteinLoginConfig.embedded) {
-        if (data.role === 'admin' && target === 'admin.html') {
+        if (data.role === 'admin' && target === 'admin') {
           hideLoginScreen();
           if (typeof window.onPortalLoginSuccess === 'function') {
             window.onPortalLoginSuccess(data);
@@ -157,12 +157,13 @@
           return;
         }
         if (data.role === 'user') {
-          window.location.href = target;
+          window.location.replace(target);
           return;
         }
       }
 
-      window.location.href = target;
+      // replace() drops the login page from history, so Back from the dashboard doesn't land on it.
+      window.location.replace(target);
     } catch (e) {
       showError('Could not reach the server. Please open the website through its domain and check that the hosting server is available.');
     } finally {
@@ -229,9 +230,9 @@
 
       if (expectedRole && data.role !== expectedRole) {
         if (data.role === 'admin') {
-          window.location.href = 'admin.html';
+          window.location.href = 'admin';
         } else if (data.role === 'user') {
-          window.location.href = 'user.html';
+          window.location.href = 'user';
         }
         return true;
       }

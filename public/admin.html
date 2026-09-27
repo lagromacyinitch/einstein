@@ -6,6 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Einstein Center — Admin Portal</title>
   <meta name="robots" content="noindex" />
+  <!-- /admin/<page> is served by this file (see .htaccess), so resolve relative URLs (api/, js/, images/) from the site root. -->
+  <base href="/">
+  <script>
+    // A copy in a subfolder (e.g. localhost/EINSTEIN-WEB18/admin) resolves from that folder instead.
+    document.querySelector('base').href = location.pathname.replace(/\/admin(\/.*)?$/, '/');
+  </script>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -127,7 +133,7 @@
           <input type="search" placeholder="Search students, staff…" id="global-search" name="portal-directory-search" autocomplete="off" value="" readonly onfocus="this.removeAttribute('readonly')"
             oninput="handleGlobalSearch(this.value)">
         </div>
-        <a href="main.html?portal=admin&view=static" onclick="sessionStorage.setItem('active_portal','admin');sessionStorage.setItem('view_as_static','1');" class="nav-home-btn" style="padding:7px 14px;background:linear-gradient(135deg, #c49a45, #dfb76c);border:none;border-radius:6px;color:#3d2212;font-weight:600;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,0.1);" title="View Live Website">View Website</a>
+        <a href="./?portal=admin&view=static" onclick="sessionStorage.setItem('active_portal','admin');sessionStorage.setItem('view_as_static','1');" class="nav-home-btn" style="padding:7px 14px;background:linear-gradient(135deg, #c49a45, #dfb76c);border:none;border-radius:6px;color:#3d2212;font-weight:600;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,0.1);" title="View Live Website">View Website</a>
         <button class="topbar-btn" onclick="toggleNotif()"
           style="background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative"><img
             src="images/notif.png" alt="Notifications"
@@ -4520,12 +4526,19 @@
 
     window.addEventListener('pageshow', () => { document.getElementById('global-search').value = ''; });
     window.addEventListener('DOMContentLoaded', async () => {
+      // Read before checkAdminPermissions(), which may switch sub-admins to My Schedule.
+      const requestedPage = adminPageFromUrl();
       await checkAdminPermissions();
+      openRequestedAdminPage(requestedPage);
       renderSettings();
       loadDatabaseSettings();
       loadHomepageContent();
       cancelVipDiscounts();
-      loadAllData();
+      // A deep-linked page rendered before its data arrived; render it again once loaded.
+      loadAllData().then(() => {
+        const current = document.querySelector('.page.active')?.id.replace('page-', '');
+        if (current && current !== 'dashboard') showPage(current, adminNavButton(current), 'none');
+      });
       // Auto-poll every 30s — silently checks for new pending enrollments
       setInterval(pollPendingBadge, 30000);
       setInterval(async () => { await loadVipAdminData(); renderNotifications(); renderVIPPage(); }, 30000);
@@ -4632,7 +4645,7 @@
           const authBlocked = r.status === 403 || /admin( or staff)? access required\./i.test(res.message || '');
           if (authBlocked) {
             alert('Your administrator session has expired or was overwritten by a parent user login in another tab. Redirecting to login page...');
-            window.location.href = 'login.html';
+            window.location.href = 'login';
             return;
           }
           enrollments = getAllStoredEnrollments();
@@ -5280,7 +5293,7 @@
         if (!res.success) {
           if (response.status === 403 || /admin( or staff)? access required\./i.test(res.message || '')) {
             alert('Session expired. Please log in as admin again.');
-            window.location.href = 'login.html';
+            window.location.href = 'login';
             return;
           }
           alert('Failed to approve enrollment: ' + res.message);
@@ -5322,7 +5335,7 @@
         if (!res.success) {
           if (response.status === 403 || /admin( or staff)? access required\./i.test(res.message || '')) {
             alert('Session expired. Please log in as admin again.');
-            window.location.href = 'login.html';
+            window.location.href = 'login';
             return;
           }
           alert('Failed to reject enrollment: ' + res.message);
@@ -5508,7 +5521,26 @@
     // Pages that have their own search bar inside the card — hide the topbar one
     const PROGRAM_PAGES = new Set(['tutoring','workshop','playschool','childcare','madstudio','summerblast']);
 
-    function showPage(pageId, el) {
+    // Routes: /admin is the dashboard, /admin/<page> any other page (my_schedule -> /admin/my-schedule).
+    const ADMIN_ROOT = new URL('admin', document.baseURI).pathname;
+    function adminPageUrl(pageId) {
+      return (pageId === 'dashboard' ? ADMIN_ROOT : ADMIN_ROOT + '/' + pageId.replace(/_/g, '-')) + location.search;
+    }
+    function adminPageFromUrl() {
+      const slug = location.pathname.slice(ADMIN_ROOT.length).replace(/^\/|\/$/g, '').replace(/-/g, '_');
+      return slug && document.getElementById('page-' + slug) ? slug : 'dashboard';
+    }
+    function adminNavButton(pageId) {
+      return document.querySelector(`#sidebar .nav-item[onclick*="showPage('${pageId}'"]`);
+    }
+
+    // historyMode: 'push' adds a Back/Forward entry, 'replace' swaps the current one, 'none' leaves history alone.
+    function showPage(pageId, el, historyMode = 'push') {
+      if (historyMode !== 'none' && adminPageUrl(pageId) !== location.pathname + location.search) {
+        try {
+          history[historyMode === 'replace' ? 'replaceState' : 'pushState'](null, '', adminPageUrl(pageId));
+        } catch (e) { }
+      }
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + pageId)?.classList.add('active');
       document.querySelectorAll('#sidebar .nav-item').forEach(n => n.classList.remove('active'));
@@ -5543,6 +5575,22 @@
       if (pageId === 'my_hours') loadSubadminHours();
       if (pageId === 'my_profile') loadSubadminProfile();
     }
+
+    // Opens the page a deep link like /admin/students asks for, once permissions are known.
+    // Pages this account can't see (hidden nav item) fall back to whatever is showing.
+    function openRequestedAdminPage(pageId) {
+      const btn = adminNavButton(pageId);
+      if (pageId !== 'dashboard' && btn && getComputedStyle(btn).display !== 'none') {
+        showPage(pageId, btn, 'replace');
+      } else {
+        const current = document.querySelector('.page.active')?.id.replace('page-', '') || 'dashboard';
+        try { history.replaceState(null, '', adminPageUrl(current)); } catch (e) { }
+      }
+    }
+    window.addEventListener('popstate', () => {
+      const pageId = adminPageFromUrl();
+      showPage(pageId, adminNavButton(pageId), 'none');
+    });
 
     function renderPriceManagementPage() {
       checkAdminPermissions();
@@ -5587,7 +5635,7 @@
       localStorage.removeItem('adminSession');
       localStorage.removeItem('tutor_logged_sessions');
       sessionStorage.clear();
-      window.location.href = 'main.html';
+      window.location.href = './';
     }
 
     // ─── ENROLLMENT PAGE ──────────────────────────────────────────────────────────
@@ -8005,7 +8053,7 @@
       if (!rec) return;
       const statusColor = rec.status === 'confirmed' ? '#2e7d32' : rec.status === 'cancelled' ? '#c62828' : '#e65100';
       const statusText = rec.status === 'confirmed' ? ' APPROVED' : rec.status === 'cancelled' ? ' REJECTED' : '⏳ PENDING';
-      const logoUrl = location.origin + location.pathname.replace(/\/[^\/]*$/, '') + '/images/logo2.jpg';
+      const logoUrl = new URL('images/logo2.jpg', document.baseURI).href;
       const win = window.open('', '_blank', 'width=720,height=950');
       win.document.write(`<!DOCTYPE html><html><head><title>Enrollment Receipt</title>
       <style>
@@ -8842,7 +8890,7 @@
           const el = document.getElementById(id); if (el) el.value = '';
         });
         if (d.require_relogin) {
-          setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+          setTimeout(() => { window.location.href = 'login'; }, 2000);
         }
       } catch (e) {
         showHcMsg('✗ ' + e.message, false);
@@ -9309,7 +9357,7 @@
         const r = await fetch('api/check_session.php', { credentials: 'include', cache: 'no-store' });
         const d = await r.json();
         if (!d || !d.logged_in || (d.role !== 'admin' && d.role !== 'staff')) {
-          window.location.href = 'main.html';
+          window.location.href = './';
           return;
         }
         isHeadAdminUser = !!d.is_head_admin;
@@ -9324,7 +9372,7 @@
           if (dashPage && dashPage.classList.contains('active')) {
             const mySchedBtn = document.getElementById('nav-item-my-schedule');
             if (typeof showPage === 'function') {
-              showPage('my_schedule', mySchedBtn);
+              showPage('my_schedule', mySchedBtn, 'replace');
             }
           }
         }
