@@ -49,6 +49,108 @@ function normalizeFacebookName(string $value): string {
     return $value;
 }
 
+function getStudioRentalRate(PDO $db): float {
+    try {
+        $stmt = $db->prepare("SELECT rate FROM program_packages WHERE program_name = 'M.A.D. Studio' AND package_name = 'Studio Rental' ORDER BY id DESC LIMIT 1");
+        $stmt->execute();
+        $raw = $stmt->fetchColumn();
+        $rate = (float) preg_replace('/[^0-9.]/', '', (string) $raw);
+        return $rate > 0 ? $rate : 450.0;
+    } catch (Throwable $e) {
+        return 450.0;
+    }
+}
+
+function parseStudioRentalDays(PDO $db, string $program): array {
+    $raw = $_POST['studio_rental_days'] ?? '';
+    $isRentalOnly = (bool) preg_match('/^studio\s+rental$/i', trim($program));
+    if ($raw === '' || $raw === '[]') {
+        if ($isRentalOnly) throw new Exception('Studio Rental requires at least one day.');
+        return [];
+    }
+
+    $days = json_decode((string) $raw, true);
+    if (!is_array($days) || count($days) > 60) throw new Exception('Invalid Studio Rental day selection.');
+
+    $clean = [];
+    foreach ($days as $day) {
+        $date = trim((string) ($day['date'] ?? ''));
+        $hours = filter_var($day['hours'] ?? null, FILTER_VALIDATE_INT);
+        $dateObj = DateTime::createFromFormat('!Y-m-d', $date);
+        if (!$dateObj || $dateObj->format('Y-m-d') !== $date) {
+            throw new Exception('Each Studio Rental entry must have a valid specific day.');
+        }
+        if ($hours === false || $hours < 1) {
+            throw new Exception('Each Studio Rental entry must be at least 1 hour.');
+        }
+        $clean[] = ['date' => $date, 'hours' => $hours];
+    }
+    if (!$clean && $isRentalOnly) throw new Exception('Studio Rental requires at least one day.');
+    return $clean;
+}
+
+function validateSummerBlastSelection(string $package, string $rawSelection): array {
+    $packageLabel = strtolower(trim($package));
+    if (preg_match('/^single\s+course\b/i', $packageLabel)) {
+        $rule = ['key' => 'single', 'main_count' => 1, 'main_categories' => ['Academics', 'Music', 'Arts & Dance', 'Sports', 'Special Courses'], 'free_categories' => ['Academics']];
+    } elseif (preg_match('/^two\s+courses\b/i', $packageLabel)) {
+        $rule = ['key' => 'two', 'main_count' => 2, 'main_categories' => ['Academics', 'Music', 'Arts & Dance', 'Sports', 'Special Courses'], 'free_categories' => ['Academics']];
+    } elseif (preg_match('/^special\s+course\b/i', $packageLabel)) {
+        $rule = ['key' => 'special', 'main_count' => 1, 'main_categories' => ['Special Courses'], 'free_categories' => ['Academics', 'Music', 'Arts & Dance', 'Sports', 'Special Courses']];
+    } else {
+        throw new Exception('Please select a valid Summer Blast tuition package.');
+    }
+
+    $catalog = [
+        'Academics' => ['Basic Read & Write', 'Reading w/ Comprehension', 'Math for Elementary', 'Math for High School', 'Public Speaking / Hosting', 'Wikang Tagalog / Filipino'],
+        'Music' => ['Drum Lessons', 'Guitar Lessons', 'Piano Lessons', 'Violin Lessons', 'Voice Coaching'],
+        'Arts & Dance' => ['Ballet Lessons', 'Drawing & Painting', 'Pop Dancing & Afro Dance', 'Gymnastics', 'Modeling Class', 'Photography'],
+        'Sports' => ['Basketball Clinic', 'Chess Clinic'],
+        'Special Courses' => ['Baking Class', 'Swimming Lessons', 'Taekwondo Class'],
+    ];
+    $allowedCourses = static function (array $categories) use ($catalog): array {
+        $courses = [];
+        foreach ($categories as $category) {
+            foreach ($catalog[$category] ?? [] as $course) $courses[] = $course;
+        }
+        return $courses;
+    };
+
+    $payload = json_decode($rawSelection, true);
+    if (!is_array($payload)) throw new Exception('Please complete the Summer Blast course selection.');
+    if (!is_array($payload['main'] ?? null)) throw new Exception('Please complete the Summer Blast course selection.');
+    $main = [];
+    foreach ($payload['main'] as $course) {
+        if (is_scalar($course) && trim((string) $course) !== '') $main[] = trim((string) $course);
+    }
+    $free = trim((string) ($payload['free'] ?? ''));
+    $mainAllowed = $allowedCourses($rule['main_categories']);
+    $freeAllowed = $allowedCourses($rule['free_categories']);
+
+    if (count($main) !== $rule['main_count'] || count(array_unique($main)) !== count($main)) {
+        throw new Exception('Please select the exact number of required Summer Blast main courses.');
+    }
+    foreach ($main as $course) {
+        if (!in_array($course, $mainAllowed, true)) throw new Exception('One or more selected Summer Blast main courses are not allowed for this package.');
+    }
+    if ($free === '' || !in_array($free, $freeAllowed, true)) {
+        throw new Exception('Please select a valid free Summer Blast course for this package.');
+    }
+    if (in_array($free, $main, true)) {
+        throw new Exception('The free Summer Blast course must be different from the paid course selection.');
+    }
+
+    return [
+        'package_rule' => $rule['key'],
+        'main_courses' => $main,
+        'free_course' => $free,
+    ];
+}
+
+function isSummerBlastRegistrationPackage(string $package): bool {
+    return (bool) preg_match('/registration\s+fee|slot\s+reservation|reservation/i', trim($package));
+}
+
 try {
     startUserSession();
     if (!isset($_SESSION['user_id'])) {
@@ -64,6 +166,34 @@ try {
 
     $db      = getDB();
     $userId  = (int) $_SESSION['user_id'];
+    $submittedProgram = trim((string) ($_POST['program'] ?? ''));
+    $studioRentalDays = parseStudioRentalDays($db, $submittedProgram);
+    $studioRentalRate = $studioRentalDays ? getStudioRentalRate($db) : 0.0;
+    $studioRentalTotal = $studioRentalDays
+        ? round(array_reduce($studioRentalDays, static fn(float $sum, array $day): float => $sum + ($day['hours'] * $studioRentalRate), 0.0), 2)
+        : 0.0;
+    $submittedPackage = trim((string) ($_POST['package_selected'] ?? ''));
+    $submissionBatchId = trim((string) ($_POST['submission_batch_id'] ?? ''));
+    if ($submissionBatchId !== '' && !preg_match('/^batch-[A-Za-z0-9_-]{8,80}$/', $submissionBatchId)) {
+        throw new Exception('Invalid enrollment submission batch. Please refresh and try again.');
+    }
+    $isSummerBlastProgram = (bool) preg_match('/summer\s*blast/i', $submittedProgram);
+    $isSummerBlastRegistration = $isSummerBlastProgram && isSummerBlastRegistrationPackage($submittedPackage);
+    $isSummerBlastRegistrationOnly = $isSummerBlastRegistration
+        && filter_var($_POST['summer_registration_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    $summerBlastSelection = $isSummerBlastProgram && !$isSummerBlastRegistration
+        ? validateSummerBlastSelection($submittedPackage, (string) ($_POST['summerblast_courses'] ?? ''))
+        : null;
+    $storedStartDate = $isSummerBlastRegistration
+        ? null
+        : (!empty($_POST['start_date']) ? date('Y-m-d', strtotime($_POST['start_date'])) : null);
+    $storedTimeslot = $isSummerBlastRegistration ? '' : sanitize($_POST['timeslot'] ?? '');
+    $isMadStudioProgram = (bool) preg_match('/m\.?a\.?d\.?\s+studio|mad\s+studio/i', $submittedProgram);
+    if ($isMadStudioProgram && $submittedPackage === '' && !$studioRentalDays) {
+        throw new Exception('Please select a MAD Studio package or add at least one Studio Rental day.');
+    }
+    $isStudioRentalOnly = (bool) preg_match('/^studio\s+rental$/i', $submittedProgram)
+        || ($isMadStudioProgram && $submittedPackage === '' && (bool) $studioRentalDays);
     if ($isVip) {
         $vipRate=$db->query("SELECT rate FROM program_packages WHERE program_name='VIP Club Membership' AND package_name='VIP Club Membership' ORDER BY id DESC LIMIT 1")->fetchColumn();
         $vipFee=$vipRate===false ? 500 : (float)preg_replace('/[^0-9.]/','',$vipRate);
@@ -189,7 +319,28 @@ try {
     if (!empty($_POST['barangay']) && !empty($_POST['purok'])) {
         $extraNotes[] = 'Home-Based Location: Brgy. ' . sanitize($_POST['barangay']) . ', Purok ' . digitsOnly($_POST['purok']);
     }
-    $rawNotes = count($extraNotes) > 0 ? implode("\n", $extraNotes) : null;
+    if ($studioRentalDays || $summerBlastSelection || $isSummerBlastRegistration || $submissionBatchId !== '') {
+        $notePayload = [];
+        if ($submissionBatchId !== '') $notePayload['submission_batch_id'] = $submissionBatchId;
+        if ($studioRentalDays) {
+            $notePayload['studio_rental'] = [
+                'rate' => $studioRentalRate,
+                'days' => $studioRentalDays,
+                'total' => $studioRentalTotal,
+            ];
+        } elseif ($summerBlastSelection) {
+            $notePayload['summer_blast'] = $summerBlastSelection;
+        }
+        if ($isSummerBlastRegistration) {
+            $notePayload['summer_blast_registration'] = [
+                'registration_only' => $isSummerBlastRegistrationOnly,
+            ];
+        }
+        if ($extraNotes) $notePayload['messages'] = $extraNotes;
+        $rawNotes = json_encode($notePayload, JSON_UNESCAPED_UNICODE);
+    } else {
+        $rawNotes = count($extraNotes) > 0 ? implode("\n", $extraNotes) : null;
+    }
 
     $childNameEnc    = encryptAES256($rawChildName);
     $childAgeEnc     = encryptAES256($rawChildAge);
@@ -203,7 +354,13 @@ try {
     $notesEnc        = encryptAES256($rawNotes);
 
     // ── Insert enrollment ─────────────────────────────
+    // Rental-only submissions are payments/reservations, not enrollments.
+    // Keep them pending for receipt review; Enrollment Management excludes
+    // standalone rentals, while the M.A.D. Studio rental view handles them.
     $initialStatus = 'pending';
+    $storedProgram = $isStudioRentalOnly
+        ? 'Studio Rental'
+        : ($isSummerBlastRegistrationOnly ? 'Summer Blast Registration Fee' : $submittedProgram);
     $sql = "INSERT INTO enrollments
         (reference_no, user_id, program, package_selected, start_date, timeslot,
          child_name, child_age, child_grade, child_school,
@@ -213,10 +370,10 @@ try {
     $db->prepare($sql)->execute([
         $ref,
         $userId,
-        sanitize($_POST['program']          ?? ''),
+        sanitize($storedProgram),
         sanitize($_POST['package_selected'] ?? ''),
-        !empty($_POST['start_date']) ? date('Y-m-d', strtotime($_POST['start_date'])) : null,
-        sanitize($_POST['timeslot']         ?? ''),
+        $storedStartDate,
+        $storedTimeslot,
         $childNameEnc,
         $childAgeEnc,
         $childGradeEnc,

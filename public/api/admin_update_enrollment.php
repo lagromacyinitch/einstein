@@ -328,7 +328,7 @@ try {
     $paymentStatus = $action === 'approve' ? 'confirmed' : 'rejected';
 
     // Fetch enrollment details for balance calculation and email notification
-    $row = $db->prepare("SELECT e.id, e.child_name, e.guardian_name, e.program, e.package_selected, e.reference_no, e.payment_method, e.admin_notes, e.user_id, u.email AS parent_email
+    $row = $db->prepare("SELECT e.id, e.child_name, e.guardian_name, e.program, e.package_selected, e.reference_no, e.payment_method, e.notes, e.admin_notes, e.user_id, u.email AS parent_email
         FROM enrollments e
         LEFT JOIN users u ON u.id = e.user_id
         WHERE e.id = ?");
@@ -337,6 +337,9 @@ try {
     if (!$enroll) {
         throw new Exception('Enrollment not found.');
     }
+    // Studio Rental day/hour details are stored in the encrypted notes column.
+    // Decrypt them before resolving the approval total for the balance ledger.
+    $enroll['notes'] = decryptAES256($enroll['notes'] ?? '');
 
     $adminNotesPayload = null;
     if ($action === 'approve') {

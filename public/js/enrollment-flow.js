@@ -167,11 +167,10 @@
       { value: 'Ballet Class – ₱2,500/mo', name: 'After School: Ballet Class', detail: 'Saturdays 10:30 am–12:30 pm · ₱2,500/month' },
       { value: 'Taekwondo – ₱2,500/mo', name: 'After School: Taekwondo', detail: 'Sat 12:30–2:30 pm / TTHS 5:30–6:30 pm · ₱2,500/month' },
       { value: 'Pop Dancing – ₱2,500/mo', name: 'After School: Pop Dancing', detail: 'MWF 5:30–6:30 pm · ₱2,500/month' },
-      { value: 'Studio Rental – ₱450/hour', name: 'Studio Rental', detail: '₱450 per hour · by appointment' },
     ],
     'Summer Blast': [
-      { value: 'Registration Fee – ₱900', name: 'Registration Fee (Slot Reservation) – ₱900', detail: '₱900 · Includes free t-shirt, photo & video coverage, recital fee, certs' },
-      { value: 'Single Course – ₱3,900', name: 'Single Course – ₱3,900', detail: '₱3,900 · Choose 1 Course + 1 Academics subject FREE · One-time payment' },
+      { value: 'Registration Fee – ₱900', name: 'Registration Fee (Slot Reservation) – ₱900', detail: '₱900 · Slot Reservation · Registration only' },
+      { value: 'Single Course – ₱4,900', name: 'Single Course – ₱4,900', detail: '₱4,900 · Choose 1 Course + 1 Academics subject FREE · One-time payment' },
       { value: 'Two Courses – ₱4,900', name: 'Two Courses – ₱4,900', detail: '₱4,900 · Choose 2 Courses + 1 Academics subject FREE · One-time payment' },
       { value: 'Special Course – ₱5,100', name: 'Special Course – ₱5,100', detail: '₱5,100 · 1 Special Course (Baking, Swimming, or Taekwondo) + 1 Any Course FREE · One-time payment' },
     ],
@@ -180,12 +179,196 @@
     ],
   };
 
+  const SUMMER_BLAST_COURSES = {
+    'Academics': [
+      'Basic Read & Write',
+      'Reading w/ Comprehension',
+      'Math for Elementary',
+      'Math for High School',
+      'Public Speaking / Hosting',
+      'Wikang Tagalog / Filipino'
+    ],
+    'Music': [
+      'Drum Lessons',
+      'Guitar Lessons',
+      'Piano Lessons',
+      'Violin Lessons',
+      'Voice Coaching'
+    ],
+    'Arts & Dance': [
+      'Ballet Lessons',
+      'Drawing & Painting',
+      'Pop Dancing & Afro Dance',
+      'Gymnastics',
+      'Modeling Class',
+      'Photography'
+    ],
+    'Sports': [
+      'Basketball Clinic',
+      'Chess Clinic'
+    ],
+    'Special Courses': [
+      'Baking Class',
+      'Swimming Lessons',
+      'Taekwondo Class'
+    ]
+  };
+
+  const SUMMER_BLAST_RULES = {
+    single: {
+      mainCount: 1,
+      mainCategories: Object.keys(SUMMER_BLAST_COURSES),
+      freeCategories: ['Academics'],
+      instruction: 'Choose ONE course + Plus 1 Academics subject FREE',
+      mainLabel: 'Main Course'
+    },
+    two: {
+      mainCount: 2,
+      mainCategories: Object.keys(SUMMER_BLAST_COURSES),
+      freeCategories: ['Academics'],
+      instruction: 'Choose TWO courses + Plus 1 Academics subject FREE',
+      mainLabel: 'Main Course'
+    },
+    special: {
+      mainCount: 1,
+      mainCategories: ['Special Courses'],
+      freeCategories: Object.keys(SUMMER_BLAST_COURSES),
+      instruction: 'Choose ONE Special Course + Plus 1 Any Course FREE',
+      mainLabel: 'Special Course'
+    }
+  };
+
+  function isSummerBlastService(progKey) {
+    return String(progKey || '').toLowerCase() === 'summerblast';
+  }
+
+  function isSummerBlastTuitionPackage(pkg) {
+    const label = `${pkg?.name || ''} ${pkg?.value || ''}`.toLowerCase();
+    return /single\s+course|two\s+courses|special\s+course/.test(label)
+      && !/registration|reservation/.test(label);
+  }
+
+  function isSummerBlastRegistrationPackage(pkg) {
+    const label = (typeof pkg === 'string' ? pkg : `${pkg?.name || ''} ${pkg?.value || ''}`).toLowerCase();
+    return /registration\s+fee|slot\s+reservation|reservation/.test(label);
+  }
+
+  function isSummerBlastRegistrationService(service) {
+    return Boolean(service?.summerRegistration) || isSummerBlastRegistrationPackage(service?.package);
+  }
+
+  function getSummerBlastPackageRule(packageValue) {
+    const label = String(packageValue || '').toLowerCase();
+    if (label.includes('special course')) return SUMMER_BLAST_RULES.special;
+    if (label.includes('two courses')) return SUMMER_BLAST_RULES.two;
+    if (label.includes('single course')) return SUMMER_BLAST_RULES.single;
+    return null;
+  }
+
+  function summerBlastCourseSet(categories) {
+    return new Set(categories.flatMap(category => SUMMER_BLAST_COURSES[category] || []));
+  }
+
+  function normalizeSummerBlastCourses(service) {
+    const rule = getSummerBlastPackageRule(service?.package);
+    if (!service) return null;
+    if (!rule) {
+      service.summerCourses = { main: [], free: '' };
+      return null;
+    }
+
+    const current = service.summerCourses || {};
+    const mainAllowed = summerBlastCourseSet(rule.mainCategories);
+    const freeAllowed = summerBlastCourseSet(rule.freeCategories);
+    const rawMain = Array.isArray(current.main) ? current.main : [];
+    const main = Array.from({ length: rule.mainCount }, (_, index) => String(rawMain[index] || ''));
+    const used = new Set();
+
+    for (let i = 0; i < main.length; i++) {
+      if (!mainAllowed.has(main[i]) || used.has(main[i])) main[i] = '';
+      else used.add(main[i]);
+    }
+
+    let free = String(current.free || '');
+    if (!freeAllowed.has(free) || used.has(free)) free = '';
+    service.summerCourses = { main, free };
+    return { rule, selection: service.summerCourses };
+  }
+
+  function renderSummerBlastCourseOptions(categories, selected, excluded) {
+    const excludedSet = excluded || new Set();
+    return `<option value="">Select course…</option>${categories.map(category => `
+      <optgroup label="${esc(category)}">
+        ${(SUMMER_BLAST_COURSES[category] || []).map(course => `
+          <option value="${esc(course)}" ${selected === course ? 'selected' : ''} ${excludedSet.has(course) && selected !== course ? 'disabled' : ''}>${esc(course)}</option>`).join('')}
+      </optgroup>`).join('')}`;
+  }
+
+  function renderSummerBlastCoursePicker(ci, service) {
+    const normalized = normalizeSummerBlastCourses(service);
+    if (!normalized) return '';
+
+    const { rule, selection } = normalized;
+    const selectedMain = selection.main;
+    const mainFields = selectedMain.map((selected, index) => {
+      const excluded = new Set(selectedMain.filter((_, i) => i !== index).concat(selection.free || ''));
+      return `
+        <div style="min-width:0">
+          <label style="display:block;font-size:11px;font-weight:700;color:#5c3317;margin-bottom:4px">${esc(rule.mainLabel)}${rule.mainCount > 1 ? ` ${index + 1}` : ''} <span style="color:#c0392b">*</span></label>
+          <select class="ec-sb-main" data-ci="${ci}" data-prog="summerblast" data-index="${index}" onchange="handleSummerBlastCourseChange(this, ${ci})"
+            style="width:100%;padding:8px 9px;border:1px solid #e5d9ce;border-radius:6px;background:#fff;font-size:12px;font-family:inherit;box-sizing:border-box">
+            ${renderSummerBlastCourseOptions(rule.mainCategories, selected, excluded)}
+          </select>
+        </div>`;
+    }).join('');
+    const freeExcluded = new Set(selectedMain.filter(Boolean));
+    const freeLabel = rule.freeCategories.length === 1 && rule.freeCategories[0] === 'Academics'
+      ? 'Free Academics Subject'
+      : 'Free Course';
+
+    return `
+      <div style="margin-top:3px;padding:11px 12px;background:#fffaf3;border:1px solid #dec6ac;border-radius:8px;box-sizing:border-box;width:100%">
+        <div style="font-size:12px;font-weight:800;color:#5c3317;margin-bottom:3px">Course Selection</div>
+        <div style="font-size:11px;line-height:1.4;color:#8b6f47;margin-bottom:9px">${esc(rule.instruction)}</div>
+        <div style="display:grid;grid-template-columns:repeat(${rule.mainCount > 1 ? 2 : 1}, minmax(0, 1fr));gap:8px">
+          ${mainFields}
+        </div>
+        <div style="margin-top:8px;min-width:0">
+          <label style="display:block;font-size:11px;font-weight:700;color:#5c3317;margin-bottom:4px">${freeLabel} <span style="color:#c0392b">*</span></label>
+          <select class="ec-sb-free" data-ci="${ci}" data-prog="summerblast" onchange="handleSummerBlastCourseChange(this, ${ci})"
+            style="width:100%;padding:8px 9px;border:1px solid #e5d9ce;border-radius:6px;background:#fff;font-size:12px;font-family:inherit;box-sizing:border-box">
+            ${renderSummerBlastCourseOptions(rule.freeCategories, selection.free, freeExcluded)}
+          </select>
+        </div>
+      </div>`;
+  }
+
+  function formatSummerBlastSelection(service) {
+    const normalized = normalizeSummerBlastCourses(service);
+    if (!normalized) return '';
+    const main = normalized.selection.main.filter(Boolean);
+    const free = normalized.selection.free;
+    if (!main.length && !free) return '';
+    return `<div style="flex:0 0 100%;width:100%;box-sizing:border-box;display:grid;grid-template-columns:58px minmax(0,1fr);column-gap:6px;row-gap:2px;margin-top:5px;font-size:11px;line-height:1.45;color:#8b6f47">
+      <strong style="color:#5c3317">Main:</strong><span>${esc(main.join(' · ') || '—')}</span>
+      <strong style="color:#5c3317">Free:</strong><span>${esc(free || '—')}</span>
+    </div>`;
+  }
+
   function getEinsteinSiteSettings() {
     try {
       const raw = localStorage.getItem('einsteinSettings');
       if (raw) return JSON.parse(raw);
     } catch (e) {}
     return null;
+  }
+
+  function getConfiguredMadRate(packageName, fallback) {
+    const settings = getEinsteinSiteSettings() || {};
+    const madRates = Array.isArray(settings.madstudio) ? settings.madstudio : [];
+    const found = madRates.find(pkg => String(pkg?.name || '').trim().toLowerCase() === String(packageName).trim().toLowerCase());
+    const rate = found ? parseFloat(String(found.rate || '').replace(/[^0-9.]/g, '')) : NaN;
+    return Number.isFinite(rate) && rate > 0 ? rate : fallback;
   }
 
   function buildDynamicVipPackages() {
@@ -228,10 +411,21 @@
     const ccTtD  = parseInt(ccRates['tt-vip-daily'] || calcVip(675, ccDisc), 10);
     const ccNttD = parseInt(ccRates['ntt-vip-daily'] || calcVip(850, ccDisc), 10);
 
-    // 5. M.A.D. Studio (Default: no discount unless set in admin)
-    const madFit = madDisc > 0 ? calcVip(2500, madDisc) : 2500;
-    const madXtn = madDisc > 0 ? calcVip(3500, madDisc) : 3500;
-    const madRnt = madDisc > 0 ? calcVip(450, madDisc) : 450;
+    // 5. M.A.D. Studio (read the current Price Management rates)
+    const madHiphopBase = getConfiguredMadRate('Hiphop Aerobics', 2500);
+    const madKickboxingBase = getConfiguredMadRate('Kickboxing', 2500);
+    const madCrossTrainingBase = getConfiguredMadRate('Cross Training', 3500);
+    const madGymnasticsBase = getConfiguredMadRate('Gymnastics', 2500);
+    const madBalletBase = getConfiguredMadRate('Ballet Class', 2500);
+    const madTaekwondoBase = getConfiguredMadRate('Taekwondo', 2500);
+    const madPopDancingBase = getConfiguredMadRate('Pop Dancing', 2500);
+    const madHiphop = madDisc > 0 ? calcVip(madHiphopBase, madDisc) : madHiphopBase;
+    const madKickboxing = madDisc > 0 ? calcVip(madKickboxingBase, madDisc) : madKickboxingBase;
+    const madCrossTraining = madDisc > 0 ? calcVip(madCrossTrainingBase, madDisc) : madCrossTrainingBase;
+    const madGymnastics = madDisc > 0 ? calcVip(madGymnasticsBase, madDisc) : madGymnasticsBase;
+    const madBallet = madDisc > 0 ? calcVip(madBalletBase, madDisc) : madBalletBase;
+    const madTaekwondo = madDisc > 0 ? calcVip(madTaekwondoBase, madDisc) : madTaekwondoBase;
+    const madPopDancing = madDisc > 0 ? calcVip(madPopDancingBase, madDisc) : madPopDancingBase;
 
     // 6. Summer Blast (Default: 0% unless set in admin)
     const sbRates = settings?.summerblast || [];
@@ -241,7 +435,7 @@
       return parseFloat(String(found.rate).replace(/[^0-9.]/g, '')) || fallback;
     };
     const sbRegFee = getSbRate('Registration', 900);
-    const sbSingleRate = getSbRate('Single', 3900);
+    const sbSingleRate = getSbRate('Single', 4900);
     const sbTwoRate = getSbRate('Two', 4900);
     const sbSpecialRate = getSbRate('Special', 5100);
 
@@ -278,14 +472,13 @@
         { value: `Daycare Daily — Non-Toilet Trained (VIP: ₱${ccNttD.toLocaleString()})`, name: 'Daycare Daily — Non-Toilet Trained (VIP)', detail: `₱${ccNttD.toLocaleString()} VIP rate (orig. ₱850)` },
       ],
       'M.A.D. Studio': [
-        { value: `Hiphop Aerobics (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'Fitness: Hiphop Aerobics (VIP)', detail: `MWF 6:45–7:45 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
-        { value: `Kickboxing (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'Fitness: Kickboxing (VIP)', detail: `TTHS 6:45–7:45 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
-        { value: `Cross Training (VIP) – ₱${madXtn.toLocaleString()}/mo`, name: 'Fitness: Cross Training (VIP)', detail: `MWF + TTHS · ₱${madXtn.toLocaleString()}/mo VIP rate (orig. ₱3,500)` },
-        { value: `Gymnastics (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'After School: Gymnastics (VIP)', detail: `Saturdays 8:30–10:30 am · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
-        { value: `Ballet Class (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'After School: Ballet Class (VIP)', detail: `Saturdays 10:30 am–12:30 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
-        { value: `Taekwondo (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'After School: Taekwondo (VIP)', detail: `Sat 12:30–2:30 pm / TTHS 5:30–6:30 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
-        { value: `Pop Dancing (VIP) – ₱${madFit.toLocaleString()}/mo`, name: 'After School: Pop Dancing (VIP)', detail: `MWF 5:30–6:30 pm · ₱${madFit.toLocaleString()}/mo VIP rate (orig. ₱2,500)` },
-        { value: `Studio Rental (VIP) – ₱${madRnt.toLocaleString()}/hour`, name: 'Studio Rental (VIP)', detail: `₱${madRnt.toLocaleString()} per hour · by appointment (orig. ₱450)` },
+        { value: `Hiphop Aerobics (VIP) – ₱${madHiphop.toLocaleString()}/mo`, name: 'Fitness: Hiphop Aerobics (VIP)', detail: `MWF 6:45–7:45 pm · ₱${madHiphop.toLocaleString()}/mo VIP rate (orig. ₱${madHiphopBase.toLocaleString()})` },
+        { value: `Kickboxing (VIP) – ₱${madKickboxing.toLocaleString()}/mo`, name: 'Fitness: Kickboxing (VIP)', detail: `TTHS 6:45–7:45 pm · ₱${madKickboxing.toLocaleString()}/mo VIP rate (orig. ₱${madKickboxingBase.toLocaleString()})` },
+        { value: `Cross Training (VIP) – ₱${madCrossTraining.toLocaleString()}/mo`, name: 'Fitness: Cross Training (VIP)', detail: `MWF + TTHS · ₱${madCrossTraining.toLocaleString()}/mo VIP rate (orig. ₱${madCrossTrainingBase.toLocaleString()})` },
+        { value: `Gymnastics (VIP) – ₱${madGymnastics.toLocaleString()}/mo`, name: 'After School: Gymnastics (VIP)', detail: `Saturdays 8:30–10:30 am · ₱${madGymnastics.toLocaleString()}/mo VIP rate (orig. ₱${madGymnasticsBase.toLocaleString()})` },
+        { value: `Ballet Class (VIP) – ₱${madBallet.toLocaleString()}/mo`, name: 'After School: Ballet Class (VIP)', detail: `Saturdays 10:30 am–12:30 pm · ₱${madBallet.toLocaleString()}/mo VIP rate (orig. ₱${madBalletBase.toLocaleString()})` },
+        { value: `Taekwondo (VIP) – ₱${madTaekwondo.toLocaleString()}/mo`, name: 'After School: Taekwondo (VIP)', detail: `Sat 12:30–2:30 pm / TTHS 5:30–6:30 pm · ₱${madTaekwondo.toLocaleString()}/mo VIP rate (orig. ₱${madTaekwondoBase.toLocaleString()})` },
+        { value: `Pop Dancing (VIP) – ₱${madPopDancing.toLocaleString()}/mo`, name: 'After School: Pop Dancing (VIP)', detail: `MWF 5:30–6:30 pm · ₱${madPopDancing.toLocaleString()}/mo VIP rate (orig. ₱${madPopDancingBase.toLocaleString()})` },
       ],
       'Summer Blast': [
         { value: `Registration Fee – ₱${sbRegFee.toLocaleString()}`, name: `Registration Fee (Slot Reservation) – ₱${sbRegFee.toLocaleString()}`, detail: `₱${sbRegFee.toLocaleString()} · Slot Reservation · Free t-shirt, recital fee, certs` },
@@ -315,6 +508,23 @@
         const merged = Object.assign({}, cur, data.settings);
         localStorage.setItem('einsteinSettings', JSON.stringify(merged));
         refreshProgramPackagesVip();
+      }
+    } catch (e) {}
+
+    // Price Management stores program package rates in program_packages. Keep
+    // the enrollment flow in sync so Studio Rental always shows the current
+    // hourly rate instead of the old hard-coded default.
+    try {
+      const rateRes = await fetch(apiUrl('api/load_rates.php'), { cache: 'no-store', credentials: 'same-origin' });
+      const rateData = await rateRes.json();
+      if (rateData && rateData.success && rateData.rates) {
+        let cur = {};
+        try { cur = JSON.parse(localStorage.getItem('einsteinSettings')) || {}; } catch (e) {}
+        const merged = Object.assign({}, cur);
+        Object.keys(rateData.rates).forEach(key => {
+          if (Array.isArray(rateData.rates[key]) && rateData.rates[key].length) merged[key] = rateData.rates[key];
+        });
+        localStorage.setItem('einsteinSettings', JSON.stringify(merged));
       }
     } catch (e) {}
   }
@@ -429,13 +639,16 @@
     if (isVip) {
       refreshProgramPackagesVip();
       if (PROGRAM_PACKAGES_VIP[normalized]) {
-        return PROGRAM_PACKAGES_VIP[normalized];
+        return (PROGRAM_PACKAGES_VIP[normalized] || []).filter(p =>
+          !/studio\s+rental/i.test(`${p.name || ''} ${p.value || ''}`)
+          && (normalized !== 'Summer Blast' || isSummerBlastTuitionPackage(p) || isSummerBlastRegistrationPackage(p))
+        );
       }
     }
     if (normalized === 'Summer Blast') {
       const settings = getEinsteinSiteSettings();
       if (settings && Array.isArray(settings.summerblast) && settings.summerblast.length) {
-        return settings.summerblast.map(pkg => {
+        return settings.summerblast.filter(pkg => isSummerBlastTuitionPackage(pkg) || isSummerBlastRegistrationPackage(pkg)).map(pkg => {
           const numVal = parseFloat(String(pkg.rate).replace(/[^0-9.]/g, '')) || 0;
           return {
             value: `${pkg.name} – ₱${numVal.toLocaleString()}`,
@@ -445,7 +658,70 @@
         });
       }
     }
-    return PROGRAM_PACKAGES[normalized] || [];
+  if (normalized === 'M.A.D. Studio') {
+    const settings = getEinsteinSiteSettings() || {};
+    const madRates = Array.isArray(settings.madstudio) ? settings.madstudio : [];
+    const dynamicMad = madRates
+      .filter(pkg => pkg && pkg.name && !/studio\s+rental/i.test(String(pkg.name)))
+      .map(pkg => {
+        const rawName = String(pkg.name).trim();
+        const rateValue = parseFloat(String(pkg.rate || '').replace(/[^0-9.]/g, '')) || 0;
+        if (!rateValue) return null;
+
+        const rateText = `₱${rateValue.toLocaleString('en-PH')}/mo`;
+        const category = String(pkg.category || '').trim();
+        const label = /after\s*school/i.test(category)
+          ? `After School: ${rawName}`
+          : /fitness/i.test(category)
+            ? `Fitness: ${rawName}`
+            : rawName;
+        const schedule = String(pkg.schedule || '').trim();
+
+        return {
+          value: `${rawName} – ${rateText}`,
+          name: label,
+          detail: `${schedule ? `${schedule} · ` : ''}${rateText} per month`
+        };
+      })
+      .filter(Boolean);
+
+    if (dynamicMad.length) return dynamicMad;
+  }
+    return (PROGRAM_PACKAGES[normalized] || []).filter(p =>
+      !/studio\s+rental/i.test(`${p.name || ''} ${p.value || ''}`)
+      && (normalized !== 'Summer Blast' || isSummerBlastTuitionPackage(p) || isSummerBlastRegistrationPackage(p))
+    );
+  }
+
+  function getStudioRentalRate() {
+    const settings = getEinsteinSiteSettings() || {};
+    const rental = Array.isArray(settings.madstudio)
+      ? settings.madstudio.find(item => /studio\s+rental/i.test(String(item?.name || '')))
+      : null;
+    const parsed = rental ? parseFloat(String(rental.rate || '').replace(/[^0-9.]/g, '')) : NaN;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 450;
+  }
+
+  function getStudioRentalTotal(days, rate = getStudioRentalRate()) {
+    return (Array.isArray(days) ? days : []).reduce((sum, day) => {
+      const hours = Math.max(0, parseInt(day?.hours, 10) || 0);
+      return sum + (hours * rate);
+    }, 0);
+  }
+
+  function isMadStudioService(progKey) {
+    return String(progKey || '').toLowerCase() === 'madstudio';
+  }
+
+  function hasUsableService(svc, progKey) {
+    if (!svc?.enrolled) return false;
+    if (!isMadStudioService(progKey)) return true;
+    return Boolean(String(svc.package || '').trim()) || (Array.isArray(svc.rentalDays) && svc.rentalDays.length > 0);
+  }
+
+  function isStudioRentalOnlyForm() {
+    const active = (formData.children_list || []).flatMap(child => Object.entries(child.services || {}).filter(([progKey, svc]) => hasUsableService(svc, progKey)));
+    return active.length > 0 && active.every(([progKey, svc]) => isMadStudioService(progKey) && !String(svc.package || '').trim() && Array.isArray(svc.rentalDays) && svc.rentalDays.length > 0);
   }
 
   const TAGBILARAN_BARANGAYS = [
@@ -762,6 +1038,7 @@
         const found = availablePkgs.find(p => p.value === matchedPackage || p.name === matchedPackage || (matchedPackage && p.name && p.name.includes(matchedPackage)));
         if (found) matchedPackage = found.value;
       }
+      if (progKey === 'madstudio' && /studio\s+rental/i.test(matchedPackage)) matchedPackage = '';
 
       const defaultServices = {};
       if (progKey) {
@@ -1083,10 +1360,23 @@
               '4:00 PM - 5:00 PM',
               '5:00 PM - 6:00 PM'
             ];
+            const rentalRate = getStudioRentalRate();
+            const rentalDays = Array.isArray(svc.rentalDays) ? svc.rentalDays : [];
+            const rentalTotal = getStudioRentalTotal(rentalDays, rentalRate);
+            const registrationPackage = isSummerBlastService(prog.key)
+              ? pkgs.find(isSummerBlastRegistrationPackage)
+              : null;
+            const packageOptions = isSummerBlastService(prog.key)
+              ? pkgs.filter(p => !isSummerBlastRegistrationPackage(p))
+              : pkgs;
 
-            if (pkgs.length === 1 && !svc.package) {
-              svc.package = pkgs[0].value;
+            if (svc.summerRegistration && registrationPackage && !svc.package) {
+              svc.package = registrationPackage.value;
             }
+            if (packageOptions.length === 1 && !svc.package && !svc.summerRegistration && !isSummerBlastService(prog.key)) {
+              svc.package = packageOptions[0].value;
+            }
+            const isSummerRegistration = isSummerBlastService(prog.key) && isSummerBlastRegistrationService(svc);
 
             return `
               <div style="padding:10px 12px;border:1px solid #e5d9ce;border-radius:8px;margin-bottom:8px;background:#fcfbf9;box-sizing:border-box;width:100%">
@@ -1095,12 +1385,19 @@
                   <button onclick="toggleSvc(${ci}, '${prog.key}', false)" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:20px;line-height:1;padding:0" title="Remove Program">&times;</button>
                 </div>
                 <div style="display:grid;gap:7px;box-sizing:border-box;width:100%">
-                  ${pkgs.length ? `
+                  ${registrationPackage ? `
+                  <label style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:#fffaf3;border:1px solid #dec6ac;border-radius:7px;color:#5c3317;font-size:12px;line-height:1.35;cursor:pointer">
+                    <input type="radio" class="ec-sb-registration" data-ci="${ci}" data-prog="${prog.key}" data-package="${esc(registrationPackage.value)}" name="summer-registration-${ci}" ${isSummerRegistration ? 'checked' : ''} onchange="handleSummerBlastRegistrationChange(this, ${ci})" style="margin-top:2px;accent-color:#8b5e3c">
+                    <span><strong>Registration Fee</strong><br><span style="font-size:11px;color:#8b6f47">${esc(registrationPackage.name)} · Register first without choosing a tuition package.</span></span>
+                  </label>` : ''}
+                  ${packageOptions.length ? `
                   <select class="ec-pkg" data-ci="${ci}" data-prog="${prog.key}" onchange="handlePkgChange(this, ${ci}, '${prog.key}')"
                     style="font-size:12px;padding:9px 12px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box;cursor:pointer">
-                    ${pkgs.length > 1 ? '<option value="">Select package…</option>' : ''}
-                    ${pkgs.map(p => `<option value="${esc(p.value)}" ${svc.package === p.value ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+                    ${packageOptions.length > 1 ? '<option value="">Select package…</option>' : ''}
+                    ${packageOptions.map(p => `<option value="${esc(p.value)}" ${svc.package === p.value && !isSummerRegistration ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
                   </select>` : ''}
+                  ${isSummerBlastService(prog.key) && !isSummerRegistration ? renderSummerBlastCoursePicker(ci, svc) : ''}
+                  ${isSummerRegistration ? '<div style="padding:8px 10px;background:#f7f1e7;border:1px solid #e5d9ce;border-radius:6px;color:#8b6f47;font-size:11px">Registration Fee only — preferred date and timeslot are not required.</div>' : ''}
                   ${prog.key === 'workshop' ? `
                   <div id="homebased-wrap-${ci}-${prog.key}" class="ec-hb-wrap" style="display:${(svc.package || '').toLowerCase().includes('home based') ? 'grid' : 'none'};grid-template-columns:1fr 1fr;gap:7px;box-sizing:border-box;width:100%;margin-top:2px;padding:9px 11px;background:#fbf7f0;border:1px solid #e0cfb8;border-radius:6px">
                     <div style="min-width:0">
@@ -1124,7 +1421,7 @@
                         style="font-size:12px;padding:8px 10px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box">
                     </div>
                   </div>` : ''}
-                  ${prog.key !== 'vip' ? `
+                  ${prog.key !== 'vip' && !isSummerRegistration ? `
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;box-sizing:border-box;width:100%;overflow:hidden">
                     <input type="text" class="ec-date" data-ci="${ci}" data-prog="${prog.key}" data-validate="schedule"
                       list="dates-${ci}-${prog.key}"
@@ -1155,6 +1452,35 @@
                       <option value="4:00 PM - 5:00 PM">
                       <option value="5:00 PM - 6:00 PM">
                     </datalist>
+                  </div>` : ''}
+                  ${isMadStudioService(prog.key) ? `
+                  <div style="margin-top:2px;padding:10px 11px;background:#fffaf3;border:1px solid #dec6ac;border-radius:7px;box-sizing:border-box;width:100%">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px">
+                      <div>
+                        <div style="font-size:12px;font-weight:700;color:#5c3317">Studio Rental <span style="font-size:11px;font-weight:600;color:#8b6f47">· ₱${rentalRate.toLocaleString('en-PH')}/hour</span></div>
+                        <div style="font-size:11px;color:#8b6f47;line-height:1.35;margin-top:2px">Optional with MAD Studio, or leave the package blank for Studio Rental only.</div>
+                      </div>
+                      <span style="font-size:10px;color:#8b6f47;white-space:nowrap">Price Management rate</span>
+                    </div>
+                    ${rentalDays.map((day, ri) => `
+                      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(90px,.8fr) auto;gap:7px;align-items:end;margin-top:7px">
+                        <div>
+                          ${ri === 0 ? '<label style="display:block;font-size:10px;font-weight:700;color:#8b6f47;margin-bottom:3px">Specific Day</label>' : ''}
+                          <input type="date" class="ec-rental-day" data-ci="${ci}" data-prog="${prog.key}" data-ri="${ri}" value="${esc(day?.date || '')}"
+                            style="font-size:12px;padding:8px 9px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box">
+                        </div>
+                        <div>
+                          ${ri === 0 ? '<label style="display:block;font-size:10px;font-weight:700;color:#8b6f47;margin-bottom:3px">Hours (min. 1)</label>' : ''}
+                          <input type="number" min="1" step="1" class="ec-rental-hours" data-ci="${ci}" data-prog="${prog.key}" data-ri="${ri}" value="${esc(day?.hours || '')}" placeholder="1"
+                            style="font-size:12px;padding:8px 9px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box">
+                        </div>
+                        <button type="button" onclick="removeStudioRentalDay(${ci}, ${ri})" title="Remove day" aria-label="Remove day"
+                          style="height:34px;padding:0 9px;border:1px solid #e5d9ce;border-radius:6px;background:#fff;color:#c0392b;cursor:pointer;font-size:16px">&times;</button>
+                      </div>`).join('')}
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;flex-wrap:wrap">
+                      <button type="button" onclick="addStudioRentalDay(${ci})" style="padding:6px 10px;border:1px dashed #c4a97e;border-radius:6px;background:#fff;color:#8b6f47;font-size:11px;cursor:pointer;font-family:inherit">+ Add Day</button>
+                      ${rentalTotal > 0 ? `<strong style="font-size:12px;color:#5c3317">Rental total: ₱${rentalTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>` : ''}
+                    </div>
                   </div>` : ''}
                 </div>
               </div>`;
@@ -1357,10 +1683,11 @@
       }
 
       const children = formData.children_list || [];
+      const rentalOnlyFlow = isStudioRentalOnlyForm();
       const PROG_LABELS = {
         tutoring: 'Academic Tutorial', workshop: 'Weekend Workshop',
         playschool: 'Playschool', childcare: 'Child Care Program',
-        madstudio: 'M.A.D. Studio', vip: 'VIP Club Membership'
+        madstudio: 'M.A.D. Studio', summerblast: 'Summer Blast', vip: 'VIP Club Membership'
       };
       const summaryRows = children.map((c, i) => {
         const svcs = Object.entries(c.services || {}).filter(([, v]) => v && v.enrolled);
@@ -1368,10 +1695,10 @@
         return `
           <div style="margin-bottom:12px">
             <div style="font-size:12px;font-weight:700;color:#8b6f47;text-transform:uppercase;margin-bottom:6px">
-              👤 ${esc(c.name)} (Child ${i + 1}) — ${esc(c.age)} · ${esc(c.grade)} · ${esc(c.school)}
+              • ${esc(c.name)} (Child ${i + 1}) — ${esc(c.age)} · ${esc(c.grade)} · ${esc(c.school)}
             </div>
             ${svcs.map(([k, v]) => {
-              const pkgRaw = v.package || v.timeslot || 'Enrolled';
+              const pkgRaw = v.package || (isMadStudioService(k) && Array.isArray(v.rentalDays) && v.rentalDays.length ? 'Studio Rental Only' : (v.timeslot || 'Enrolled'));
               const isVipPkg = pkgRaw.toLowerCase().includes('(vip)');
               // Extract numeric price from package string (e.g. "Regular Package (VIP) – ₱2,970")
               const priceMatch = pkgRaw.match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/);
@@ -1380,16 +1707,24 @@
               const cleanName = pkgRaw
                 .replace(/\s*\(VIP(?:\s+Discounted)?\)/gi, '')
                 .replace(/\s*[–\-]\s*₱[0-9,]+(?:\/[a-z]+)?/gi, '')
+                .replace(/\s+/g, ' ')
                 .trim();
               const vipBadge = isVipPkg ? `<span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fde68a;padding:1px 7px;border-radius:999px;margin-left:4px;vertical-align:middle">VIP Rate</span>` : '';
               const priceDisplay = price ? `<span style="font-size:12px;color:${isVipPkg ? '#166534' : '#5e3a21'};font-weight:700;margin-left:6px;white-space:nowrap">${price}${pkgRaw.includes('/mo') || pkgRaw.includes('/month') ? '/mo' : pkgRaw.includes('/hour') ? '/hr' : ''}</span>` : '';
               const locationNote = v.barangay && v.purok ? `<span style="font-size:11px;color:#8b6f47;margin-left:4px"> · Brgy. ${esc(v.barangay)}, Purok ${esc(v.purok)}</span>` : '';
+              const rentalTotal = isMadStudioService(k) ? getStudioRentalTotal(v.rentalDays) : 0;
+              const rentalDisplay = rentalTotal > 0
+                ? `<span style="font-size:11px;color:#8b6f47;font-weight:700;margin-left:6px;white-space:nowrap">+ Studio Rental ₱${rentalTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`
+                : '';
+              const summerSelection = isSummerBlastService(k) ? formatSummerBlastSelection(v) : '';
+              const serviceLabel = isMadStudioService(k) && !String(v.package || '').trim() && rentalTotal > 0 ? 'Studio Rental' : (PROG_LABELS[k] || k);
               return `
-              <div class="ef-sum-row" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(94,58,33,0.06);gap:8px;">
-                <span style="color:#5e3a21;font-weight:600">${PROG_LABELS[k] || k}</span>
-                <span style="text-align:right;display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:4px">
-                  <strong style="font-size:13px">${esc(cleanName)}</strong>${vipBadge}${priceDisplay}${locationNote}
+              <div class="ef-sum-row" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;padding:12px 12px;border-bottom:1px solid rgba(94,58,33,0.06);gap:12px;">
+                <span style="color:#5e3a21;font-weight:600;white-space:nowrap">${serviceLabel}</span>
+                <span style="min-width:0;flex:1;text-align:right;display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:8px">
+                  <strong style="font-size:13px;white-space:nowrap">${esc(cleanName || 'Studio Rental Only')}</strong>${vipBadge}${priceDisplay}${rentalDisplay}${locationNote}
                 </span>
+                ${summerSelection}
               </div>`;
             }).join('')}
           </div>`;
@@ -1398,23 +1733,25 @@
       const totalServices = children.reduce((sum, c) => sum + Object.values(c.services || {}).filter(v => v && v.enrolled).length, 0);
 
       let programsTotal = 0;
+      let studioRentalTotal = 0;
       children.forEach((c) => {
-        Object.entries(c.services || {}).forEach(([, v]) => {
+        Object.entries(c.services || {}).forEach(([progKey, v]) => {
           if (!v || !v.enrolled) return;
           const pkgRaw = v.package || v.timeslot || '';
           const priceMatch = pkgRaw.match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/);
           if (priceMatch) {
             programsTotal += parseFloat(priceMatch[1].replace(/,/g, ''));
           }
+          if (isMadStudioService(progKey)) studioRentalTotal += getStudioRentalTotal(v.rentalDays);
         });
       });
       const vipTotal = formData.joinVip ? (Number(window.vipFee) || 500) : 0;
-      const totalAmountPayable = programsTotal + vipTotal;
+      const totalAmountPayable = programsTotal + studioRentalTotal + vipTotal;
       const fmtMoney = num => '₱' + Number(num).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       return `
         <div class="ef-fieldset-title">Review & Submit</div>
-        <p class="ef-sub">Please review before submitting. ${totalServices} service enrollment(s) total.</p>
+        <p class="ef-sub">${rentalOnlyFlow ? 'Review your Studio Rental booking before submitting.' : `Please review before submitting. ${totalServices} service enrollment(s) total.`}</p>
         <div class="ef-summary-card">
           <div class="ef-sum-row"><span>Guardian</span><strong>${esc(formData.guardian_name || '—')}</strong></div>
           <div class="ef-sum-row"><span>Contact</span><strong>${esc(formData.contact || '—')}</strong></div>
@@ -1422,8 +1759,8 @@
           <div class="ef-sum-row"><span>Start Date</span><strong>${esc(formData.start_date || '—')}</strong></div>
           <div class="ef-sum-row"><span>Payment</span><strong id="efPaymentDisplay">${esc(formData.payment_method || '—')}</strong></div>
         </div>
-        <div class="ef-summary-card" style="margin-top:12px">
-          <div style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Enrollments (${totalServices + (formData.joinVip ? 1 : 0)})</div>
+        <div class="ef-summary-card" style="margin-top:14px;padding:12px 14px 14px">
+           <div style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">${rentalOnlyFlow ? 'Studio Rental Bookings' : `Enrollments (${totalServices + (formData.joinVip ? 1 : 0)})`}</div>
           ${summaryRows}
           ${formData.joinVip ? `
           <div style="margin-top:10px;padding:10px 12px;background:#fdf8f3;border:1px solid #dec6ac;border-radius:8px;display:flex;align-items:center;justify-content:space-between">
@@ -1439,9 +1776,13 @@
             <div>
               <div style="font-size:11px;font-weight:700;color:#8b6f47;text-transform:uppercase;letter-spacing:0.05em">Total Amount Payable</div>
               <div style="font-size:11px;color:#6d4c33;margin-top:2px">
-                ${formData.joinVip
-                  ? `Enrollment (${fmtMoney(programsTotal)}) + VIP (${fmtMoney(vipTotal)})`
-                  : `Enrollment Total (${totalServices} service${totalServices === 1 ? '' : 's'})`}
+                ${rentalOnlyFlow
+                  ? `Studio Rental Only (${fmtMoney(studioRentalTotal)})`
+                  : formData.joinVip
+                  ? `Enrollment (${fmtMoney(programsTotal)})${studioRentalTotal > 0 ? ` + Studio Rental (${fmtMoney(studioRentalTotal)})` : ''} + VIP (${fmtMoney(vipTotal)})`
+                  : studioRentalTotal > 0
+                    ? `Enrollment (${fmtMoney(programsTotal)}) + Studio Rental (${fmtMoney(studioRentalTotal)})`
+                    : `Enrollment Total (${totalServices} service${totalServices === 1 ? '' : 's'})`}
               </div>
             </div>
             <div style="font-size:18px;font-weight:800;color:#3d1f0a;white-space:nowrap">
@@ -1816,6 +2157,31 @@
       const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog;
       if (newList[ci]?.services[prog]) newList[ci].services[prog].package = el.value;
     });
+    document.querySelectorAll('.ec-sb-registration').forEach(el => {
+      const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog;
+      const svc = newList[ci]?.services[prog];
+      if (!svc) return;
+      svc.summerRegistration = Boolean(el.checked);
+      if (el.checked) svc.package = el.dataset.package || svc.package || 'Registration Fee – ₱900';
+      else if (isSummerBlastRegistrationPackage(svc.package)) svc.package = '';
+    });
+    document.querySelectorAll('.ec-sb-main').forEach(el => {
+      const ci = parseInt(el.dataset.ci);
+      const prog = el.dataset.prog;
+      const index = parseInt(el.dataset.index);
+      const svc = newList[ci]?.services[prog];
+      if (!svc || Number.isNaN(index)) return;
+      if (!svc.summerCourses || !Array.isArray(svc.summerCourses.main)) svc.summerCourses = { main: [], free: '' };
+      svc.summerCourses.main[index] = el.value;
+    });
+    document.querySelectorAll('.ec-sb-free').forEach(el => {
+      const ci = parseInt(el.dataset.ci);
+      const prog = el.dataset.prog;
+      const svc = newList[ci]?.services[prog];
+      if (!svc) return;
+      if (!svc.summerCourses || !Array.isArray(svc.summerCourses.main)) svc.summerCourses = { main: [], free: '' };
+      svc.summerCourses.free = el.value;
+    });
     document.querySelectorAll('.ec-brgy').forEach(el => {
       const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog;
       if (newList[ci]?.services[prog]) newList[ci].services[prog].barangay = el.value.trim();
@@ -1837,10 +2203,73 @@
         newList[ci].services[prog].timeslot = (d && t) ? (d + ' ' + t) : (d || t);
       }
     });
+    document.querySelectorAll('.ec-rental-day, .ec-rental-hours').forEach(el => {
+      const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog; const ri = parseInt(el.dataset.ri);
+      const svc = newList[ci]?.services[prog];
+      if (!svc || !isMadStudioService(prog) || Number.isNaN(ri)) return;
+      if (!Array.isArray(svc.rentalDays)) svc.rentalDays = [];
+      if (!svc.rentalDays[ri]) svc.rentalDays[ri] = {};
+      if (el.classList.contains('ec-rental-day')) svc.rentalDays[ri].date = el.value;
+      else svc.rentalDays[ri].hours = el.value;
+    });
+    newList.forEach(child => {
+      Object.values(child.services || {}).forEach(svc => {
+        if (Array.isArray(svc.rentalDays)) svc.rentalDays = svc.rentalDays.filter(day => day && (day.date || day.hours));
+      });
+    });
 
     // Validate — at least one service must be selected across all children
-    const totalSvcs = newList.reduce((sum, c) => sum + Object.values(c.services || {}).filter(v => v && v.enrolled).length, 0);
+    const totalSvcs = newList.reduce((sum, c) => sum + Object.entries(c.services || {}).filter(([progKey, v]) => hasUsableService(v, progKey)).length, 0);
     if (totalSvcs === 0) { showError('Please select at least one program/service for a child.'); return; }
+
+    for (let ci = 0; ci < newList.length; ci++) {
+      const child = newList[ci];
+      const mad = child.services?.madstudio;
+      if (mad?.enrolled && !String(mad.package || '').trim() && !(mad.rentalDays || []).length) {
+        showError(`Please select a MAD Studio package or add at least one Studio Rental day for Child ${ci + 1}.`);
+        return;
+      }
+      for (const day of mad?.rentalDays || []) {
+        if (!day.date) {
+          showError(`Please select a specific Studio Rental day for Child ${ci + 1}.`);
+          return;
+        }
+        if (!/^\d+$/.test(String(day.hours || '')) || parseInt(day.hours, 10) < 1) {
+          showError(`Studio Rental hours for Child ${ci + 1} must be at least 1 hour.`);
+          return;
+        }
+      }
+
+      for (const [progKey, svc] of Object.entries(child.services || {})) {
+        if (!svc || !svc.enrolled || !isSummerBlastService(progKey)) continue;
+        if (isSummerBlastRegistrationService(svc)) {
+          svc.prefDate = '';
+          svc.prefTime = '';
+          svc.timeslot = '';
+          svc.summerCourses = { main: [], free: '' };
+          continue;
+        }
+        const normalized = normalizeSummerBlastCourses(svc);
+        if (!normalized) {
+          showError(`Please select a Summer Blast tuition package for Child ${ci + 1}.`);
+          return;
+        }
+        const { rule, selection } = normalized;
+        if (selection.main.some(course => !course)) {
+          showError(`${rule.instruction}. Please complete the required main course selection for Child ${ci + 1}.`);
+          return;
+        }
+        if (!selection.free) {
+          showError(`${rule.instruction}. Please select the required free course for Child ${ci + 1}.`);
+          return;
+        }
+        const allSelected = selection.main.concat(selection.free);
+        if (new Set(allSelected).size !== allSelected.length) {
+          showError(`Please select different courses for the paid and free selections for Child ${ci + 1}.`);
+          return;
+        }
+      }
+    }
 
     // Validate Home Based requirements for Weekend Workshop
     for (let ci = 0; ci < newList.length; ci++) {
@@ -1872,7 +2301,7 @@
     formData.child_age = first.age;
     formData.child_grade = first.grade;
     formData.child_school = first.school;
-    const firstSvc = Object.entries(first.services || {}).find(([, v]) => v && v.enrolled);
+    const firstSvc = Object.entries(first.services || {}).find(([progKey, v]) => hasUsableService(v, progKey));
     if (firstSvc) {
       let pSelected = firstSvc[1].package || '';
       if (firstSvc[1].barangay && firstSvc[1].purok) {
@@ -1888,6 +2317,25 @@
 
   // ── PACKAGE CHANGE DYNAMIC HANDLER ────────────────────────────────
   window.handlePkgChange = function (sel, ci, progKey) {
+    if (isSummerBlastService(progKey)) {
+      collectChildrenFromDOM();
+      const service = formData.children_list?.[ci]?.services?.[progKey];
+      if (service) {
+        service.package = sel.value;
+        service.summerRegistration = false;
+        if (isSummerBlastRegistrationPackage(service.package)) {
+          service.prefDate = '';
+          service.prefTime = '';
+          service.timeslot = '';
+          service.summerCourses = { main: [], free: '' };
+        }
+        normalizeSummerBlastCourses(service);
+      }
+      const body = qs('#efBody');
+      if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
+      return;
+    }
+
     const isHb = sel.value && sel.value.toLowerCase().includes('home based');
     const wrap = document.getElementById(`homebased-wrap-${ci}-${progKey}`);
     if (wrap) {
@@ -1902,6 +2350,40 @@
         if (purokInp) purokInp.value = '';
       }
     }
+  };
+
+  window.handleSummerBlastRegistrationChange = function (sel, ci) {
+    collectChildrenFromDOM();
+    const service = formData.children_list?.[ci]?.services?.summerblast;
+    if (!service) return;
+    service.summerRegistration = Boolean(sel?.checked);
+    if (service.summerRegistration) {
+      service.package = sel?.dataset?.package || service.package || 'Registration Fee – ₱900';
+      service.prefDate = '';
+      service.prefTime = '';
+      service.timeslot = '';
+      service.summerCourses = { main: [], free: '' };
+    } else if (isSummerBlastRegistrationPackage(service.package)) {
+      service.package = '';
+    }
+    const body = qs('#efBody');
+    if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
+  };
+
+  window.handleSummerBlastCourseChange = function (sel, ci) {
+    collectChildrenFromDOM();
+    const service = formData.children_list?.[ci]?.services?.summerblast;
+    if (!service) return;
+    if (!service.summerCourses || !Array.isArray(service.summerCourses.main)) {
+      service.summerCourses = { main: [], free: '' };
+    }
+    if (sel?.classList?.contains('ec-sb-main')) {
+      const index = parseInt(sel.dataset.index, 10);
+      if (!Number.isNaN(index)) service.summerCourses.main[index] = sel.value;
+    } else if (sel?.classList?.contains('ec-sb-free')) {
+      service.summerCourses.free = sel.value;
+    }
+    normalizeSummerBlastCourses(service);
   };
 
   // ── ADD / REMOVE CHILD ─────────────────────────────────────────────
@@ -1938,6 +2420,25 @@
     if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
   };
 
+  window.addStudioRentalDay = function (ci) {
+    collectChildrenFromDOM();
+    const child = formData.children_list?.[ci];
+    if (!child?.services?.madstudio) return;
+    if (!Array.isArray(child.services.madstudio.rentalDays)) child.services.madstudio.rentalDays = [];
+    child.services.madstudio.rentalDays.push({ date: '', hours: '' });
+    const body = qs('#efBody');
+    if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
+  };
+
+  window.removeStudioRentalDay = function (ci, ri) {
+    collectChildrenFromDOM();
+    const days = formData.children_list?.[ci]?.services?.madstudio?.rentalDays;
+    if (!Array.isArray(days)) return;
+    days.splice(ri, 1);
+    const body = qs('#efBody');
+    if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
+  };
+
   window.toggleVipOption = function () {
     if (isCurrentUserVipActive() || isCurrentUserVipPending()) {
       formData.joinVip = false;
@@ -1955,8 +2456,12 @@
         if (svc && svc.package) {
           const prog = ALL_PROGS.find(p => p.key === progKey);
           if (prog) {
-            const oldPkgs = prevVip ? (PROGRAM_PACKAGES_VIP[prog.label] || []) : (PROGRAM_PACKAGES[prog.label] || []);
-            const newPkgs = isVipNow ? (PROGRAM_PACKAGES_VIP[prog.label] || []) : (PROGRAM_PACKAGES[prog.label] || []);
+            const filterPackages = packages => (packages || []).filter(p =>
+              !/studio\s+rental/i.test(`${p.name || ''} ${p.value || ''}`)
+              && (prog.key !== 'summerblast' || isSummerBlastTuitionPackage(p) || isSummerBlastRegistrationPackage(p))
+            );
+            const oldPkgs = filterPackages(prevVip ? PROGRAM_PACKAGES_VIP[prog.label] : PROGRAM_PACKAGES[prog.label]);
+            const newPkgs = filterPackages(isVipNow ? PROGRAM_PACKAGES_VIP[prog.label] : PROGRAM_PACKAGES[prog.label]);
             const idx = oldPkgs.findIndex(p => p.value === svc.package);
             if (idx >= 0 && newPkgs[idx]) {
               svc.package = newPkgs[idx].value;
@@ -1982,6 +2487,14 @@
       const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog;
       if (list[ci]?.services[prog]) list[ci].services[prog].package = el.value;
     });
+    document.querySelectorAll('.ec-sb-registration').forEach(el => {
+      const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog;
+      const svc = list[ci]?.services[prog];
+      if (!svc) return;
+      svc.summerRegistration = Boolean(el.checked);
+      if (el.checked) svc.package = el.dataset.package || svc.package || 'Registration Fee – ₱900';
+      else if (isSummerBlastRegistrationPackage(svc.package)) svc.package = '';
+    });
     document.querySelectorAll('.ec-brgy').forEach(el => {
       const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog;
       if (list[ci]?.services[prog]) list[ci].services[prog].barangay = el.value.trim();
@@ -2002,6 +2515,28 @@
         const t = el.value || '';
         list[ci].services[prog].timeslot = (d && t) ? (d + ' ' + t) : (d || t);
       }
+    });
+    document.querySelectorAll('.ec-rental-day, .ec-rental-hours').forEach(el => {
+      const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog; const ri = parseInt(el.dataset.ri);
+      const svc = list[ci]?.services[prog];
+      if (!svc || !isMadStudioService(prog) || Number.isNaN(ri)) return;
+      if (!Array.isArray(svc.rentalDays)) svc.rentalDays = [];
+      if (!svc.rentalDays[ri]) svc.rentalDays[ri] = {};
+      if (el.classList.contains('ec-rental-day')) svc.rentalDays[ri].date = el.value;
+      else svc.rentalDays[ri].hours = el.value;
+    });
+    list.forEach(child => {
+      Object.values(child.services || {}).forEach(svc => {
+        if (Array.isArray(svc.rentalDays)) svc.rentalDays = svc.rentalDays.filter(day => day && (day.date || day.hours));
+      });
+      Object.values(child.services || {}).forEach(svc => {
+        if (isSummerBlastRegistrationPackage(svc?.package)) {
+          svc.prefDate = '';
+          svc.prefTime = '';
+          svc.timeslot = '';
+          svc.summerCourses = { main: [], free: '' };
+        }
+      });
     });
     formData.children_list = list;
   }
@@ -2040,28 +2575,56 @@
       const PROG_MAP = {
         tutoring: 'Academic Tutorial', workshop: 'Weekend Workshop',
         playschool: 'Playschool', childcare: 'Child Care Program',
-        madstudio: 'M.A.D. Studio', vip: 'VIP Club Membership',
+        madstudio: 'M.A.D. Studio', summerblast: 'Summer Blast', vip: 'VIP Club Membership',
       };
+      // Every request created by one Review & Submit action shares this ID.
+      // The admin uses it to keep same-submission children together while
+      // keeping later enrollments from the same parent in separate rows.
+      const submissionBatchId = `batch-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const hasEnrollmentInSubmission = Boolean(formData.joinVip) || children.some(child =>
+        Object.entries(child.services || {}).some(([progKey, svc]) => {
+          if (!hasUsableService(svc, progKey)) return false;
+          if (isSummerBlastService(progKey) && isSummerBlastRegistrationService(svc)) return false;
+          if (isMadStudioService(progKey)
+            && !String(svc.package || '').trim()
+            && Array.isArray(svc.rentalDays)
+            && svc.rentalDays.length) return false;
+          return true;
+        })
+      );
 
       // Build one FormData submission per child-service combination
       const submissions = [];
       children.forEach(child => {
         Object.entries(child.services || {}).forEach(([progKey, svc]) => {
-          if (!svc?.enrolled) return;
+          if (!hasUsableService(svc, progKey)) return;
           if (!isVipFlow && progKey === 'vip') return;
           const fd = new FormData();
+          fd.append('submission_batch_id', submissionBatchId);
           fd.append('email', account.email || '');
           fd.append('user_id', account.userId || '');
-          fd.append('program', PROG_MAP[progKey] || progKey);
+          const studioRentalDays = isMadStudioService(progKey) && Array.isArray(svc.rentalDays) ? svc.rentalDays : [];
+          const isStudioRentalOnly = isMadStudioService(progKey) && !String(svc.package || '').trim() && studioRentalDays.length > 0;
+          fd.append('program', isStudioRentalOnly ? 'Studio Rental' : (PROG_MAP[progKey] || progKey));
           let pkgSelected = svc.package || '';
+          const isSummerRegistration = isSummerBlastService(progKey) && isSummerBlastRegistrationService(svc);
+          if (isSummerRegistration && !pkgSelected) pkgSelected = 'Registration Fee – ₱900';
           if (svc.barangay && svc.purok) {
             pkgSelected += ` (Brgy. ${svc.barangay}, Purok ${svc.purok})`;
             fd.append('barangay', svc.barangay);
             fd.append('purok', svc.purok);
           }
           fd.append('package_selected', pkgSelected);
-          fd.append('timeslot', svc.timeslot || '');
-          fd.append('start_date', formData.start_date || '');
+          fd.append('summer_registration_only', isSummerRegistration && !hasEnrollmentInSubmission ? '1' : '0');
+          fd.append('timeslot', isSummerRegistration ? '' : (svc.timeslot || ''));
+          if (isSummerBlastService(progKey) && !isSummerRegistration && svc.summerCourses) {
+            fd.append('summerblast_courses', JSON.stringify(svc.summerCourses));
+          }
+          if (studioRentalDays.length) {
+            fd.append('studio_rental_days', JSON.stringify(studioRentalDays));
+            fd.append('studio_rental_rate', String(getStudioRentalRate()));
+          }
+          fd.append('start_date', isSummerRegistration ? '' : (formData.start_date || ''));
           fd.append('child_name', child.name || '');
           fd.append('child_age', child.age || '');
           fd.append('child_grade', child.grade || '');
@@ -2079,6 +2642,7 @@
 
       if (formData.joinVip && !isCurrentUserVipActive()) {
         const vipFd = new FormData();
+        vipFd.append('submission_batch_id', submissionBatchId);
         vipFd.append('email', account.email || '');
         vipFd.append('user_id', account.userId || '');
         vipFd.append('program', 'VIP Club Membership');
@@ -2103,6 +2667,7 @@
       if (!submissions.length) {
         // Fallback — legacy single enrollment
         const fd = new FormData();
+        fd.append('submission_batch_id', submissionBatchId);
         fd.append('email', account.email || '');
         fd.append('user_id', account.userId || '');
         fd.append('program', formData.program || '');

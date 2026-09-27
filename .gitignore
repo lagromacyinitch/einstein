@@ -21,3 +21,6 @@ Thumbs.db
 # Private uploaded receipts and generated OCR cache.
 public/uploads/*
 !public/uploads/.htaccess
+
+# Local payment receipt uploads.
+/uploads/*
