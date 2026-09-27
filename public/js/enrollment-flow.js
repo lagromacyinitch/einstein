@@ -758,7 +758,7 @@
   }
 
   function lettersOnly(value) {
-    return String(value || '').replace(/[^A-Za-z\s]/g, '');
+    return String(value || '').replace(/[^A-Za-z\s'-]/g, '');
   }
 
   function sanitizeContactField(input) {
@@ -785,7 +785,7 @@
   function normalizeName(value) {
     const cleaned = lettersOnly(value).replace(/\s+/g, ' ').trim();
     if (!cleaned) return '';
-    return cleaned.toLowerCase().replace(/(^|\s)([a-z])/g, (_, gap, letter) => gap + letter.toUpperCase());
+    return cleaned.toLowerCase().replace(/(^|[\s'-])([a-z])/g, (_, gap, letter) => gap + letter.toUpperCase());
   }
 
   function installEnrollmentFieldValidation() {
@@ -1388,7 +1388,7 @@
                   ${registrationPackage ? `
                   <label style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:#fffaf3;border:1px solid #dec6ac;border-radius:7px;color:#5c3317;font-size:12px;line-height:1.35;cursor:pointer">
                     <input type="radio" class="ec-sb-registration" data-ci="${ci}" data-prog="${prog.key}" data-package="${esc(registrationPackage.value)}" name="summer-registration-${ci}" ${isSummerRegistration ? 'checked' : ''} onchange="handleSummerBlastRegistrationChange(this, ${ci})" style="margin-top:2px;accent-color:#8b5e3c">
-                    <span><strong>Registration Fee</strong><br><span style="font-size:11px;color:#8b6f47">${esc(registrationPackage.name)} · Register first without choosing a tuition package.</span></span>
+                    <span><strong>Registration Fee</strong><br><span style="font-size:11px;color:#8b6f47">${esc(registrationPackage.name)}</span></span>
                   </label>` : ''}
                   ${packageOptions.length ? `
                   <select class="ec-pkg" data-ci="${ci}" data-prog="${prog.key}" onchange="handlePkgChange(this, ${ci}, '${prog.key}')"
@@ -1458,7 +1458,7 @@
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px">
                       <div>
                         <div style="font-size:12px;font-weight:700;color:#5c3317">Studio Rental <span style="font-size:11px;font-weight:600;color:#8b6f47">· ₱${rentalRate.toLocaleString('en-PH')}/hour</span></div>
-                        <div style="font-size:11px;color:#8b6f47;line-height:1.35;margin-top:2px">Optional with MAD Studio, or leave the package blank for Studio Rental only.</div>
+                        <div style="font-size:11px;color:#8b6f47;line-height:1.35;margin-top:2px">Leave the package blank for Studio Rental only.</div>
                       </div>
                       <span style="font-size:10px;color:#8b6f47;white-space:nowrap">Price Management rate</span>
                     </div>
@@ -1470,8 +1470,8 @@
                             style="font-size:12px;padding:8px 9px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box">
                         </div>
                         <div>
-                          ${ri === 0 ? '<label style="display:block;font-size:10px;font-weight:700;color:#8b6f47;margin-bottom:3px">Hours (min. 1)</label>' : ''}
-                          <input type="number" min="1" step="1" class="ec-rental-hours" data-ci="${ci}" data-prog="${prog.key}" data-ri="${ri}" value="${esc(day?.hours || '')}" placeholder="1"
+                          ${ri === 0 ? '<label style="display:block;font-size:10px;font-weight:700;color:#8b6f47;margin-bottom:3px">Hours (1-99)</label>' : ''}
+                          <input type="number" min="1" max="99" maxlength="2" step="1" class="ec-rental-hours" data-ci="${ci}" data-prog="${prog.key}" data-ri="${ri}" value="${esc(String(day?.hours || '').replace(/\D/g, '').slice(0, 2))}" placeholder="1" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 2)"
                             style="font-size:12px;padding:8px 9px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box">
                         </div>
                         <button type="button" onclick="removeStudioRentalDay(${ci}, ${ri})" title="Remove day" aria-label="Remove day"
@@ -2210,7 +2210,7 @@
       if (!Array.isArray(svc.rentalDays)) svc.rentalDays = [];
       if (!svc.rentalDays[ri]) svc.rentalDays[ri] = {};
       if (el.classList.contains('ec-rental-day')) svc.rentalDays[ri].date = el.value;
-      else svc.rentalDays[ri].hours = el.value;
+      else svc.rentalDays[ri].hours = el.value.replace(/\D/g, '').slice(0, 2);
     });
     newList.forEach(child => {
       Object.values(child.services || {}).forEach(svc => {
@@ -2234,8 +2234,9 @@
           showError(`Please select a specific Studio Rental day for Child ${ci + 1}.`);
           return;
         }
-        if (!/^\d+$/.test(String(day.hours || '')) || parseInt(day.hours, 10) < 1) {
-          showError(`Studio Rental hours for Child ${ci + 1} must be at least 1 hour.`);
+        const rentalHours = parseInt(day.hours, 10);
+        if (!/^\d+$/.test(String(day.hours || '')) || rentalHours < 1 || rentalHours > 99) {
+          showError(`Studio Rental hours for Child ${ci + 1} must be between 1 and 99 hours.`);
           return;
         }
       }
@@ -2523,7 +2524,7 @@
       if (!Array.isArray(svc.rentalDays)) svc.rentalDays = [];
       if (!svc.rentalDays[ri]) svc.rentalDays[ri] = {};
       if (el.classList.contains('ec-rental-day')) svc.rentalDays[ri].date = el.value;
-      else svc.rentalDays[ri].hours = el.value;
+      else svc.rentalDays[ri].hours = el.value.replace(/\D/g, '').slice(0, 2);
     });
     list.forEach(child => {
       Object.values(child.services || {}).forEach(svc => {

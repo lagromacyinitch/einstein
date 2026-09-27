@@ -66,8 +66,47 @@ try {
 
     $selectCheck = $db->prepare('SELECT id FROM program_packages WHERE program_name = ? AND package_name = ? LIMIT 1');
     $insertStmt = $db->prepare('INSERT INTO program_packages (program_name, package_name, care_duration, rate, capacity_slots, package_type, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())');
+    $madDefaultCount = count(array_filter($defaultPackages, static function ($package) {
+        return ($package['program_name'] ?? '') === 'M.A.D. Studio';
+    }));
+    $existingMadCount = 0;
+    if ($madDefaultCount > 0) {
+        $madCountStmt = $db->query("SELECT COUNT(*) FROM program_packages WHERE program_name = 'M.A.D. Studio' AND package_type IN ('madstudio', 'mad')");
+        $existingMadCount = (int)$madCountStmt->fetchColumn();
+    }
+    $tutorialDefaultCount = count(array_filter($defaultPackages, static function ($package) {
+        return ($package['program_name'] ?? '') === 'Academic Tutorial';
+    }));
+    $existingTutorialCount = 0;
+    if ($tutorialDefaultCount > 0) {
+        $tutorialCountStmt = $db->query("SELECT COUNT(*) FROM program_packages WHERE program_name = 'Academic Tutorial' AND package_type = 'tutorial'");
+        $existingTutorialCount = (int)$tutorialCountStmt->fetchColumn();
+    }
+    $defaultProgramCounts = [
+        'Workshop' => ['type' => 'workshop', 'count' => count(array_filter($defaultPackages, static fn($package) => ($package['program_name'] ?? '') === 'Workshop'))],
+        'PlaySchool' => ['type' => 'playschool', 'count' => count(array_filter($defaultPackages, static fn($package) => ($package['program_name'] ?? '') === 'PlaySchool'))],
+        'Summer Blast' => ['type' => 'summerblast', 'count' => count(array_filter($defaultPackages, static fn($package) => ($package['program_name'] ?? '') === 'Summer Blast'))]
+    ];
+    $existingDefaultProgramCounts = [];
+    foreach ($defaultProgramCounts as $program => $config) {
+        $countStmt = $db->prepare('SELECT COUNT(*) FROM program_packages WHERE program_name = ? AND package_type = ?');
+        $countStmt->execute([$program, $config['type']]);
+        $existingDefaultProgramCounts[$program] = (int)$countStmt->fetchColumn();
+    }
 
     foreach ($defaultPackages as $dp) {
+        // Once all M.A.D. rows exist, do not recreate an old default name after
+        // an admin has intentionally renamed one of those rows.
+        if (($dp['program_name'] ?? '') === 'M.A.D. Studio' && $existingMadCount >= $madDefaultCount) {
+            continue;
+        }
+        if (($dp['program_name'] ?? '') === 'Academic Tutorial' && $existingTutorialCount >= $tutorialDefaultCount) {
+            continue;
+        }
+        if (isset($defaultProgramCounts[$dp['program_name']])
+            && $existingDefaultProgramCounts[$dp['program_name']] >= $defaultProgramCounts[$dp['program_name']]['count']) {
+            continue;
+        }
         $selectCheck->execute([$dp['program_name'], $dp['package_name']]);
         if (!$selectCheck->fetchColumn()) {
             $insertStmt->execute([$dp['program_name'], $dp['package_name'], $dp['care_duration'], $dp['rate'], $dp['capacity_slots'], $dp['package_type']]);

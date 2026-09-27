@@ -100,6 +100,11 @@ try {
     $selectStmt = $db->prepare('SELECT id FROM program_packages WHERE program_name = ? AND package_name = ? LIMIT 1');
     $insertStmt = $db->prepare('INSERT INTO program_packages (program_name, package_name, care_duration, rate, capacity_slots, package_type, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())');
     $updateStmt = $db->prepare('UPDATE program_packages SET care_duration = ?, rate = ?, capacity_slots = ?, package_type = ?, updated_at = NOW() WHERE id = ?');
+    $updateTutorialStmt = $db->prepare('UPDATE program_packages SET package_name = ?, care_duration = ?, rate = ?, capacity_slots = ?, package_type = ?, updated_at = NOW() WHERE id = ?');
+    $updateWorkshopStmt = $db->prepare('UPDATE program_packages SET package_name = ?, care_duration = ?, rate = ?, capacity_slots = ?, package_type = ?, updated_at = NOW() WHERE id = ?');
+    $updatePlayschoolStmt = $db->prepare('UPDATE program_packages SET package_name = ?, care_duration = ?, rate = ?, capacity_slots = ?, package_type = ?, updated_at = NOW() WHERE id = ?');
+    $updateMadStmt = $db->prepare('UPDATE program_packages SET package_name = ?, care_duration = ?, rate = ?, capacity_slots = ?, package_type = ?, updated_at = NOW() WHERE id = ?');
+    $updateSummerStmt = $db->prepare('UPDATE program_packages SET package_name = ?, care_duration = ?, rate = ?, capacity_slots = ?, package_type = ?, updated_at = NOW() WHERE id = ?');
 
     foreach ($data as $row) {
         if (!is_array($row)) continue;
@@ -122,6 +127,7 @@ try {
         } elseif ($section === 'workshop') {
             $name = trim((string)($row['name'] ?? ''));
             if ($name === '') continue;
+            $legacyName = trim((string)($row['legacy_name'] ?? ''));
             $capacity = $row['capacity'] ?? null; // keep as text (e.g. "Up to 10 students/class")
             $rawRate = trim((string)($row['rate'] ?? ''));
             if ($rawRate === '') throw new Exception('Workshop rate is required.');
@@ -133,14 +139,19 @@ try {
             $type = 'workshop';
             $selectStmt->execute([$programName, $name]);
             $found = $selectStmt->fetchColumn();
+            if (!$found && $legacyName !== '' && strcasecmp($legacyName, $name) !== 0) {
+                $selectStmt->execute([$programName, $legacyName]);
+                $found = $selectStmt->fetchColumn();
+            }
             if ($found) {
-                $updateStmt->execute([$schedule, $rate, $capacity, $type, $found]);
+                $updateWorkshopStmt->execute([$name, $schedule, $rate, $capacity, $type, $found]);
             } else {
                 $insertStmt->execute([$programName, $name, $schedule, $rate, $capacity, $type]);
             }
         } elseif ($section === 'playschool') {
             $name = trim((string)($row['name'] ?? ''));
             if ($name === '') continue;
+            $legacyName = trim((string)($row['legacy_name'] ?? ''));
             $age = $row['age'] ?? null; // e.g. "2-3 yrs" — keep as text
             $requireNumber($row['rate'] ?? null, 'Playschool rate');
             $rate = $formatRate($row['rate'] ?? null) . '/mo';
@@ -148,28 +159,38 @@ try {
             $type = 'playschool';
             $selectStmt->execute([$programName, $name]);
             $found = $selectStmt->fetchColumn();
+            if (!$found && $legacyName !== '' && strcasecmp($legacyName, $name) !== 0) {
+                $selectStmt->execute([$programName, $legacyName]);
+                $found = $selectStmt->fetchColumn();
+            }
             if ($found) {
-                $updateStmt->execute([$age, $rate, $notes, $type, $found]);
+                $updatePlayschoolStmt->execute([$name, $age, $rate, $notes, $type, $found]);
             } else {
                 $insertStmt->execute([$programName, $name, $age, $rate, $notes, $type]);
             }
         } elseif ($section === 'tutorial') {
             $name = trim((string)($row['name'] ?? ''));
             if ($name === '') continue;
+            $legacyName = trim((string)($row['legacy_name'] ?? ''));
             $detail = $row['detail'] ?? ($row['care_duration'] ?? null);
             $requireNumber($row['rate'] ?? null, 'Tutorial rate');
             $rate = $formatRate($row['rate'] ?? null);
             $type = $row['package_type'] ?? 'tutorial';
             $selectStmt->execute([$programName, $name]);
             $found = $selectStmt->fetchColumn();
+            if (!$found && $legacyName !== '' && strcasecmp($legacyName, $name) !== 0) {
+                $selectStmt->execute([$programName, $legacyName]);
+                $found = $selectStmt->fetchColumn();
+            }
             if ($found) {
-                $updateStmt->execute([$detail, $rate, null, $type, $found]);
+                $updateTutorialStmt->execute([$name, $detail, $rate, null, $type, $found]);
             } else {
                 $insertStmt->execute([$programName, $name, $detail, $rate, null, $type]);
             }
         } elseif ($section === 'madstudio' || $section === 'mad') {
             $name = trim((string)($row['name'] ?? ''));
             if ($name === '') continue;
+            $legacyName = trim((string)($row['legacy_name'] ?? ''));
             $category = $row['category'] ?? ($row['care_duration'] ?? null);
             $requireNumber($row['rate'] ?? null, 'M.A.D. Studio rate');
             $rate = $formatRate($row['rate'] ?? null);
@@ -177,14 +198,21 @@ try {
             $type = $row['package_type'] ?? 'madstudio';
             $selectStmt->execute([$programName, $name]);
             $found = $selectStmt->fetchColumn();
+            // A Homepage Content rename carries the previous package name so
+            // the existing price row is renamed instead of inserting a second row.
+            if (!$found && $legacyName !== '' && strcasecmp($legacyName, $name) !== 0) {
+                $selectStmt->execute([$programName, $legacyName]);
+                $found = $selectStmt->fetchColumn();
+            }
             if ($found) {
-                $updateStmt->execute([$category, $rate, $schedule, $type, $found]);
+                $updateMadStmt->execute([$name, $category, $rate, $schedule, $type, $found]);
             } else {
                 $insertStmt->execute([$programName, $name, $category, $rate, $schedule, $type]);
             }
         } elseif ($section === 'summerblast') {
             $name = trim((string)($row['name'] ?? ''));
             if ($name === '') continue;
+            $legacyName = trim((string)($row['legacy_name'] ?? ''));
             $category = $row['category'] ?? ($row['care_duration'] ?? null);
             $requireNumber($row['rate'] ?? null, 'Summer Blast rate');
             $rate = $formatRate($row['rate'] ?? null);
@@ -192,8 +220,12 @@ try {
             $type = $row['package_type'] ?? 'summerblast';
             $selectStmt->execute([$programName, $name]);
             $found = $selectStmt->fetchColumn();
+            if (!$found && $legacyName !== '' && strcasecmp($legacyName, $name) !== 0) {
+                $selectStmt->execute([$programName, $legacyName]);
+                $found = $selectStmt->fetchColumn();
+            }
             if ($found) {
-                $updateStmt->execute([$category, $rate, $detail, $type, $found]);
+                $updateSummerStmt->execute([$name, $category, $rate, $detail, $type, $found]);
             } else {
                 $insertStmt->execute([$programName, $name, $category, $rate, $detail, $type]);
             }

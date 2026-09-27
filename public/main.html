@@ -1456,9 +1456,48 @@
             if (!settings) {
                 try { settings = JSON.parse(localStorage.getItem('einsteinSettings')); } catch (e) { }
             }
+            // The server's childcare package list is the same source used by
+            // Price Management. Use it as a fallback when settings are absent.
+            var packages = settings && Array.isArray(settings.childcarePackages)
+                ? settings.childcarePackages
+                : [];
+            packages.forEach(function (pkg) {
+                if (!pkg || !pkg.name || pkg.rate == null) return;
+                var name = String(pkg.name).toLowerCase();
+                var periodText = String(pkg.slots || pkg.capacity_slots || pkg.name).toLowerCase();
+                var period = /monthly/.test(periodText) ? 'monthly'
+                    : (/weekly/.test(periodText) ? 'weekly' : (/daily/.test(periodText) ? 'daily' : ''));
+                if (!period) return;
+                var group = /non[- ]?toilet/.test(name) || /non[- ]?toilet/.test(String(pkg.duration || pkg.care_duration || '').toLowerCase())
+                    ? 'ntt' : 'tt';
+                var member = /vip/.test(name) ? 'vip' : 'nonmember';
+                map[group + '-' + member + '-' + period] = pkg.rate;
+            });
+            // Explicit admin settings take precedence when both sources exist.
             if (settings && settings.childcareRates) {
                 Object.assign(map, settings.childcareRates);
             }
+            // VIP childcare prices are derived-only in Price Management. Recompute
+            // them here as well so an older saved VIP map can never override the
+            // current non-member rates and Childcare discount setting.
+            var discountRaw = settings && settings.vipDiscounts ? settings.vipDiscounts.childcare : undefined;
+            var discount = discountRaw === '' || discountRaw === null ? 0 : Number(discountRaw);
+            if (!Number.isFinite(discount)) discount = 15;
+            discount = Math.max(0, Math.min(100, discount));
+            [
+                ['tt-nonmember-monthly', 'tt-vip-monthly'],
+                ['tt-nonmember-weekly', 'tt-vip-weekly'],
+                ['tt-nonmember-daily', 'tt-vip-daily'],
+                ['ntt-nonmember-monthly', 'ntt-vip-monthly'],
+                ['ntt-nonmember-weekly', 'ntt-vip-weekly'],
+                ['ntt-nonmember-daily', 'ntt-vip-daily']
+            ].forEach(function (pair) {
+                var regular = String(map[pair[0]] == null ? '' : map[pair[0]]).replace(/[^0-9.]/g, '');
+                var regularNumber = Number(regular);
+                if (regular !== '' && Number.isFinite(regularNumber)) {
+                    map[pair[1]] = String(Math.round(regularNumber * (1 - discount / 100)));
+                }
+            });
             return map;
         }
 
@@ -1541,10 +1580,11 @@
             // 3. Apply Tutorial rates dynamically
             if (Array.isArray(settings.tutorials)) {
                 var tutorialDisc = (settings.vipDiscounts && settings.vipDiscounts.tutorial !== undefined) ? settings.vipDiscounts.tutorial : 5;
-                document.querySelectorAll('[data-program="tutorial"]').forEach(function (el) {
+                var tutorialPriceElements = document.querySelectorAll('[data-program="tutorial"]');
+                tutorialPriceElements.forEach(function (el, index) {
                     var pkgName = el.getAttribute('data-package');
                     if (!pkgName) return;
-                    var match = matchRateItem(settings.tutorials, pkgName);
+                    var match = matchRateItem(settings.tutorials, pkgName) || settings.tutorials[index];
                     if (match && match.rate) {
                         var rawNum = parseInt(String(match.rate).replace(/[^0-9.]/g, ''), 10);
                         if (el.hasAttribute('data-vip')) {
@@ -1582,11 +1622,13 @@
 
             // 5. Apply M.A.D. Studio rates dynamically
             if (Array.isArray(settings.madstudio)) {
-                settings.madstudio.forEach(function (m) {
+                var madPriceElements = document.querySelectorAll('#madstudio [data-madstudio]');
+                settings.madstudio.forEach(function (m, index) {
                     if (!m || !m.name || !m.rate) return;
                     var numVal = parseFloat(String(m.rate).replace(/[^0-9.]/g, ''));
                     if (!numVal) return;
                     var formatted = '\u20b1' + numVal.toLocaleString();
+                    if (madPriceElements[index]) madPriceElements[index].textContent = formatted;
                     document.querySelectorAll('[data-madstudio="' + m.name + '"]').forEach(function (el) {
                         el.textContent = formatted;
                     });
@@ -1595,11 +1637,13 @@
 
             // 6. Apply Summer Blast rates dynamically
             if (Array.isArray(settings.summerblast)) {
-                settings.summerblast.forEach(function (s) {
+                var summerPriceElements = document.querySelectorAll('#summerblast .pricing-price[data-summerblast]');
+                settings.summerblast.forEach(function (s, index) {
                     if (!s || !s.name || !s.rate) return;
                     var numVal = parseFloat(String(s.rate).replace(/[^0-9.]/g, ''));
                     if (!numVal) return;
                     var formatted = '₱' + numVal.toLocaleString();
+                    if (summerPriceElements[index]) summerPriceElements[index].textContent = formatted;
                     document.querySelectorAll('[data-summerblast="' + s.name + '"]').forEach(function (el) {
                         el.textContent = formatted;
                     });
@@ -1659,11 +1703,13 @@
         // Apply Summer Blast rates from a given array of rate objects
         function applySummerblastData(sbArr) {
             if (!Array.isArray(sbArr)) return;
-            sbArr.forEach(function (s) {
+            var summerPriceElements = document.querySelectorAll('#summerblast .pricing-price[data-summerblast]');
+            sbArr.forEach(function (s, index) {
                 if (!s || !s.name || !s.rate) return;
                 var numVal = parseFloat(String(s.rate).replace(/[^0-9.]/g, ''));
                 if (!numVal) return;
                 var formatted = '\u20b1' + numVal.toLocaleString();
+                if (summerPriceElements[index]) summerPriceElements[index].textContent = formatted;
                 document.querySelectorAll('[data-summerblast="' + s.name + '"]').forEach(function (el) {
                     el.textContent = formatted;
                 });

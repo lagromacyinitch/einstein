@@ -897,7 +897,7 @@
                 <th>Timeslot</th>
                 <th>Payment</th>
                 <th>Status</th>
-                <th>Enrolled</th>
+                <th id="sb-date-column">Enrolled</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -1656,7 +1656,6 @@
                 <th>Capacity</th>
                 <th>Fee Rate</th>
                 <th class="workshop-vip-header">VIP (5% off)</th>
-                <th>Schedule</th>
               </tr>
             </thead>
             <tbody id="pm-workshop-rates-body">
@@ -1687,7 +1686,6 @@
                 <th>Age Range</th>
                 <th>Rate</th>
                 <th class="playschool-vip-header">VIP (20% off)</th>
-                <th>Notes</th>
               </tr>
             </thead>
             <tbody id="pm-playschool-rates-body">
@@ -1739,11 +1737,11 @@
             </thead>
             <tbody>
               <!-- Fitness Training -->
-              <tr>
+              <tr data-mad-key="hiphop">
                 <td rowspan="3" style="font-weight:700;color:var(--brown-primary);vertical-align:top;padding-top:16px">
                   Fitness Training</td>
-                <td>Hiphop Aerobics</td>
-                <td>MWF &middot; 6:45&ndash;7:45 PM</td>
+                <td><span data-mad-name>Hiphop Aerobics</span></td>
+                <td data-mad-schedule>MWF &middot; 6:45&ndash;7:45 PM</td>
                 <td><span class="mad-price-display">₱2,500 <small>/mo</small></span><input
                     class="form-control mad-price-input price-input-field" style="display:none;width:120px"
                     value="2500"></td>
@@ -1751,9 +1749,9 @@
                 <td class="mad-save-col price-edit-control" style="display:none"><button class="btn btn-gold btn-sm"
                     onclick="saveMADPrice(this)">Save</button></td>
               </tr>
-              <tr>
-                <td>Kickboxing</td>
-                <td>TTHS &middot; 6:45&ndash;7:45 PM</td>
+              <tr data-mad-key="kickboxing">
+                <td><span data-mad-name>Kickboxing</span></td>
+                <td data-mad-schedule>TTHS &middot; 6:45&ndash;7:45 PM</td>
                 <td><span class="mad-price-display">₱2,500 <small>/mo</small></span><input
                     class="form-control mad-price-input price-input-field" style="display:none;width:120px"
                     value="2500"></td>
@@ -1761,9 +1759,9 @@
                 <td class="mad-save-col price-edit-control" style="display:none"><button class="btn btn-gold btn-sm"
                     onclick="saveMADPrice(this)">Save</button></td>
               </tr>
-              <tr>
-                <td>Cross Training <small style="color:var(--brown-light)">(Both classes)</small></td>
-                <td>Both schedules</td>
+              <tr data-mad-key="cross_training">
+                <td><span data-mad-name>Cross Training</span> <small style="color:var(--brown-light)">(Both classes)</small></td>
+                <td data-mad-schedule>Both schedules</td>
                 <td><span class="mad-price-display">₱3,500 <small>/mo</small></span><input
                     class="form-control mad-price-input price-input-field" style="display:none;width:120px"
                     value="3500"></td>
@@ -1772,11 +1770,11 @@
                     onclick="saveMADPrice(this)">Save</button></td>
               </tr>
               <!-- After School -->
-              <tr>
+              <tr data-mad-key="gymnastics">
                 <td rowspan="4" style="font-weight:700;color:var(--brown-primary);vertical-align:top;padding-top:16px">
                   After School Program</td>
-                <td>Gymnastics</td>
-                <td>Sat &middot; 8:30&ndash;10:30 AM</td>
+                <td><span data-mad-name>Gymnastics</span></td>
+                <td data-mad-schedule>Sat &middot; 8:30&ndash;10:30 AM</td>
                 <td><span class="mad-price-display">₱2,500 <small>/mo</small></span><input
                     class="form-control mad-price-input price-input-field" style="display:none;width:120px"
                     value="2500"></td>
@@ -1784,9 +1782,9 @@
                 <td class="mad-save-col price-edit-control" style="display:none"><button class="btn btn-gold btn-sm"
                     onclick="saveMADPrice(this)">Save</button></td>
               </tr>
-              <tr>
-                <td>Ballet Class</td>
-                <td>Sat &middot; 10:30 AM&ndash;12:30 PM</td>
+              <tr data-mad-key="ballet">
+                <td><span data-mad-name>Ballet Class</span></td>
+                <td data-mad-schedule>Sat &middot; 10:30 AM&ndash;12:30 PM</td>
                 <td><span class="mad-price-display">₱2,500 <small>/mo</small></span><input
                     class="form-control mad-price-input price-input-field" style="display:none;width:120px"
                     value="2500"></td>
@@ -1794,9 +1792,9 @@
                 <td class="mad-save-col price-edit-control" style="display:none"><button class="btn btn-gold btn-sm"
                     onclick="saveMADPrice(this)">Save</button></td>
               </tr>
-              <tr>
-                <td>Taekwondo</td>
-                <td>Sat 12:30&ndash;2:30 PM &middot; TTHS 5:30&ndash;6:30 PM</td>
+              <tr data-mad-key="taekwondo">
+                <td><span data-mad-name>Taekwondo</span></td>
+                <td data-mad-schedule>Sat 12:30&ndash;2:30 PM &middot; TTHS 5:30&ndash;6:30 PM</td>
                 <td><span class="mad-price-display">₱2,500 <small>/mo</small></span><input
                     class="form-control mad-price-input price-input-field" style="display:none;width:120px"
                     value="2500"></td>
@@ -1804,9 +1802,9 @@
                 <td class="mad-save-col price-edit-control" style="display:none"><button class="btn btn-gold btn-sm"
                     onclick="saveMADPrice(this)">Save</button></td>
               </tr>
-              <tr>
-                <td>Pop Dancing</td>
-                <td>MWF &middot; 5:30&ndash;6:30 PM</td>
+              <tr data-mad-key="pop_dancing">
+                <td><span data-mad-name>Pop Dancing</span></td>
+                <td data-mad-schedule>MWF &middot; 5:30&ndash;6:30 PM</td>
                 <td><span class="mad-price-display">₱2,500 <small>/mo</small></span><input
                     class="form-control mad-price-input price-input-field" style="display:none;width:120px"
                     value="2500"></td>
@@ -1815,10 +1813,10 @@
                     onclick="saveMADPrice(this)">Save</button></td>
               </tr>
               <!-- Studio Rental -->
-              <tr>
+              <tr data-mad-key="studio_rental">
                 <td style="font-weight:700;color:var(--brown-primary)">Studio Rental</td>
-                <td>Studio Rental</td>
-                <td>Available anytime &middot; book in advance</td>
+                <td><span data-mad-name>Studio Rental</span></td>
+                <td data-mad-schedule>Available anytime &middot; book in advance</td>
                 <td><span class="mad-price-display">₱450 <small>/hr</small></span><input
                     class="form-control mad-price-input price-input-field" style="display:none;width:120px" value="450">
                 </td>
@@ -2114,7 +2112,6 @@
         <div class="card-header"
           style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:20px;">&#128203;</span>
             <div>
               <h3 style="color:#e0c47a;margin:0;font-size:15px;">Activity Log</h3>
               <span style="color:#9b8ec4;font-size:11px;letter-spacing:1px;">HEAD ADMIN ONLY &middot; REAL-TIME</span>
@@ -2129,11 +2126,11 @@
             <button onclick="exportActivityLog()"
               style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:#e0c47a;padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s;"
               onmouseover="this.style.background='rgba(201,168,76,.3)'"
-              onmouseout="this.style.background='rgba(201,168,76,.15)'">&#11015; Export CSV</button>
-            <button onclick="loadActivityLog(true)"
+              onmouseout="this.style.background='rgba(201,168,76,.15)'">Export CSV</button>
+            <button id="alog-refresh-btn" onclick="loadActivityLog(true, this)"
               style="background:rgba(126,212,160,.15);border:1px solid rgba(126,212,160,.4);color:#7ed4a0;padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s;"
               onmouseover="this.style.background='rgba(126,212,160,.3)'"
-              onmouseout="this.style.background='rgba(126,212,160,.15)'">&#8635; Refresh</button>
+              onmouseout="this.style.background='rgba(126,212,160,.15)'">Refresh</button>
           </div>
         </div>
         <div
@@ -2146,11 +2143,10 @@
               onchange="loadActivityLog(true)">
           </div>
           <div>
-            <button onclick="clearAlogFilters()"
+            <button type="button" onclick="clearAlogFilters(this)"
               style="background:none;border:1px solid var(--cream-dark);color:var(--brown-mid);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;"
               onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--brown-primary)'"
-              onmouseout="this.style.borderColor='var(--cream-dark)';this.style.color='var(--brown-mid)'">&#10005;
-              Clear</button>
+              onmouseout="this.style.borderColor='var(--cream-dark)';this.style.color='var(--brown-mid)'">Clear</button>
           </div>
           <div style="margin-left:auto;display:flex;align-items:flex-end;">
             <span id="alog-total-count"
@@ -3026,6 +3022,323 @@
 
     installAdminFieldValidation();
 
+    // The service names in Homepage Content and the M.A.D. pricing table are
+    // the same business records. Keep a stable key for each one so renaming a
+    // service never disconnects it from its existing price.
+    const MAD_STUDIO_NAME_LINKS = [
+      { key: 'hiphop', listKey: 'mad.fitness.items', listIndex: 0, rateKey: 'mad.rates.hiphop.name', scheduleKey: 'mad.rates.hiphop.schedule', fallback: 'Hiphop Aerobics' },
+      { key: 'kickboxing', listKey: 'mad.fitness.items', listIndex: 1, rateKey: 'mad.rates.kickboxing.name', scheduleKey: 'mad.rates.kickboxing.schedule', fallback: 'Kickboxing' },
+      { key: 'cross_training', rateKey: 'mad.rates.cross_training.name', scheduleKey: 'mad.rates.cross_training.schedule', fallback: 'Cross Training' },
+      { key: 'gymnastics', listKey: 'mad.after_school.items', listIndex: 2, rateKey: 'mad.rates.gymnastics.name', scheduleKey: 'mad.rates.gymnastics.schedule', fallback: 'Gymnastics' },
+      { key: 'ballet', listKey: 'mad.after_school.items', listIndex: 0, rateKey: 'mad.rates.ballet.name', scheduleKey: 'mad.rates.ballet.schedule', fallback: 'Ballet Class' },
+      { key: 'taekwondo', listKey: 'mad.after_school.items', listIndex: 1, rateKey: 'mad.rates.taekwondo.name', scheduleKey: 'mad.rates.taekwondo.schedule', fallback: 'Taekwondo' },
+      { key: 'pop_dancing', listKey: 'mad.after_school.items', listIndex: 3, rateKey: 'mad.rates.pop_dancing.name', scheduleKey: 'mad.rates.pop_dancing.schedule', fallback: 'Pop Dancing' },
+      { key: 'studio_rental', rateKey: 'mad.rates.studio_rental.name', scheduleListKey: 'mad.rental.items', scheduleListIndex: 0, fallback: 'Studio Rental' }
+    ];
+
+    function ensureMadStudioRateKeys() {
+      if (!Array.isArray(siteSettings.madstudio)) return;
+      siteSettings.madstudio = siteSettings.madstudio.map((rate, index) => ({
+        ...(rate || {}),
+        mad_key: rate && rate.mad_key ? rate.mad_key : (MAD_STUDIO_NAME_LINKS[index]?.key || '')
+      }));
+    }
+
+    function normalizeMadStudioHomepageContent(values, originalValues) {
+      const normalized = { ...(values || {}) };
+      const hasOriginal = originalValues && typeof originalValues === 'object';
+
+      MAD_STUDIO_NAME_LINKS.forEach(link => {
+        const list = link.listKey && Array.isArray(normalized[link.listKey])
+          ? normalized[link.listKey].slice()
+          : null;
+        const listValue = list ? String(list[link.listIndex] || '').trim() : '';
+        const rateValue = normalized[link.rateKey] == null ? '' : String(normalized[link.rateKey]).trim();
+        let selected = listValue || rateValue || link.fallback;
+
+        if (hasOriginal && link.listKey) {
+          const oldList = Array.isArray(originalValues[link.listKey])
+            ? String(originalValues[link.listKey][link.listIndex] || '').trim()
+            : '';
+          const oldRate = originalValues[link.rateKey] == null ? '' : String(originalValues[link.rateKey]).trim();
+          const listChanged = listValue !== oldList;
+          const rateChanged = rateValue !== oldRate;
+          // Whichever duplicate field the admin edited is treated as the source.
+          // If both changed, the service list wins because it is the visible service menu.
+          if (!listChanged && rateChanged && rateValue) selected = rateValue;
+        }
+
+        normalized[link.rateKey] = selected;
+        if (list) {
+          list[link.listIndex] = selected;
+          normalized[link.listKey] = list;
+        }
+      });
+
+      return normalized;
+    }
+
+    function getMadStudioHomepageNames(content) {
+      const names = {};
+      MAD_STUDIO_NAME_LINKS.forEach(link => {
+        const value = content && content[link.rateKey] != null ? String(content[link.rateKey]).trim() : '';
+        names[link.key] = value || link.fallback;
+      });
+      return names;
+    }
+
+    function getMadStudioHomepageSchedule(link, content) {
+      if (link.scheduleKey && content && content[link.scheduleKey] != null) {
+        return String(content[link.scheduleKey]).trim();
+      }
+      if (link.scheduleListKey && content && Array.isArray(content[link.scheduleListKey])) {
+        return String(content[link.scheduleListKey][link.scheduleListIndex] || '').trim();
+      }
+      return '';
+    }
+
+    function collectMadStudioRows() {
+      const rows = Array.from(document.querySelectorAll('#pm-mad-pricing-table tbody tr'));
+      let currentCategory = '';
+      return rows.map((row, index) => {
+        const categoryCell = row.querySelector('td[rowspan]');
+        if (categoryCell) currentCategory = categoryCell.textContent.replace(/\(.*?\)/, '').trim();
+        const nameCell = row.querySelector('[data-mad-name]');
+        const scheduleCell = row.querySelector('[data-mad-schedule]');
+        const display = row.querySelector('.mad-price-display');
+        const input = row.querySelector('.mad-price-input');
+        return {
+          row,
+          index,
+          key: row.dataset.madKey || MAD_STUDIO_NAME_LINKS[index]?.key || '',
+          nameCell,
+          oldName: nameCell ? nameCell.textContent.trim() : '',
+          category: currentCategory,
+          schedule: scheduleCell ? scheduleCell.textContent.trim() : '',
+          input,
+          display,
+          existingRate: input?.value || display?.textContent?.trim() || ''
+        };
+      });
+    }
+
+    function applyMadStudioHomepageNames(content) {
+      const names = getMadStudioHomepageNames(content);
+      ensureMadStudioRateKeys();
+      const existingRates = Array.isArray(siteSettings.madstudio) ? siteSettings.madstudio : [];
+      const rows = collectMadStudioRows();
+      const madData = [];
+      let changed = false;
+
+      rows.forEach(info => {
+        if (!info.nameCell) return;
+        const link = MAD_STUDIO_NAME_LINKS.find(item => item.key === info.key) || {};
+        const existing = existingRates.find(rate => rate && rate.mad_key === info.key)
+          || existingRates.find(rate => rate && String(rate.name || '').trim().toLowerCase() === info.oldName.toLowerCase())
+          || existingRates[info.index]
+          || {};
+        const newName = names[info.key] || existing.name || info.oldName;
+        const renamed = !!newName && !!info.oldName && newName !== info.oldName;
+        const existingName = String(existing.name || '').trim();
+        const legacyName = renamed
+          ? info.oldName
+          : (existingName && existingName !== newName ? existingName : (existing.legacy_name || info.row.dataset.madLegacyName || ''));
+        if (renamed) {
+          info.row.dataset.madLegacyName = info.oldName;
+          info.nameCell.textContent = newName;
+          changed = true;
+        }
+        const homepageSchedule = getMadStudioHomepageSchedule(link, content);
+        if (homepageSchedule && info.row.querySelector('[data-mad-schedule]')) {
+          info.row.querySelector('[data-mad-schedule]').textContent = homepageSchedule;
+        }
+
+        madData.push({
+          ...existing,
+          mad_key: info.key,
+          name: newName,
+          category: info.category,
+          rate: existing.rate || info.existingRate,
+          schedule: homepageSchedule || existing.schedule || info.schedule,
+          package_type: 'madstudio',
+          legacy_name: legacyName
+        });
+      });
+
+      if (madData.length) siteSettings.madstudio = madData;
+      renderMADRates();
+      return { data: madData, changed, names };
+    }
+
+    const TUTORIAL_NAME_LINKS = [
+      { key: 'regular', contentKey: 'tutorial.regular.label', detailsKey: 'tutorial.regular.features', fallback: 'Regular Package' },
+      { key: 'double', contentKey: 'tutorial.double.label', detailsKey: 'tutorial.double.features', fallback: 'Double Package' },
+      { key: 'daily', contentKey: 'tutorial.daily.label', detailsKey: 'tutorial.daily.features', fallback: 'Daily Package' },
+      { key: 'daily_double', contentKey: 'tutorial.daily_double.label', detailsKey: 'tutorial.daily_double.features', fallback: 'Daily Double Package' }
+    ];
+
+    function ensureTutorialRateKeys() {
+      if (!Array.isArray(siteSettings.tutorials)) return;
+      siteSettings.tutorials = siteSettings.tutorials.map((rate, index) => ({
+        ...(rate || {}),
+        tutorial_key: rate && rate.tutorial_key ? rate.tutorial_key : (TUTORIAL_NAME_LINKS[index]?.key || '')
+      }));
+    }
+
+    function applyTutorialHomepageNames(content) {
+      ensureRatesDefaults();
+      ensureTutorialRateKeys();
+      const existingRates = Array.isArray(siteSettings.tutorials) ? siteSettings.tutorials : [];
+      const tutorialInputs = Array.from(document.querySelectorAll('.tutorial-price-input'));
+      const tutorialRows = Array.from(document.querySelectorAll('.tutorial-price-input')).map(input => input.closest('tr'));
+      const tutorialData = [];
+      let changed = false;
+
+      TUTORIAL_NAME_LINKS.forEach((link, index) => {
+        const existing = existingRates.find(rate => rate && rate.tutorial_key === link.key) || existingRates[index] || {};
+        const oldName = String(existing.name || link.fallback).trim();
+        const newName = content && content[link.contentKey] != null
+          ? String(content[link.contentKey]).trim()
+          : link.fallback;
+        const safeName = newName || link.fallback;
+        const renamed = oldName !== safeName;
+        const legacyName = renamed ? oldName : (existing.legacy_name || '');
+        const homepageDetail = Array.isArray(content?.[link.detailsKey])
+          ? content[link.detailsKey].map(item => String(item || '').trim()).filter(Boolean).join(' · ')
+          : '';
+        if (renamed) changed = true;
+
+        const input = tutorialInputs[index];
+        const row = tutorialRows[index];
+        if (input) {
+          input.dataset.package = safeName;
+          input.dataset.tutorialKey = link.key;
+          input.setAttribute('aria-label', safeName + ' price');
+        }
+        if (row) {
+          const nameCell = row.querySelector('td:first-child strong');
+          if (nameCell) nameCell.textContent = safeName;
+        }
+
+        tutorialData.push({
+          ...existing,
+          tutorial_key: link.key,
+          name: safeName,
+          detail: homepageDetail || existing.detail || '',
+          rate: existing.rate || '',
+          package_type: 'tutorial',
+          legacy_name: legacyName
+        });
+      });
+
+      if (tutorialData.length) siteSettings.tutorials = tutorialData;
+      renderTutorialPriceCards();
+      return { data: tutorialData, changed };
+    }
+
+    function homepageListText(content, key, separator = ' · ') {
+      if (!content || !Array.isArray(content[key])) return '';
+      return content[key].map(item => String(item == null ? '' : item).trim()).filter(Boolean).join(separator);
+    }
+
+    function homepageSingleLineText(value) {
+      return String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+    }
+
+    function applyWorkshopHomepageDetails(content) {
+      ensureRatesDefaults();
+      const existingRates = Array.isArray(siteSettings.workshops) ? siteSettings.workshops : [];
+      const links = [
+        { key: 'group', nameKey: 'workshop.group.label', capacity: 'workshop.group.period', schedule: 'workshop.title', fallback: 'Group Subscription' },
+        { key: 'center', nameKey: 'workshop.center.title', features: 'workshop.center.features', fallback: 'Center Based' },
+        { key: 'home', nameKey: 'workshop.home.title', features: 'workshop.home.features', fallback: 'Home Based' }
+      ];
+      const workshopData = links.map((link, index) => {
+        const existing = existingRates.find(item => item && item.workshop_key === link.key) || existingRates[index] || {};
+        const name = String(content?.[link.nameKey] || existing.name || link.fallback).trim();
+        const features = Array.isArray(content?.[link.features]) ? content[link.features] : [];
+        const capacity = link.capacity ? String(content?.[link.capacity] || '').trim() : String(features[0] || '').trim();
+        const schedule = link.schedule
+          ? homepageSingleLineText(content?.[link.schedule])
+          : String(features[1] || '').trim();
+        const legacyName = existing.name && existing.name !== name ? existing.name : (existing.legacy_name || '');
+        return {
+          ...existing,
+          workshop_key: link.key,
+          name,
+          capacity: capacity || existing.capacity || '',
+          schedule: schedule || existing.schedule || '',
+          rate: existing.rate || '',
+          package_type: 'workshop',
+          legacy_name: legacyName
+        };
+      });
+      siteSettings.workshops = workshopData;
+      renderWorkshopRates();
+      return { data: workshopData };
+    }
+
+    function applyPlayschoolHomepageDetails(content) {
+      ensureRatesDefaults();
+      const existingRates = Array.isArray(siteSettings.playschool) ? siteSettings.playschool : [];
+      const links = [
+        { key: 'caterpillar', nameKey: 'playschool.caterpillar.title', ageKey: 'playschool.caterpillar.age', detailsKey: 'playschool.caterpillar.learn', scheduleKeys: ['playschool.caterpillar.schedule_heading', 'playschool.caterpillar.morning', 'playschool.caterpillar.afternoon'], fallback: 'Caterpillar' },
+        { key: 'butterfly', nameKey: 'playschool.butterfly.title', ageKey: 'playschool.butterfly.age', detailsKey: 'playschool.butterfly.learn', scheduleKeys: ['playschool.butterfly.schedule_heading', 'playschool.butterfly.morning', 'playschool.butterfly.afternoon'], fallback: 'Butterfly' }
+      ];
+      const playschoolData = links.map((link, index) => {
+        const existing = existingRates.find(item => item && item.playschool_key === link.key) || existingRates[index] || {};
+        const name = String(content?.[link.nameKey] || existing.name || link.fallback).replace(/\s+class$/i, '').trim();
+        const age = String(content?.[link.ageKey] || existing.age || '').trim();
+        const details = (link.scheduleKeys || []).map(key => String(content?.[key] || '').trim()).filter(Boolean).join(' · ')
+          || homepageListText(content, link.detailsKey);
+        const legacyName = existing.name && existing.name !== name ? existing.name : (existing.legacy_name || '');
+        return {
+          ...existing,
+          playschool_key: link.key,
+          name,
+          age: age || existing.age || '',
+          notes: details || existing.notes || '',
+          rate: existing.rate || '',
+          package_type: 'playschool',
+          legacy_name: legacyName
+        };
+      });
+      siteSettings.playschool = playschoolData;
+      renderPlayschoolRates();
+      return { data: playschoolData };
+    }
+
+    function applySummerBlastHomepageDetails(content) {
+      ensureRatesDefaults();
+      const existingRates = Array.isArray(siteSettings.summerblast) ? siteSettings.summerblast : [];
+      const links = [
+        { key: 'registration', nameKey: null, typeKey: 'summer.registration_period', detailsKey: 'summer.reserve_period', fallback: 'Registration Fee' },
+        { key: 'single', nameKey: 'summer.single.label', typeKey: 'summer.single.period', detailsKey: 'summer.single.features', fallback: 'Single Course' },
+        { key: 'two', nameKey: 'summer.two.label', typeKey: 'summer.two.period', detailsKey: 'summer.two.features', fallback: 'Two Courses' },
+        { key: 'special', nameKey: 'summer.special.label', typeKey: 'summer.special.period', detailsKey: 'summer.special.features', fallback: 'Special Course' }
+      ];
+      const summerData = links.map((link, index) => {
+        const existing = existingRates.find(item => item && item.summer_key === link.key) || existingRates[index] || {};
+        const name = String((link.nameKey && content?.[link.nameKey]) || existing.name || link.fallback).trim();
+        const category = String(content?.[link.typeKey] || existing.category || '').trim();
+        const detail = homepageListText(content, link.detailsKey);
+        const legacyName = existing.name && existing.name !== name ? existing.name : (existing.legacy_name || '');
+        return {
+          ...existing,
+          summer_key: link.key,
+          name,
+          category: category || existing.category || '',
+          detail: detail || existing.detail || '',
+          rate: existing.rate || '',
+          package_type: 'summerblast',
+          legacy_name: legacyName
+        };
+      });
+      siteSettings.summerblast = summerData;
+      renderSummerBlastRates();
+      return { data: summerData };
+    }
+
     // ── MAD STUDIO PRICE EDITOR ────────────────────────────────────────
     function checkSectionChanges(section) {
       if (section === 'mad' || section === 'summerblast') {
@@ -3154,17 +3467,19 @@
         const tds = tr.querySelectorAll('td');
         const nameIdx = catTd ? 1 : 0;
         const schedIdx = catTd ? 2 : 1;
-        const name = tds[nameIdx]?.textContent?.trim() || '';
-        const schedule = tds[schedIdx]?.textContent?.trim() || '';
+        const name = tr.querySelector('[data-mad-name]')?.textContent?.trim() || tds[nameIdx]?.textContent?.trim() || '';
+        const schedule = tr.querySelector('[data-mad-schedule]')?.textContent?.trim() || tds[schedIdx]?.textContent?.trim() || '';
         const inputVal = tr.querySelector('.mad-price-input')?.value || '2500';
         const suff = tr.querySelector('.mad-price-display small')?.textContent?.trim() || '/mo';
         const rateStr = '₱' + parseFloat(inputVal).toLocaleString() + ' ' + suff;
         madData.push({
+          mad_key: tr.dataset.madKey || '',
           name: name,
           category: currentCategory,
           rate: rateStr,
           schedule: schedule,
-          package_type: 'madstudio'
+          package_type: 'madstudio',
+          legacy_name: tr.dataset.madLegacyName || ''
         });
       });
 
@@ -3194,6 +3509,7 @@
 
     function renderMADRates() {
       ensureRatesDefaults();
+      ensureMadStudioRateKeys();
       const rawDisc = siteSettings.vipDiscounts && siteSettings.vipDiscounts.madstudio;
       const discPercent = (rawDisc !== '' && rawDisc !== undefined && rawDisc !== null) ? parseFloat(rawDisc) : 0;
       document.querySelectorAll('.mad-vip-header').forEach(el => {
@@ -3213,12 +3529,11 @@
         }
 
         if (Array.isArray(siteSettings.madstudio)) {
-          const tds = row.querySelectorAll('td');
-          const hasCat = row.querySelector('td[rowspan]');
-          const nameIdx = hasCat ? 1 : 0;
-          const nameText = tds[nameIdx]?.textContent?.trim();
+          const nameCell = row.querySelector('[data-mad-name]');
+          const nameText = nameCell?.textContent?.trim();
           if (nameText) {
-            const match = siteSettings.madstudio.find(m => m.name && m.name.trim().toLowerCase() === nameText.toLowerCase());
+            const match = siteSettings.madstudio.find(m => row.dataset.madKey && m.mad_key === row.dataset.madKey)
+              || siteSettings.madstudio.find(m => m.name && m.name.trim().toLowerCase() === nameText.toLowerCase());
             if (match && match.rate) {
               const matchedNum = parseFloat(String(match.rate).replace(/[^0-9.]/g, ''));
               if (matchedNum) {
@@ -3384,9 +3699,9 @@
         if (cb) cb.style.display = editing ? 'none' : '';
       });
       if (!editing) {
-        inputs.forEach(input => {
-          const key = input.dataset.package;
-          const display = document.querySelector(`.tutorial-price-display[data-package="${key}"]`);
+        const displays = Array.from(document.querySelectorAll('.tutorial-price-display'));
+        inputs.forEach((input, index) => {
+          const display = displays[index];
           if (display) {
             const cleaned = display.textContent.replace(/[^0-9]/g, '');
             input.value = cleaned || input.value;
@@ -3422,17 +3737,27 @@
       });
       if (!valid) { showToast('Please enter valid tutorial prices.', 'error'); return; }
 
-      inputs.forEach(input => {
-        const packageName = input.dataset.package;
+      inputs.forEach((input, index) => {
+        const link = TUTORIAL_NAME_LINKS[index] || {};
+        const packageName = input.dataset.package || link.fallback || ('Tutorial Package ' + (index + 1));
         const rateValue = parseFloat(input.value || 0);
-        const existing = siteSettings.tutorials.find(t => t.name === packageName) || {};
+        const existing = siteSettings.tutorials.find(t => t.tutorial_key === link.key)
+          || siteSettings.tutorials[index]
+          || siteSettings.tutorials.find(t => t.name === packageName)
+          || {};
         const detail = existing.detail || '';
         const formattedRate = '₱' + rateValue.toLocaleString();
 
-        document.querySelectorAll(`.tutorial-price-display[data-package="${packageName}"]`).forEach(display => {
-          display.textContent = formattedRate;
+        const display = document.querySelectorAll('.tutorial-price-display')[index];
+        if (display) display.textContent = formattedRate;
+        updatedRates.push({
+          tutorial_key: link.key || '',
+          name: packageName,
+          detail,
+          rate: formattedRate,
+          package_type: 'tutorial',
+          legacy_name: existing.name && existing.name !== packageName ? existing.name : (existing.legacy_name || '')
         });
-        updatedRates.push({ name: packageName, detail, rate: formattedRate });
       });
 
       const button = document.getElementById('pm-tutorial-save-btn');
@@ -3442,7 +3767,7 @@
         const response = await fetch('api/save_rates.php', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({section:'tutorial',data:updatedRates})});
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.message || 'Unable to save prices.');
-        siteSettings.tutorials = updatedRates; persistSettings(); renderTutorialPriceCards();
+        siteSettings.tutorials = updatedRates; ensureTutorialRateKeys(); persistSettings(); renderTutorialPriceCards();
         cancelTutorialEdit();
         showToast('Academic Tutorial prices saved.');
       } catch(error) { showToast(error.message, 'error'); }
@@ -3494,6 +3819,13 @@
       renderTutorialPriceCards();
       renderMADRates();
       renderSummerBlastRates();
+      if (homepageContentValues && Object.keys(homepageContentValues).length) {
+        applyTutorialHomepageNames(homepageContentValues);
+        applyMadStudioHomepageNames(homepageContentValues);
+        applyWorkshopHomepageDetails(homepageContentValues);
+        applyPlayschoolHomepageDetails(homepageContentValues);
+        applySummerBlastHomepageDetails(homepageContentValues);
+      }
       // Populate VIP discount inputs
       renderVipDiscountInputs();
       if (typeof loadProgramSpans === 'function') {
@@ -3516,6 +3848,26 @@
     // ── HOMEPAGE CONTENT EDITOR ─────────────────────────────────────────────
     let homepageContentFields = [];
     let homepageContentOriginal = '{}';
+    let homepageContentValues = {};
+
+    function getHomepageContentOriginalValues() {
+      try {
+        const parsed = JSON.parse(homepageContentOriginal || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function applyHomepageContentValuesToForm(values) {
+      document.querySelectorAll('[data-homepage-field]').forEach(input => {
+        const key = input.getAttribute('data-homepage-field');
+        if (!key || !Object.prototype.hasOwnProperty.call(values || {}, key)) return;
+        input.value = input.getAttribute('data-homepage-type') === 'list'
+          ? (Array.isArray(values[key]) ? values[key].join('\n') : '')
+          : (values[key] == null ? '' : String(values[key]));
+      });
+    }
 
     function homepageContentValueForForm(field) {
       if (field.type === 'list') {
@@ -3547,12 +3899,26 @@
       btn.style.cursor = changed ? 'pointer' : 'not-allowed';
     }
 
+    const homepageContentSectionOrder = [
+      'Hero & Branding',
+      'Programs & Services',
+      'Academic Tutorial',
+      'Weekend Workshop',
+      'PlaySchool',
+      'Child Care',
+      'M.A.D. Studio',
+      'Summer Blast',
+      'Membership',
+      'Facilities',
+      'Footer'
+    ];
+
     function renderHomepageContentEditor(fields) {
       const editor = document.getElementById('homepage-content-editor');
       if (!editor) return;
       homepageContentFields = Array.isArray(fields) ? fields : [];
       const groups = [];
-      const bySection = {};
+      const bySection = Object.create(null);
       homepageContentFields.forEach(field => {
         const section = field.section || 'Homepage';
         if (!bySection[section]) {
@@ -3561,8 +3927,12 @@
         }
         bySection[section].push(field);
       });
+      const orderedGroups = [
+        ...homepageContentSectionOrder.filter(section => bySection[section]),
+        ...groups.filter(section => !homepageContentSectionOrder.includes(section))
+      ];
 
-      editor.innerHTML = groups.map(section => `
+      editor.innerHTML = orderedGroups.map(section => `
         <section class="homepage-editor-section" style="border:1px solid #eadcc9;border-radius:12px;margin-bottom:16px;overflow:hidden;background:#fff;">
           <div style="padding:12px 15px;background:#fbf5ee;border-bottom:1px solid #eadcc9;font-weight:700;color:var(--brown-primary);font-size:14px;">${escHtml(section)}</div>
           <div style="padding:15px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px, 100%),1fr));gap:13px 16px;">
@@ -3603,10 +3973,58 @@
         const response = await fetch('api/api_homepage_content.php', { credentials: 'same-origin', cache: 'no-store' });
         const data = await response.json();
         if (!data.success) throw new Error(data.message || 'Unable to load homepage content.');
-        renderHomepageContentEditor(data.fields || []);
+        homepageContentValues = normalizeMadStudioHomepageContent(data.content || {});
+        const fields = (data.fields || []).map(field => ({
+          ...field,
+          value: Object.prototype.hasOwnProperty.call(homepageContentValues, field.key)
+            ? homepageContentValues[field.key]
+            : field.value
+        }));
+        renderHomepageContentEditor(fields);
+        applyMadStudioHomepageNames(homepageContentValues);
+        applyTutorialHomepageNames(homepageContentValues);
+        applyWorkshopHomepageDetails(homepageContentValues);
+        applyPlayschoolHomepageDetails(homepageContentValues);
+        applySummerBlastHomepageDetails(homepageContentValues);
       } catch (error) {
         showHomepageContentStatus(error.message || 'Unable to load homepage content.', false);
       }
+    }
+
+    async function persistMadStudioNames(data) {
+      if (!Array.isArray(data) || !data.length) return true;
+      const response = await fetch('api/save_rates.php', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'madstudio', data })
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || 'Unable to save M.A.D. Studio package names.');
+      return true;
+    }
+
+    async function persistTutorialNames(data) {
+      if (!Array.isArray(data) || !data.length) return true;
+      const response = await fetch('api/save_rates.php', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'tutorial', data })
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || 'Unable to save Academic Tutorial package names.');
+      return true;
+    }
+
+    async function persistHomepageRateSection(section, data, label) {
+      if (!Array.isArray(data) || !data.length) return true;
+      const response = await fetch('api/save_rates.php', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section, data })
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || ('Unable to save ' + label + '.'));
+      return true;
     }
 
     async function saveHomepageContent() {
@@ -3615,16 +4033,32 @@
       button.disabled = true;
       button.textContent = 'Saving…';
       try {
+        const originalValues = getHomepageContentOriginalValues();
+        const content = normalizeMadStudioHomepageContent(readHomepageContentForm(), originalValues);
         const response = await fetch('api/api_homepage_content.php', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: readHomepageContentForm() })
+          body: JSON.stringify({ content })
         });
         const data = await response.json();
         if (!data.success) throw new Error(data.message || 'Unable to save homepage content.');
+        homepageContentValues = content;
+        applyHomepageContentValuesToForm(content);
+        const tutorialSync = applyTutorialHomepageNames(content);
+        const madSync = applyMadStudioHomepageNames(content);
+        const workshopSync = applyWorkshopHomepageDetails(content);
+        const playschoolSync = applyPlayschoolHomepageDetails(content);
+        const summerSync = applySummerBlastHomepageDetails(content);
+        persistSettings();
+        try { window.dispatchEvent(new CustomEvent('einsteinSettingsUpdated', { detail: siteSettings })); } catch (error) { }
+        await persistTutorialNames(tutorialSync.data);
+        await persistMadStudioNames(madSync.data);
+        await persistHomepageRateSection('workshop', workshopSync.data, 'Weekend Workshop details');
+        await persistHomepageRateSection('playschool', playschoolSync.data, 'PlaySchool details');
+        await persistHomepageRateSection('summerblast', summerSync.data, 'Summer Blast details');
         homepageContentOriginal = JSON.stringify(readHomepageContentForm());
-        showHomepageContentStatus('Homepage content saved to the database.', true);
+        showHomepageContentStatus('Homepage content and linked package names saved.', true);
       } catch (error) {
         showHomepageContentStatus(error.message || 'Unable to save homepage content.', false);
       } finally {
@@ -3654,6 +4088,21 @@
       b.textContent = 'Edit Discounts'; b.onclick = editVipDiscounts; b.disabled = false;
       document.getElementById('discount-cancel-btn').style.display = 'none';
     }
+    async function persistChildcareRatesToServer() {
+      try {
+        const response = await fetch('api/save_rates.php', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ section: 'childcare', data: siteSettings.childcarePackages || [] })
+        });
+        const result = await response.json();
+        if (!result.success) showToast('Childcare VIP rates could not sync: ' + (result.message || 'unknown error'), 'error');
+      } catch (error) {
+        console.warn('Could not sync computed childcare VIP rates:', error);
+      }
+    }
+
     function saveVipDiscounts() {
       if (document.getElementById('discount-edit-btn').disabled) return;
       const fields = ['playschool', 'tutorial', 'workshop', 'childcare', 'madstudio', 'summerblast'];
@@ -3673,8 +4122,14 @@
         }
         newDiscounts[key] = val;
       }
+      const childcareDiscountChanged = String(siteSettings.vipDiscounts?.childcare ?? '') !== String(newDiscounts.childcare ?? '');
       siteSettings.vipDiscounts = newDiscounts;
+      if (childcareDiscountChanged) {
+        ensureRatesDefaults();
+        siteSettings.childcarePackages = buildChildcarePackagesArray(siteSettings.childcareRates);
+      }
       persistSettings();
+      if (childcareDiscountChanged) persistChildcareRatesToServer();
       // Re-render all VIP columns with new %
       renderWorkshopRates();
       renderPlayschoolRates();
@@ -3948,7 +4403,38 @@
     }
 
     // ─── Editable Rates: Childcare, Workshops, Playschool ─────────────────
+    const CHILDCARE_VIP_RATE_PAIRS = [
+      ['tt-nonmember-monthly', 'tt-vip-monthly'],
+      ['tt-nonmember-weekly', 'tt-vip-weekly'],
+      ['tt-nonmember-daily', 'tt-vip-daily'],
+      ['ntt-nonmember-monthly', 'ntt-vip-monthly'],
+      ['ntt-nonmember-weekly', 'ntt-vip-weekly'],
+      ['ntt-nonmember-daily', 'ntt-vip-daily']
+    ];
+
+    function getChildcareVipDiscountPercent() {
+      const raw = siteSettings.vipDiscounts?.childcare;
+      if (raw === '' || raw === null) return 0;
+      if (raw === undefined) return 15;
+      const value = Number(raw);
+      return Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 15;
+    }
+
+    function syncChildcareVipRates(ratesMap = siteSettings.childcareRates) {
+      if (!ratesMap || typeof ratesMap !== 'object') return ratesMap;
+      const discount = getChildcareVipDiscountPercent();
+      CHILDCARE_VIP_RATE_PAIRS.forEach(([regularKey, vipKey]) => {
+        const raw = String(ratesMap[regularKey] ?? '').replace(/[^0-9.]/g, '');
+        const regular = Number(raw);
+        ratesMap[vipKey] = raw !== '' && Number.isFinite(regular)
+          ? String(Math.round(regular * (1 - discount / 100)))
+          : '';
+      });
+      return ratesMap;
+    }
+
     function buildChildcarePackagesArray(ratesMap) {
+      syncChildcareVipRates(ratesMap);
       const getVal = key => normalizeRateString(ratesMap[key] || '');
       return [
         { name: 'Toilet Trained - Non-members (Monthly)', duration: 'Toilet Trained', rate: getVal('tt-nonmember-monthly'), slots: 'Monthly', package_type: 'childcare' },
@@ -3986,6 +4472,7 @@
           'ntt-vip-daily': '700'
         };
       }
+      syncChildcareVipRates(siteSettings.childcareRates);
       // Always rebuild childcarePackages from the authoritative childcareRates map
       siteSettings.childcarePackages = buildChildcarePackagesArray(siteSettings.childcareRates);
 
@@ -4034,21 +4521,22 @@
 
     function autoCalcChildcareVip(inputEl, targetKey) {
       const container = inputEl.closest('#pm-childcare-container') || document;
-      const targetInput = container.querySelector(`[data-cc-key="${targetKey}"]`);
-      if (!targetInput) return;
-      const num = parseFloat(inputEl.value.replace(/[^0-9.]/g, ''));
-      const discPercent = (siteSettings.vipDiscounts && siteSettings.vipDiscounts.childcare !== undefined) ? siteSettings.vipDiscounts.childcare : 15;
-      if (!isNaN(num) && num > 0) {
-        targetInput.value = Math.round(num * (1 - discPercent / 100));
-      }
+      const sourceKey = inputEl.getAttribute('data-cc-key');
+      if (sourceKey && siteSettings.childcareRates) siteSettings.childcareRates[sourceKey] = inputEl.value.trim();
+      syncChildcareVipRates(siteSettings.childcareRates);
+      const targetDisplay = container.querySelector(`[data-childcare-vip="${targetKey}"]`);
+      if (targetDisplay) targetDisplay.textContent = normalizeRateString(siteSettings.childcareRates[targetKey] || '');
     }
 
     function renderChildcareRates() {
       ensureRatesDefaults();
       const container = document.getElementById('pm-childcare-container');
       if (!container) return;
+      syncChildcareVipRates();
       const r = siteSettings.childcareRates;
       const fmt = key => normalizeRateString(r[key] || '');
+      const vipDiscount = getChildcareVipDiscountPercent();
+      const vipLabel = vipDiscount > 0 ? `VIP Members (${vipDiscount}% off)` : 'VIP Members';
 
       container.innerHTML = `
         <div style="margin-bottom:20px">
@@ -4070,7 +4558,7 @@
                 <td><span class="amount">${escHtml(fmt('tt-nonmember-daily'))}</span></td>
               </tr>
               <tr>
-                <td><strong>VIP Members</strong></td>
+                <td><strong>${vipLabel}</strong></td>
                 <td><span class="amount">${escHtml(fmt('tt-vip-monthly'))}</span></td>
                 <td><span class="amount">${escHtml(fmt('tt-vip-weekly'))}</span></td>
                 <td><span class="amount">${escHtml(fmt('tt-vip-daily'))}</span></td>
@@ -4098,7 +4586,7 @@
                 <td><span class="amount">${escHtml(fmt('ntt-nonmember-daily'))}</span></td>
               </tr>
               <tr>
-                <td><strong>VIP Members</strong></td>
+                <td><strong>${vipLabel}</strong></td>
                 <td><span class="amount">${escHtml(fmt('ntt-vip-monthly'))}</span></td>
                 <td><span class="amount">${escHtml(fmt('ntt-vip-weekly'))}</span></td>
                 <td><span class="amount">${escHtml(fmt('ntt-vip-daily'))}</span></td>
@@ -4127,7 +4615,6 @@
             <td>${escHtml(w.capacity)}</td>
             <td><span class="amount">${escHtml(normalizeRateString(String(w.rate || '').replace(/\s*\+?\s*transpo/gi, '')))}${hasTranspo ? ' + transpo' : ''}</span></td>
             <td><span class="amount" style="color:#c0813f;font-weight:600">${escHtml(vipDisplay)}</span></td>
-            <td>${escHtml(w.schedule)}</td>
           </tr>`;
         }).join('');
       });
@@ -4150,7 +4637,6 @@
             <td>${escHtml(p.age)}</td>
             <td><span class="amount">${escHtml(normalizeRateString(p.rate))}</span></td>
             <td><span class="amount" style="color:#c0813f;font-weight:600">${escHtml(vipDisplay)}</span></td>
-            <td>${escHtml(p.notes)}</td>
           </tr>`;
         }).join('');
       });
@@ -4177,7 +4663,7 @@
       });
     }
 
-    function renderTutorialPriceCards() {
+    function renderTutorialPriceCardsLegacy() {
       ensureRatesDefaults();
       const discPercent = (siteSettings.vipDiscounts && siteSettings.vipDiscounts.tutorial !== undefined) ? siteSettings.vipDiscounts.tutorial : 5;
       siteSettings.tutorials.forEach(t => {
@@ -4194,6 +4680,51 @@
         document.querySelectorAll(`.tutorial-vip-display[data-package="${t.name}"]`).forEach(vEl => {
           vEl.textContent = vipDisplay;
         });
+      });
+    }
+
+    function renderTutorialPriceCards() {
+      ensureRatesDefaults();
+      ensureTutorialRateKeys();
+      const discPercent = (siteSettings.vipDiscounts && siteSettings.vipDiscounts.tutorial !== undefined) ? siteSettings.vipDiscounts.tutorial : 5;
+      const rows = Array.from(document.querySelectorAll('.tutorial-price-input')).map(input => input.closest('tr'));
+      const details = Array.from(document.querySelectorAll('.tutorial-detail'));
+      const displays = Array.from(document.querySelectorAll('.tutorial-price-display'));
+      const inputs = Array.from(document.querySelectorAll('.tutorial-price-input'));
+      const vipDisplays = Array.from(document.querySelectorAll('.tutorial-vip-display'));
+
+      siteSettings.tutorials.forEach((t, index) => {
+        const name = String(t.name || TUTORIAL_NAME_LINKS[index]?.fallback || ('Tutorial Package ' + (index + 1))).trim();
+        const row = rows[index];
+        const nameElement = row?.querySelector('td:first-child strong');
+        if (nameElement) nameElement.textContent = name;
+
+        const detail = details[index];
+        if (detail) {
+          detail.dataset.package = name;
+          detail.textContent = t.detail || '—';
+        }
+        const display = displays[index];
+        if (display) {
+          display.dataset.package = name;
+          display.textContent = String(t.rate || '').trim();
+        }
+        const input = inputs[index];
+        if (input) {
+          input.dataset.package = name;
+          input.dataset.tutorialKey = t.tutorial_key || TUTORIAL_NAME_LINKS[index]?.key || '';
+          input.setAttribute('aria-label', name + ' price');
+          input.value = String(t.rate || '').replace(/[^0-9.]/g, '');
+        }
+
+        const rawNum = parseInt(String(t.rate || '').replace(/[^0-9.]/g, ''), 10);
+        const vipNum = rawNum ? Math.round(rawNum * (1 - discPercent / 100)) : null;
+        const vipDisplay = vipNum ? '₱' + vipNum.toLocaleString() : '—';
+        const vip = vipDisplays[index];
+        if (vip) {
+          vip.dataset.package = name;
+          vip.textContent = vipDisplay;
+        }
       });
     }
 
@@ -4244,8 +4775,12 @@
       if (section === 'childcare') {
         const container = document.getElementById('pm-childcare-container');
         if (container) {
+          syncChildcareVipRates();
           const r = siteSettings.childcareRates;
           const val = key => String(r[key] || '').replace(/[^0-9.]/g, '');
+          const vipVal = key => normalizeRateString(r[key] || '');
+          const vipDiscount = getChildcareVipDiscountPercent();
+          const vipLabel = vipDiscount > 0 ? `VIP Members (${vipDiscount}% off)` : 'VIP Members';
 
           container.innerHTML = `
             <div style="margin-bottom:20px">
@@ -4267,10 +4802,10 @@
                     <td><input class="form-control price-input-field" data-validate="number" data-cc-key="tt-nonmember-daily" value="${val('tt-nonmember-daily')}" oninput="autoCalcChildcareVip(this, 'tt-vip-daily')"></td>
                   </tr>
                   <tr>
-                    <td><strong>VIP Members (${(siteSettings.vipDiscounts && siteSettings.vipDiscounts.childcare !== undefined) ? siteSettings.vipDiscounts.childcare : 15}% off)</strong></td>
-                    <td><input class="form-control price-input-field" data-validate="number" data-cc-key="tt-vip-monthly" value="${val('tt-vip-monthly')}"></td>
-                    <td><input class="form-control price-input-field" data-validate="number" data-cc-key="tt-vip-weekly" value="${val('tt-vip-weekly')}"></td>
-                    <td><input class="form-control price-input-field" data-validate="number" data-cc-key="tt-vip-daily" value="${val('tt-vip-daily')}"></td>
+                    <td><strong>${vipLabel}</strong></td>
+                    <td><span class="amount childcare-vip-auto" data-childcare-vip="tt-vip-monthly">${escHtml(vipVal('tt-vip-monthly'))}</span><br><small style="color:#999;font-size:10px">auto-computed</small></td>
+                    <td><span class="amount childcare-vip-auto" data-childcare-vip="tt-vip-weekly">${escHtml(vipVal('tt-vip-weekly'))}</span><br><small style="color:#999;font-size:10px">auto-computed</small></td>
+                    <td><span class="amount childcare-vip-auto" data-childcare-vip="tt-vip-daily">${escHtml(vipVal('tt-vip-daily'))}</span><br><small style="color:#999;font-size:10px">auto-computed</small></td>
                   </tr>
                 </tbody>
               </table>
@@ -4295,10 +4830,10 @@
                     <td><input class="form-control price-input-field" data-validate="number" data-cc-key="ntt-nonmember-daily" value="${val('ntt-nonmember-daily')}" oninput="autoCalcChildcareVip(this, 'ntt-vip-daily')"></td>
                   </tr>
                   <tr>
-                    <td><strong>VIP Members (${(siteSettings.vipDiscounts && siteSettings.vipDiscounts.childcare !== undefined) ? siteSettings.vipDiscounts.childcare : 15}% off)</strong></td>
-                    <td><input class="form-control price-input-field" data-validate="number" data-cc-key="ntt-vip-monthly" value="${val('ntt-vip-monthly')}"></td>
-                    <td><input class="form-control price-input-field" data-validate="number" data-cc-key="ntt-vip-weekly" value="${val('ntt-vip-weekly')}"></td>
-                    <td><input class="form-control price-input-field" data-validate="number" data-cc-key="ntt-vip-daily" value="${val('ntt-vip-daily')}"></td>
+                    <td><strong>${vipLabel}</strong></td>
+                    <td><span class="amount childcare-vip-auto" data-childcare-vip="ntt-vip-monthly">${escHtml(vipVal('ntt-vip-monthly'))}</span><br><small style="color:#999;font-size:10px">auto-computed</small></td>
+                    <td><span class="amount childcare-vip-auto" data-childcare-vip="ntt-vip-weekly">${escHtml(vipVal('ntt-vip-weekly'))}</span><br><small style="color:#999;font-size:10px">auto-computed</small></td>
+                    <td><span class="amount childcare-vip-auto" data-childcare-vip="ntt-vip-daily">${escHtml(vipVal('ntt-vip-daily'))}</span><br><small style="color:#999;font-size:10px">auto-computed</small></td>
                   </tr>
                 </tbody>
               </table>
@@ -4322,7 +4857,6 @@
                 <td><input class="form-control price-input-field" data-field="capacity" value="${escHtml(w.capacity)}"></td>
                 <td><input class="form-control price-input-field" data-field="rate" type="number" min="0.01" step="0.01" value="${escHtml(String(w.rate || '').replace(/[^0-9.]/g, ''))}">${/home[ -]?based/i.test(w.name || '') ? '<span> + transpo</span>' : ''}</td>
                 <td><span class="amount" style="color:#c0813f;font-weight:600;padding:4px 8px">${escHtml(vipDisplay)}</span><br><small style="color:#999;font-size:10px">auto-computed</small></td>
-                <td><input class="form-control price-input-field" data-field="schedule" value="${escHtml(w.schedule)}"></td>
               </tr>`;
             }).join('');
           } else if (section === 'playschool') {
@@ -4337,7 +4871,6 @@
                 <td><input class="form-control price-input-field" data-field="age" value="${escHtml(p.age)}"></td>
                 <td><input class="form-control price-input-field" data-field="rate" value="${escHtml(p.rate)}"></td>
                 <td><span class="amount" style="color:#c0813f;font-weight:600;padding:4px 8px">${escHtml(vipDisplay)}</span><br><small style="color:#999;font-size:10px">auto-computed</small></td>
-                <td><input class="form-control price-input-field" data-field="notes" value="${escHtml(p.notes)}"></td>
               </tr>`;
             }).join('');
           } else if (section === 'tutorial') {
@@ -4448,17 +4981,25 @@
         if (targetBody) {
           const rows = [...targetBody.querySelectorAll('tr')].filter(r => r.querySelector('input[data-field="name"]'));
           if (section === 'workshop') {
-            const mapped = rows.map(r => {
+            const mapped = rows.map((r, index) => {
               const obj = {};
               r.querySelectorAll('[data-field]').forEach(el => obj[el.getAttribute('data-field')] = el.value.trim());
+              const existing = siteSettings.workshops[index] || {};
+              obj.schedule = obj.schedule || existing.schedule || '';
+              obj.workshop_key = existing.workshop_key || '';
+              obj.legacy_name = existing.legacy_name || '';
               obj.package_type = obj.package_type || 'workshop';
               return obj;
             }).filter(item => item.name && item.name !== '');
             if (mapped.length > 0) siteSettings.workshops = sanitizeRatesArray(mapped);
           } else if (section === 'playschool') {
-            const mapped = rows.map(r => {
+            const mapped = rows.map((r, index) => {
               const obj = {};
               r.querySelectorAll('[data-field]').forEach(el => obj[el.getAttribute('data-field')] = el.value.trim());
+              const existing = siteSettings.playschool[index] || {};
+              obj.notes = obj.notes || existing.notes || '';
+              obj.playschool_key = existing.playschool_key || '';
+              obj.legacy_name = existing.legacy_name || '';
               obj.package_type = obj.package_type || 'playschool';
               return obj;
             }).filter(item => item.name && item.name !== '');
@@ -4624,13 +5165,30 @@
           if (Array.isArray(j.rates.childcare) && j.rates.childcare.length) siteSettings.childcarePackages = j.rates.childcare;
           if (Array.isArray(j.rates.workshop) && j.rates.workshop.length) siteSettings.workshops = j.rates.workshop;
           if (Array.isArray(j.rates.playschool) && j.rates.playschool.length) siteSettings.playschool = j.rates.playschool;
-          if (Array.isArray(j.rates.tutorial) && j.rates.tutorial.length) siteSettings.tutorials = j.rates.tutorial;
+          if (Array.isArray(j.rates.tutorial) && j.rates.tutorial.length) {
+            siteSettings.tutorials = j.rates.tutorial;
+            ensureTutorialRateKeys();
+            if (homepageContentValues && Object.keys(homepageContentValues).length) {
+              applyTutorialHomepageNames(homepageContentValues);
+            }
+          }
           if (Array.isArray(j.rates.madstudio) && j.rates.madstudio.length) {
             siteSettings.madstudio = j.rates.madstudio;
+            ensureMadStudioRateKeys();
+            if (homepageContentValues && Object.keys(homepageContentValues).length) {
+              applyMadStudioHomepageNames(homepageContentValues);
+            }
             renderMADRates();
           }
           if (Array.isArray(j.rates.summerblast) && j.rates.summerblast.length) {
             siteSettings.summerblast = j.rates.summerblast;
+          }
+          if (homepageContentValues && Object.keys(homepageContentValues).length) {
+            applyTutorialHomepageNames(homepageContentValues);
+            applyMadStudioHomepageNames(homepageContentValues);
+            applyWorkshopHomepageDetails(homepageContentValues);
+            applyPlayschoolHomepageDetails(homepageContentValues);
+            applySummerBlastHomepageDetails(homepageContentValues);
           }
           ensureRatesDefaults();
           renderTutorialPriceCards();
@@ -5239,6 +5797,10 @@
       }
       tbody.innerHTML = students.map((e, i) => {
         const isVip = (e.package_selected || '').toLowerCase().includes('vip') || (e.program || '').toLowerCase().includes('vip') || isParentConfirmedVip(e);
+        const archiveLabel = archived ? 'Restore student' : 'Archive student';
+        const archiveIcon = archived
+          ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7"></path><path d="M4 4v5h5"></path><path d="M12 8v4l2.5 1.5"></path></svg>`
+          : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16v12H4z"></path><path d="M3 4h18v4H3z"></path><path d="M9 12h6"></path></svg>`;
         return `<tr>
           <td>${String(i + 1).padStart(3, '0')}</td>
           <td><b>${escHtml(e.child_name)}</b></td>
@@ -5248,7 +5810,7 @@
           <td>${isVip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
           <td><span class="badge ${archived ? 'badge-gold' : 'badge-green'}">${archived ? 'Archived' : 'Active'}</span></td>
           <td>
-          ${isHeadAdminUser ? `<button type="button" class="btn btn-outline btn-sm" style="margin:4px" onclick="setStudentArchived(${Number(e.id)}, ${!archived}, this)">${archived ? 'Restore' : 'Archive Student'}</button>` : ''}</td>
+          ${isHeadAdminUser ? `<button type="button" class="btn btn-outline btn-sm" title="${archiveLabel}" aria-label="${archiveLabel}" style="margin:4px;width:34px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center" onclick="setStudentArchived(${Number(e.id)}, ${!archived}, this)">${archiveIcon}</button>` : ''}</td>
         </tr>`;
       }).join('');
     }
@@ -5705,7 +6267,10 @@
       if (pageId === 'playschool') renderProgramPage('playschool');
       if (pageId === 'childcare') renderProgramPage('childcare');
       if (pageId === 'madstudio') changeMadStudioView('madstudio');
-      if (pageId === 'summerblast') renderProgramPage('summerblast');
+      if (pageId === 'summerblast') {
+        const sbFilter = document.getElementById('sb-view-filter');
+        changeSummerBlastView(sbFilter?.value || 'students');
+      }
       if (pageId === 'students') renderStudentsTable();
       if (pageId === 'payments') renderPaymentsPage();
       if (pageId === 'vipmembers') renderVIPPage();
@@ -7088,7 +7653,7 @@
           <td>${escHtml(e.child_age || '—')}</td>
           <td>${escHtml(e.guardian_name || '—')}</td>
           <td>${escHtml(e.contact || '—')}</td>
-          <td><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">Registration Fee</span></td>
+          <td>—</td>
           <td>—</td>
           <td>${escHtml(e.payment_method || '—')} (${feeDisplay})</td>
           <td>${statusBadge(e.status)}</td>
@@ -7098,12 +7663,18 @@
       }).join('');
     }
 
+    function updateSummerBlastDateColumn(viewType) {
+      const dateColumn = document.getElementById('sb-date-column');
+      if (dateColumn) dateColumn.textContent = viewType === 'students' ? 'Enrolled' : 'Date';
+    }
+
     // changeSummerBlastView — toggles the main summerblast table between
     // enrolled students and reserved (slot-reservation only) students.
     function changeSummerBlastView(viewType) {
       const tbody = document.getElementById('summerblast-body');
       const titleEl = document.getElementById('sb-table-title');
       if (!tbody) return;
+      updateSummerBlastDateColumn(viewType);
 
       if (viewType === 'registration') {
         if (titleEl) titleEl.textContent = 'Registration Fee — Summer Blast';
@@ -7132,7 +7703,7 @@
             <td>${escHtml(e.child_age || '—')}</td>
             <td>${escHtml(e.guardian_name || '—')}</td>
             <td>${escHtml(e.contact || '—')}</td>
-            <td><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">${escHtml(e.package_selected || 'Slot Reservation')}</span></td>
+            <td>—</td>
             <td>${escHtml(e.timeslot || '—')}</td>
             <td>${escHtml(e.payment_method || '—')} (${feeDisplay})</td>
             <td>${statusBadge(e.status)}</td>
@@ -7180,7 +7751,7 @@
           <td>${escHtml(e.child_age || '—')}</td>
           <td>${escHtml(e.guardian_name || '—')}</td>
           <td>${escHtml(e.contact || '—')}</td>
-          <td><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">${escHtml(e.package_selected || 'Slot Reservation')}</span></td>
+          <td>—</td>
           <td>${escHtml(e.timeslot || '—')}</td>
           <td>${escHtml(e.payment_method || '—')} (${feeDisplay})</td>
           <td>${statusBadge(e.status)}</td>
@@ -9730,8 +10301,16 @@
     }
 
     // ── Load logs from backend ────────────────────────────────────────────
-    async function loadActivityLog(resetPage = false) {
+    async function loadActivityLog(resetPage = false, trigger = null) {
       if (!isHeadAdminUser) return;
+
+      const refreshButton = trigger || document.getElementById('alog-refresh-btn');
+      if (refreshButton) {
+        refreshButton.disabled = true;
+        refreshButton.dataset.originalLabel = refreshButton.textContent;
+        refreshButton.textContent = 'Refreshing...';
+        refreshButton.style.opacity = '.7';
+      }
 
       const tbody = document.getElementById('alog-tbody');
       const pagDiv = document.getElementById('alog-pagination');
@@ -9750,11 +10329,11 @@
       if (date) url += `&date=${encodeURIComponent(date)}`;
 
       try {
-        const res = await fetch(url, { credentials: 'include' });
+        const res = await fetch(url, { credentials: 'include', cache: 'no-store' });
         const data = await res.json();
 
         if (!data.success) {
-          tbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:#c62828;">&#9888; ${data.message || 'Failed to load logs.'}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:#c62828;">${data.message || 'Failed to load logs.'}</td></tr>`;
           return;
         }
 
@@ -9803,6 +10382,13 @@
       } catch (e) {
         console.error('[ActivityLog]', e);
         tbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:#c62828;">Connection error: ${e.message}</td></tr>`;
+      } finally {
+        if (refreshButton) {
+          refreshButton.disabled = false;
+          refreshButton.textContent = refreshButton.dataset.originalLabel || 'Refresh';
+          delete refreshButton.dataset.originalLabel;
+          refreshButton.style.opacity = '1';
+        }
       }
     }
 
@@ -9838,10 +10424,25 @@
     }
 
     // ── Clear filters ─────────────────────────────────────────────────────
-    function clearAlogFilters() {
+    function clearAlogFilters(trigger = null) {
       const a = document.getElementById('alog-filter-actor'); if (a) a.value = '';
+      const t = document.getElementById('alog-filter-type'); if (t) t.value = '';
       const d = document.getElementById('alog-filter-date'); if (d) d.value = '';
-      loadActivityLog(true);
+      if (trigger) {
+        trigger.disabled = true;
+        trigger.textContent = 'Clearing...';
+      }
+      const request = loadActivityLog(true);
+      if (request && typeof request.finally === 'function') {
+        request.finally(() => {
+          if (!trigger) return;
+          trigger.disabled = false;
+          trigger.textContent = 'Clear';
+        });
+      } else if (trigger) {
+        trigger.disabled = false;
+        trigger.textContent = 'Clear';
+      }
     }
 
     // ── Auto-refresh every 30 seconds ────────────────────────────────────
