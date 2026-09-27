@@ -36,7 +36,7 @@
 
     <!-- NAV -->
     <nav>
-        <div class="nav-logo" style="display: flex; align-items: center; gap: 12px;">
+        <a href="./" class="nav-logo" title="Back to top" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
             <img src="images/logo2.jpg" data-homepage-alt="brand.logo_alt" alt="Einstein Logo"
                 style="height: 45px; width: auto;" />
             <span
@@ -45,7 +45,7 @@
                 <span data-homepage-text="brand.name"
                     style="font-weight:400;letter-spacing:normal;text-transform:none">Center For Modern
                     Education</span></span>
-        </div>
+        </a>
         <ul id="nav-links">
             <li><a href="programs" data-section="programs" data-homepage-text="nav.programs">Programs</a></li>
             <li><a href="programs/tutorial" data-section="tutorial" data-homepage-text="nav.tutorial">Tutorial</a></li>
@@ -1164,6 +1164,18 @@
             });
         });
 
+        // The logo and name go back to the top of the homepage (/) without reloading.
+        document.querySelector('.nav-logo').addEventListener('click', e => {
+            e.preventDefault();
+            const url = sectionUrl(null);
+            if (url !== location.pathname + location.search) {
+                saveScrollPosition();
+                history.pushState(null, '', url);
+            }
+            scrollToSection(null, true);
+            setActiveNavSection(null);
+        });
+
         // Back/Forward: return to where that entry was left, else to its section.
         window.addEventListener('popstate', e => {
             if (typeof e.state?.scrollY === 'number') restoreScroll(e.state.scrollY);
@@ -1239,6 +1251,7 @@
             menuBtn.addEventListener('click', () => setMenuOpen(!navLinks.classList.contains('nav-open')));
             // Delegated so the Dashboard link added by updateNavbar() also closes the menu.
             navLinks.addEventListener('click', e => { if (e.target.closest('a')) setMenuOpen(false); });
+            document.querySelector('.nav-logo')?.addEventListener('click', () => setMenuOpen(false));
             document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenuOpen(false); });
         })();
 
