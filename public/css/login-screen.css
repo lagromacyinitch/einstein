@@ -243,6 +243,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 }
 
 .login-back-btn {
+  width: 44px;
+  height: 44px;
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.5);
@@ -288,7 +290,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 }
 
 .login-footer-links {
-  margin-top: 16px;
+  margin-top: 2px;
   text-align: center;
   font-family: 'Lato', sans-serif;
   font-size: 12px;
@@ -296,6 +298,9 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 }
 
 .login-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--login-gold-light);
   font-weight: 600;
   text-decoration: none;

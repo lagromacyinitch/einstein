@@ -56,6 +56,7 @@
                 <span class="login-label" id="login-icon-label" data-homepage-text="auth.login">Login</span>
             </div>
         </div>
+        <button class="nav-hamburger" id="nav-hamburger" type="button" aria-label="Menu" aria-controls="nav-links" aria-expanded="false"><span></span><span></span><span></span></button>
     </nav>
 
     <!-- HERO -->
@@ -532,19 +533,19 @@
                 <span data-homepage-text="mad.title">Fitness and<br>After School Programs</span>
             </p>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+            <div class="mad-columns">
 
                 <!-- LEFT: SERVICES -->
                 <div>
                     <h4
-                        style="font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:1rem;">
+                        style="font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:1rem;">
                         <span data-homepage-text="mad.services_label">Our Services</span>
                     </h4>
 
                     <div
                         style="background:rgba(255,255,255,0.04);border:1px solid rgba(218,181,92,0.18);border-radius:10px;padding:1.4rem 1.5rem;margin-bottom:1rem;">
                         <h4
-                            style="font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:0.9rem;">
+                            style="font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:0.9rem;">
                             • Fitness Training</h4>
                         <ul style="list-style:none;display:flex;flex-direction:column;gap:0.45rem;"
                             data-homepage-list="mad.fitness.items" data-homepage-list-template="mad-dot">
@@ -565,7 +566,7 @@
                     <div
                         style="background:rgba(255,255,255,0.04);border:1px solid rgba(218,181,92,0.18);border-radius:10px;padding:1.4rem 1.5rem;margin-bottom:1rem;">
                         <h4
-                            style="font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:0.9rem;">
+                            style="font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:0.9rem;">
                             • After School Program</h4>
                         <ul style="list-style:none;display:flex;flex-direction:column;gap:0.45rem;"
                             data-homepage-list="mad.after_school.items" data-homepage-list-template="mad-dot">
@@ -597,7 +598,7 @@
                     <div
                         style="background:rgba(255,255,255,0.04);border:1px solid rgba(218,181,92,0.18);border-radius:10px;padding:1.4rem 1.5rem;">
                         <h4
-                            style="font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:0.9rem;">
+                            style="font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:0.9rem;">
                             • Studio Rental</h4>
                         <ul style="list-style:none;display:flex;flex-direction:column;gap:0.45rem;"
                             data-homepage-list="mad.rental.items" data-homepage-list-template="mad-dot">
@@ -620,7 +621,7 @@
                 <!-- RIGHT: RATES & SCHEDULE -->
                 <div>
                     <p
-                        style="font-size:0.68rem;letter-spacing:0.22em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:1.2rem;">
+                        style="font-size:0.75rem;letter-spacing:0.22em;text-transform:uppercase;color:#DAB55C;font-weight:700;margin-bottom:1.2rem;">
                         <span data-homepage-text="mad.rates_label">Rates &amp; Schedule</span>
                     </p>
 
@@ -629,11 +630,11 @@
 
                         <div style="padding:1rem 1.4rem 0.5rem;border-bottom:1px solid rgba(218,181,92,0.12);">
                             <p
-                                style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;padding-bottom:0.5rem;border-bottom:1px solid rgba(218,181,92,0.15);margin-bottom:0.6rem;">
+                                style="font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;padding-bottom:0.5rem;border-bottom:1px solid rgba(218,181,92,0.15);margin-bottom:0.6rem;">
                                 <span data-homepage-text="mad.rates.fitness_heading">Fitness Training</span>
                             </p>
-                            <div
-                                style="display:grid;grid-template-columns:1fr auto auto;gap:0.3rem 1rem;align-items:center;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <div class="mad-rate-row"
+                                style="padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                                 <span style="font-size:0.85rem;color:rgba(255,255,255,0.88);"
                                     data-homepage-text="mad.rates.hiphop.name">Hiphop Aerobics</span>
                                 <span style="font-size:0.72rem;color:rgba(255,255,255,0.38);white-space:nowrap;">MWF •
@@ -641,10 +642,10 @@
                                 <span
                                     style="font-family:'sans-serif',serif;color:#DAB55C;font-size:0.95rem;white-space:nowrap;"><span
                                         data-madstudio="Hiphop Aerobics">₱2,500</span><span
-                                        style="font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
+                                        style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
                             </div>
-                            <div
-                                style="display:grid;grid-template-columns:1fr auto auto;gap:0.3rem 1rem;align-items:center;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <div class="mad-rate-row"
+                                style="padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                                 <span style="font-size:0.85rem;color:rgba(255,255,255,0.88);"
                                     data-homepage-text="mad.rates.kickboxing.name">Kickboxing</span>
                                 <span style="font-size:0.72rem;color:rgba(255,255,255,0.38);white-space:nowrap;">TTHS •
@@ -652,10 +653,10 @@
                                 <span
                                     style="font-family:'sans-serif',serif;color:#DAB55C;font-size:0.95rem;white-space:nowrap;"><span
                                         data-madstudio="Kickboxing">₱2,500</span><span
-                                        style="font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
+                                        style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
                             </div>
-                            <div
-                                style="display:grid;grid-template-columns:1fr auto auto;gap:0.3rem 1rem;align-items:center;padding:0.5rem 0 0.8rem;">
+                            <div class="mad-rate-row"
+                                style="padding:0.5rem 0 0.8rem;">
                                 <span style="font-size:0.85rem;color:rgba(255,255,255,0.88);"
                                     data-homepage-text="mad.rates.cross_training.name">Cross Training <span
                                         style="font-size:0.7rem;color:rgba(255,255,255,0.35);">(both
@@ -665,17 +666,17 @@
                                 <span
                                     style="font-family:'sans-serif',serif;color:#DAB55C;font-size:0.95rem;white-space:nowrap;"><span
                                         data-madstudio="Cross Training">₱3,500</span><span
-                                        style="font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
+                                        style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
                             </div>
                         </div>
 
                         <div style="padding:1rem 1.4rem 0.5rem;border-bottom:1px solid rgba(218,181,92,0.12);">
                             <p
-                                style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;padding-bottom:0.5rem;border-bottom:1px solid rgba(218,181,92,0.15);margin-bottom:0.6rem;">
+                                style="font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;padding-bottom:0.5rem;border-bottom:1px solid rgba(218,181,92,0.15);margin-bottom:0.6rem;">
                                 <span data-homepage-text="mad.rates.after_school_heading">After School Program</span>
                             </p>
-                            <div
-                                style="display:grid;grid-template-columns:1fr auto auto;gap:0.3rem 1rem;align-items:center;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <div class="mad-rate-row"
+                                style="padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                                 <span style="font-size:0.85rem;color:rgba(255,255,255,0.88);"
                                     data-homepage-text="mad.rates.gymnastics.name">Gymnastics</span>
                                 <span style="font-size:0.72rem;color:rgba(255,255,255,0.38);white-space:nowrap;">Sat •
@@ -683,10 +684,10 @@
                                 <span
                                     style="font-family:'sans-serif',serif;color:#DAB55C;font-size:0.95rem;white-space:nowrap;"><span
                                         data-madstudio="Gymnastics">₱2,500</span><span
-                                        style="font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
+                                        style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
                             </div>
-                            <div
-                                style="display:grid;grid-template-columns:1fr auto auto;gap:0.3rem 1rem;align-items:center;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <div class="mad-rate-row"
+                                style="padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                                 <span style="font-size:0.85rem;color:rgba(255,255,255,0.88);"
                                     data-homepage-text="mad.rates.ballet.name">Ballet Class</span>
                                 <span style="font-size:0.72rem;color:rgba(255,255,255,0.38);white-space:nowrap;">Sat •
@@ -694,10 +695,10 @@
                                 <span
                                     style="font-family:'sans-serif',serif;color:#DAB55C;font-size:0.95rem;white-space:nowrap;"><span
                                         data-madstudio="Ballet Class">₱2,500</span><span
-                                        style="font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
+                                        style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
                             </div>
-                            <div
-                                style="display:grid;grid-template-columns:1fr auto auto;gap:0.3rem 1rem;align-items:center;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <div class="mad-rate-row"
+                                style="padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                                 <span style="font-size:0.85rem;color:rgba(255,255,255,0.88);"
                                     data-homepage-text="mad.rates.taekwondo.name">Taekwondo</span>
                                 <span style="font-size:0.72rem;color:rgba(255,255,255,0.38);white-space:nowrap;">Sat
@@ -705,10 +706,10 @@
                                 <span
                                     style="font-family:'sans-serif',serif;color:#DAB55C;font-size:0.95rem;white-space:nowrap;"><span
                                         data-madstudio="Taekwondo">₱2,500</span><span
-                                        style="font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
+                                        style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
                             </div>
-                            <div
-                                style="display:grid;grid-template-columns:1fr auto auto;gap:0.3rem 1rem;align-items:center;padding:0.5rem 0 0.8rem;">
+                            <div class="mad-rate-row"
+                                style="padding:0.5rem 0 0.8rem;">
                                 <span style="font-size:0.85rem;color:rgba(255,255,255,0.88);"
                                     data-homepage-text="mad.rates.pop_dancing.name">Pop Dancing</span>
                                 <span style="font-size:0.72rem;color:rgba(255,255,255,0.38);white-space:nowrap;">MWF •
@@ -716,13 +717,13 @@
                                 <span
                                     style="font-family:'sans-serif',serif;color:#DAB55C;font-size:0.95rem;white-space:nowrap;"><span
                                         data-madstudio="Pop Dancing">₱2,500</span><span
-                                        style="font-family:'DM Sans',sans-serif;font-size:0.68rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
+                                        style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.3);margin-left:2px;">/month</span></span>
                             </div>
                         </div>
 
                         <div style="padding:1rem 1.4rem;">
                             <p
-                                style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;padding-bottom:0.5rem;border-bottom:1px solid rgba(218,181,92,0.15);margin-bottom:0.6rem;">
+                                style="font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:#DAB55C;font-weight:700;padding-bottom:0.5rem;border-bottom:1px solid rgba(218,181,92,0.15);margin-bottom:0.6rem;">
                                 <span data-homepage-text="mad.rates.rental_heading">Studio Rental</span>
                             </p>
                             <div
@@ -947,7 +948,7 @@
                         </div>
 
                         <img src="images/card1.png" alt="Einstein VIP Card"
-                            style="max-width: 100%; height: auto; max-width: 380px; display: block; margin: 0.3rem auto; border-radius: 12px; background: transparent; box-shadow: none;" />
+                            style="width: 100%; max-width: 380px; height: auto; display: block; margin: 0.3rem auto; border-radius: 12px; background: transparent; box-shadow: none;" />
                     </div>
 
                     <div class="membership-features" style="padding: 0.4rem 1rem; margin: 0.2rem 0;">
@@ -962,7 +963,7 @@
 
                     <div class="membership-pricing" style="padding: 0.4rem 1rem; margin: 0.2rem 0;">
                         <p
-                            style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.1rem; margin: 0 0 0.1rem 0;">
+                            style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.1rem; margin: 0 0 0.1rem 0;">
                             <span data-homepage-text="membership.card.vip_title">VIP Club Membership</span>
                         </p>
                         <div class="price" data-vip-fee
@@ -970,7 +971,7 @@
                         </div>
                         <p style="font-size: 0.7rem; margin: 0.1rem 0;"><strong
                                 data-homepage-text="membership.card.discount">Get up to 15% DISCOUNT</strong></p>
-                        <p style="font-size: 0.65rem; margin: 0;" data-homepage-text="membership.card.duration">on
+                        <p style="font-size: 0.75rem; margin: 0;" data-homepage-text="membership.card.duration">on
                             regular services for two years</p>
                     </div>
                 </div>
@@ -1151,6 +1152,21 @@
     <script src="js/receipt-validation.js?v=2"></script>
     <script src="js/enrollment-flow.js?v=17"></script>
     <script>
+        (function () {
+            const menuBtn = document.getElementById('nav-hamburger');
+            const navLinks = document.getElementById('nav-links');
+            if (!menuBtn || !navLinks) return;
+            const setMenuOpen = open => {
+                navLinks.classList.toggle('nav-open', open);
+                menuBtn.classList.toggle('open', open);
+                menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            };
+            menuBtn.addEventListener('click', () => setMenuOpen(!navLinks.classList.contains('nav-open')));
+            // Delegated so the Dashboard link added by updateNavbar() also closes the menu.
+            navLinks.addEventListener('click', e => { if (e.target.closest('a')) setMenuOpen(false); });
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenuOpen(false); });
+        })();
+
         function setQuickAccessIcon(href, label, title) {
             const link = document.getElementById('login-icon-link');
             const labelEl = document.getElementById('login-icon-label');
@@ -1675,7 +1691,7 @@
                     }
                 });
 
-                const madRows = Array.from(document.querySelectorAll('#madstudio div[style*="grid-template-columns:1fr auto auto"]'));
+                const madRows = Array.from(document.querySelectorAll('#madstudio .mad-rate-row'));
                 const madRateKeys = [
                     ['mad.rates.hiphop.name', 'mad.rates.hiphop.schedule'],
                     ['mad.rates.kickboxing.name', 'mad.rates.kickboxing.schedule'],

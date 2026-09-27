@@ -2824,7 +2824,7 @@
 
     <!-- ════════ SUB-ADMIN: VIEW 4: MY PROFILE ════════ -->
     <div class="page" id="page-my_profile">
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:24px;max-width:1100px;align-items:start">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(340px, 100%), 1fr));gap:24px;max-width:1100px;align-items:start">
         
         <!-- Profile Information Card -->
         <div class="card" style="margin-bottom:0">
@@ -3550,7 +3550,7 @@
       editor.innerHTML = groups.map(section => `
         <section class="homepage-editor-section" style="border:1px solid #eadcc9;border-radius:12px;margin-bottom:16px;overflow:hidden;background:#fff;">
           <div style="padding:12px 15px;background:#fbf5ee;border-bottom:1px solid #eadcc9;font-weight:700;color:var(--brown-primary);font-size:14px;">${escHtml(section)}</div>
-          <div style="padding:15px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:13px 16px;">
+          <div style="padding:15px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px, 100%),1fr));gap:13px 16px;">
             ${bySection[section].map(field => {
               const isList = field.type === 'list';
               const value = escHtml(homepageContentValueForForm(field));
