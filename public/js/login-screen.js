@@ -157,12 +157,13 @@
           return;
         }
         if (data.role === 'user') {
-          window.location.href = target;
+          window.location.replace(target);
           return;
         }
       }
 
-      window.location.href = target;
+      // replace() drops the login page from history, so Back from the dashboard doesn't land on it.
+      window.location.replace(target);
     } catch (e) {
       showError('Could not reach the server. Please open the website through its domain and check that the hosting server is available.');
     } finally {

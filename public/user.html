@@ -2252,7 +2252,8 @@
             if (e.key === 'Escape') closeUserDrawer();
         });
 
-        function showUserPage(pageId, btn) {
+        // fromHistory: the tab change came from Back/Forward or page load, so don't add another history entry.
+        function showUserPage(pageId, btn, fromHistory) {
             if (pageId === 'profile') {
                 openProfileModal();
                 closeUserDrawer();
@@ -2296,10 +2297,17 @@
             // Smooth scroll to top of content
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            try {
-                history.replaceState(null, '', '#' + pageId);
-            } catch (e) { }
+            // Each tab is its own history entry so Back/Forward move between tabs; the URL stays /user.
+            if (!fromHistory && history.state?.userPage !== pageId) {
+                try {
+                    history.pushState({ userPage: pageId }, '', location.pathname + location.search);
+                } catch (e) { }
+            }
         }
+
+        window.addEventListener('popstate', e => {
+            if (e.state?.userPage) showUserPage(e.state.userPage, null, true);
+        });
 
         function drawerNavigate(section, btn) {
             showUserPage(section, btn);
@@ -2418,13 +2426,13 @@
             await initializePage();
             initDrawerUserInfo();
 
-            // Check URL hash or default to Programs (dashboard)
-            const hash = window.location.hash ? window.location.hash.substring(1) : '';
-            if (hash && ['dashboard', 'enrollments', 'vip', 'balance', 'announcements'].includes(hash)) {
-                showUserPage(hash);
-            } else {
-                showUserPage('dashboard');
-            }
+            // Reopen the tab this history entry was on (survives refresh), else an old #tab link, else Programs.
+            let initialPage = history.state?.userPage || location.hash.substring(1);
+            if (!['dashboard', 'enrollments', 'vip', 'balance', 'announcements'].includes(initialPage)) initialPage = 'dashboard';
+            showUserPage(initialPage, null, true);
+            try {
+                history.replaceState({ userPage: initialPage }, '', location.pathname + location.search);
+            } catch (e) { }
         });
 
         let allEnrollments = [];

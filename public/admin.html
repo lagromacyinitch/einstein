@@ -5508,7 +5508,13 @@
     // Pages that have their own search bar inside the card — hide the topbar one
     const PROGRAM_PAGES = new Set(['tutoring','workshop','playschool','childcare','madstudio','summerblast']);
 
-    function showPage(pageId, el) {
+    // historyMode: 'push' adds a Back/Forward entry, 'replace' swaps the current one, 'none' leaves history alone.
+    function showPage(pageId, el, historyMode = 'push') {
+      if (historyMode !== 'none' && history.state?.adminPage !== pageId) {
+        try {
+          history[historyMode === 'replace' ? 'replaceState' : 'pushState']({ adminPage: pageId }, '', location.pathname + location.search);
+        } catch (e) { }
+      }
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + pageId)?.classList.add('active');
       document.querySelectorAll('#sidebar .nav-item').forEach(n => n.classList.remove('active'));
@@ -5543,6 +5549,14 @@
       if (pageId === 'my_hours') loadSubadminHours();
       if (pageId === 'my_profile') loadSubadminProfile();
     }
+
+    // The admin panel opens on the dashboard; Back/Forward then walk the pages visited since.
+    try { history.replaceState({ adminPage: 'dashboard' }, '', location.pathname + location.search); } catch (e) { }
+    window.addEventListener('popstate', e => {
+      const pageId = e.state?.adminPage;
+      if (!pageId) return;
+      showPage(pageId, document.querySelector(`#sidebar .nav-item[onclick*="showPage('${pageId}'"]`), 'none');
+    });
 
     function renderPriceManagementPage() {
       checkAdminPermissions();
@@ -9324,7 +9338,7 @@
           if (dashPage && dashPage.classList.contains('active')) {
             const mySchedBtn = document.getElementById('nav-item-my-schedule');
             if (typeof showPage === 'function') {
-              showPage('my_schedule', mySchedBtn);
+              showPage('my_schedule', mySchedBtn, 'replace');
             }
           }
         }

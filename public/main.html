@@ -1108,7 +1108,24 @@
             setActiveNavSection(sectionId);
         }
 
-        window.addEventListener('hashchange', syncActiveSectionFromViewport);
+        // Scroll to sections without putting #section in the address bar.
+        sectionNavLinks.forEach(link => {
+            link.addEventListener('click', e => {
+                const target = document.getElementById(link.getAttribute('href').slice(1));
+                if (!target) return;
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth' });
+                setActiveNavSection(target.id);
+            });
+        });
+
+        // Links like ./#programs from the program pages still land on the section; then drop the hash.
+        if (location.hash) {
+            window.addEventListener('load', () => {
+                document.getElementById(location.hash.slice(1))?.scrollIntoView();
+                history.replaceState(history.state, '', location.pathname + location.search);
+            });
+        }
         window.addEventListener('load', syncActiveSectionFromViewport);
         window.addEventListener('scroll', () => {
             window.requestAnimationFrame(syncActiveSectionFromViewport);
