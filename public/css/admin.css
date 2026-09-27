@@ -263,6 +263,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     #main {
       margin-left: var(--sidebar-w);
       flex: 1;
+      min-width: 0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -454,6 +455,14 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       gap: 20px;
     }
 
+    .two-col > *,
+    .three-col > *,
+    .col-2-1 > *,
+    .stats-grid > *,
+    .vip-section-columns > * {
+      min-width: 0;
+    }
+
     /* ── CARDS ── */
     .card {
       background: #fff;
@@ -486,6 +495,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
     .card-body {
       padding: 20px;
+      overflow-x: auto;
     }
 
     /* ── TABLES ── */
@@ -887,19 +897,22 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     .notif-panel {
       position: fixed;
       top: 0;
-      right: -340px;
+      right: 0;
       width: 320px;
       height: 100vh;
       background: #fff;
       box-shadow: -4px 0 20px rgba(61, 31, 10, .12);
       z-index: 200;
-      transition: right .3s;
+      transform: translateX(100%);
+      visibility: hidden;
+      transition: transform .3s, visibility .3s;
       display: flex;
       flex-direction: column;
     }
 
     .notif-panel.open {
-      right: 0;
+      transform: none;
+      visibility: visible;
     }
 
     .notif-panel-header {
@@ -1023,7 +1036,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       border-radius: 3px;
     }
 
-    @media (max-width:1100px) {
+    @media (max-width: 1024px) {
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -1144,8 +1157,15 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         padding: 8px 14px;
       }
 
+      .topbar-left {
+        min-width: 0;
+      }
+
       .topbar-left h2 {
         font-size: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .search-bar {
@@ -1159,10 +1179,6 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       .stat-card h3 {
         font-size: 20px;
-      }
-
-      .card-body {
-        overflow-x: auto;
       }
 
       table {
@@ -1184,6 +1200,11 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         padding: 14px;
       }
 
+      .two-col,
+      .col-2-1 {
+        grid-template-columns: 1fr;
+      }
+
       .three-col,
       .staff-grid {
         grid-template-columns: 1fr 1fr !important;
@@ -1201,7 +1222,6 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
       .notif-panel {
         width: 100vw;
-        right: 0;
       }
 
       .modal-footer {
@@ -1223,6 +1243,29 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       .filter-bar select,
       .filter-bar input[type="month"] {
         width: 100% !important;
+      }
+
+      /* Card headers: let the title and its controls wrap instead of being
+         cut off by .card { overflow: hidden }. Overrides inline fixed widths. */
+      .card-header {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .card-header > * {
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .card-header > div {
+        flex-wrap: wrap;
+      }
+
+      .card-header input:not([type="checkbox"]):not([type="radio"]),
+      .card-header select {
+        flex: 1 1 140px;
+        min-width: 0 !important;
+        max-width: 100%;
       }
     }
 
@@ -1343,4 +1386,4 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     .vip-section-columns { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start; }
     .vip-section-columns .card { min-width:0;min-height:360px; }
     .vip-section-columns table { width:100%; }
-    @media(max-width:1000px){.vip-section-columns{grid-template-columns:1fr;}}
+    @media(max-width:1024px){.vip-section-columns{grid-template-columns:1fr;}}
