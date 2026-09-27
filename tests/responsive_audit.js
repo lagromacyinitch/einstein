@@ -279,6 +279,18 @@ async function auditUser(page, width) {
 
 async function auditMain(page, width) {
   await auditOverflow(page, 'main', width);
+
+  // The nav is position:fixed, so its overflow never shows up as page scroll. Check it fits on one row.
+  const nav = await page.evaluate(() => {
+    const el = document.querySelector('nav');
+    const height = el.getBoundingClientRect().height;
+    const logo = document.querySelector('.nav-logo').getBoundingClientRect();
+    const wrapped = [...el.querySelectorAll('#nav-links a')].filter(a => a.getClientRects().length > 1).map(a => a.textContent.trim());
+    return { overflow: el.scrollWidth - innerWidth, logoTooTall: logo.height > height, wrapped };
+  });
+  record('main:nav', width, 'fits on one row', nav.overflow <= 0 && !nav.logoTooTall && !nav.wrapped.length,
+    `overflow=${nav.overflow}px, logoTooTall=${nav.logoTooTall}, wrapped=[${nav.wrapped.join(', ')}]`);
+
   if (width <= 414) {
     const login = await page.evaluate(() => {
       const a = document.getElementById('login-icon-link');

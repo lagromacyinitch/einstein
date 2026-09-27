@@ -33,7 +33,7 @@ RewriteRule ^(.+)$ $1.html [L]
 
 # Revalidate payment UI so older image links are not reused after updates.
 <IfModule mod_headers.c>
-    <FilesMatch "^(user\.html|admin\.html|enrollment-flow\.js|main\.css|admin\.css)$">
+    <FilesMatch "^(user\.html|admin\.html|enrollment-flow\.js|main\.css|admin\.css|login-screen\.css)$">
         Header set Cache-Control "no-cache, must-revalidate"
     </FilesMatch>
 </IfModule>

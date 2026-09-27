@@ -498,3 +498,49 @@ body[data-auto-login-init] .login-logo { margin-bottom: 16px; }
 #reset-code { letter-spacing: 6px; text-align: center; font-size: 18px; }
 
 body[data-auto-login-init] .login-logo .logo-oval img { transform: scale(1.25); }
+
+/* Tablets: the 400px phone-sized card looks lost on a tablet screen, so scale the whole card up.
+   Width alone misses tablets (Android portrait can be 600–767px, iPad Pro landscape 1366px),
+   so any touch screen at least 600px each way counts too. Landscape phones are under 600px tall.
+   --u is 1px on an iPad mini (768×1024) and grows with the screen, so every tablet shows the card
+   at the same share of the screen as the iPad mini. It is capped by the height so the ~700u-tall
+   card still fits in landscape. Small text never drops below 12px (a 600px tablet would give ~10px). */
+@media (min-width: 768px) and (max-width: 1279px) and (min-height: 600px),
+  (pointer: coarse) and (min-width: 600px) and (min-height: 600px) {
+  .login-box {
+    --u: min(calc(100vw / 768), calc((100vh - 48px) / 700));
+    width: calc(540 * var(--u));
+    padding: calc(60 * var(--u)) calc(68 * var(--u)) calc(52 * var(--u));
+    border-radius: calc(24 * var(--u));
+  }
+  body[data-auto-login-init] .login-logo .logo-oval { width: calc(200 * var(--u)); height: calc(144 * var(--u)); }
+  body[data-auto-login-init] .login-logo { margin-bottom: calc(24 * var(--u)); }
+  .login-back-btn { width: calc(48 * var(--u)); height: calc(48 * var(--u)); }
+  .login-back-btn svg { width: calc(26 * var(--u)); height: calc(26 * var(--u)); }
+  .login-box label { font-size: max(12px, calc(13 * var(--u))); margin-top: calc(22 * var(--u)); margin-bottom: calc(8 * var(--u)); }
+  .login-box input,
+  .login-box .role-select {
+    padding: calc(16 * var(--u)) calc(18 * var(--u));
+    font-size: max(16px, calc(17 * var(--u)));
+    border-radius: calc(10 * var(--u));
+  }
+  .password-field input { padding-right: calc(64 * var(--u)); }
+  .toggle-password-btn { width: calc(44 * var(--u)); height: calc(44 * var(--u)); right: calc(8 * var(--u)); }
+  .toggle-password-btn svg { width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
+  .login-btn { margin-top: calc(32 * var(--u)); padding: calc(18 * var(--u)); font-size: calc(17 * var(--u)); border-radius: calc(12 * var(--u)); }
+  .login-error { font-size: max(12px, calc(15 * var(--u))); }
+  .login-footer-tagline { margin-top: calc(28 * var(--u)); font-size: max(12px, calc(13 * var(--u))); }
+  .login-footer-links { font-size: max(12px, calc(14 * var(--u))); }
+  .reset-back-link,
+  .reset-resend-btn { font-size: max(12px, calc(14 * var(--u))); }
+  .reset-heading h2 { font-size: calc(27 * var(--u)); }
+  .reset-heading p,
+  .reset-email-summary,
+  .reset-password-hint,
+  .reset-message,
+  .reset-success p { font-size: max(12px, calc(14 * var(--u))); }
+  .reset-progress { font-size: max(12px, calc(13 * var(--u))); }
+  .password-reset-panel label { font-size: max(12px, calc(15 * var(--u))); }
+  .password-reset-panel .reset-heading p { font-size: max(12px, calc(15 * var(--u))); }
+  #reset-code { font-size: calc(22 * var(--u)); }
+}
