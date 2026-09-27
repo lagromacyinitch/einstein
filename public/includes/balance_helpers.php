@@ -1,4 +1,21 @@
 <?php
+function balanceStudioRentalTotal(array $e): float {
+    $notes = $e['notes'] ?? '';
+    $payload = is_array($notes) ? $notes : json_decode((string) $notes, true);
+    $rental = is_array($payload) ? ($payload['studio_rental'] ?? null) : null;
+    if (!is_array($rental)) return 0.0;
+    if (isset($rental['total']) && is_numeric($rental['total'])) {
+        return max(0.0, round((float) $rental['total'], 2));
+    }
+    $rate = isset($rental['rate']) && is_numeric($rental['rate']) ? (float) $rental['rate'] : 450.0;
+    $total = 0.0;
+    foreach ((array) ($rental['days'] ?? []) as $day) {
+        $hours = isset($day['hours']) && is_numeric($day['hours']) ? max(0, (float) $day['hours']) : 0;
+        $total += $hours * $rate;
+    }
+    return max(0.0, round($total, 2));
+}
+
 function balanceTotalFee(array $e): float {
     static $catalog = null;
     if ($catalog === null && function_exists('getDB')) {
@@ -12,20 +29,25 @@ function balanceTotalFee(array $e): float {
 
     $key = static function($s) {
         $s = strtolower($s);
+        if (str_contains($s, 'rental')) return 'studio_rental';
         foreach (['tutor'=>'tutorial','academic'=>'tutorial','workshop'=>'workshop','play'=>'playschool','child'=>'childcare','care'=>'childcare','studio'=>'madstudio','summer'=>'summerblast','vip'=>'vip'] as $n=>$k) if(str_contains($s,$n)) return $k;
         return $s;
     };
     $program = $key($e['program'] ?? '');
+    $studioRentalTotal = balanceStudioRentalTotal($e);
+    $addRental = static fn(float $base): float => round($base + $studioRentalTotal, 2);
+
+    if ($program === 'studio_rental') return $studioRentalTotal;
 
     // VIP Membership rate is locked at enrollment time from package_selected
     if ($program === 'vip') {
         if (preg_match('/[₱P]\s*([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?)/u', $e['package_selected'] ?? '', $m)) {
             $v = (float)str_replace(',', '', $m[1]);
-            if ($v > 0) return $v;
+            if ($v > 0) return $addRental($v);
         }
         if (preg_match('/(?:–|-)\s*[₱P]?\s*([0-9]{3,6}(?:,[0-9]{3})*(?:\.[0-9]+)?)/u', $e['package_selected'] ?? '', $m)) {
             $v = (float)str_replace(',', '', $m[1]);
-            if ($v > 0) return $v;
+            if ($v > 0) return $addRental($v);
         }
         return 500.0;
     }
@@ -35,15 +57,15 @@ function balanceTotalFee(array $e): float {
     if (stripos($pkgRaw, '(vip)') !== false) {
         if (preg_match('/[₱P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/u', $pkgRaw, $m)) {
             $v = (float)str_replace(',', '', $m[1]);
-            if ($v > 0) return $v;
+            if ($v > 0) return $addRental($v);
         }
         if (preg_match('/(?:–|—|-)\s*[₱P]?\s*([0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]+)?)/u', $pkgRaw, $m)) {
             $v = (float)str_replace(',', '', $m[1]);
-            if ($v > 0) return $v;
+            if ($v > 0) return $addRental($v);
         }
         if (preg_match('/(?:–|—|-)\s*[₱P]?\s*([0-9]{3,6}(?:\.[0-9]+)?)/u', $pkgRaw, $m)) {
             $v = (float)str_replace(',', '', $m[1]);
-            if ($v > 0) return $v;
+            if ($v > 0) return $addRental($v);
         }
     }
 
@@ -58,11 +80,11 @@ function balanceTotalFee(array $e): float {
         $name = $norm($row['package_name']);
         if($name && ($pkg === $name || str_starts_with($pkg,$name.' ')) && strlen($name)>$length) { $best=$row; $length=strlen($name); }
     }
-    if($best && preg_match('/[0-9][0-9,]*(?:\.[0-9]+)?/',$best['rate'],$m)) return (float)str_replace(',','',$m[0]);
-    if(preg_match('/([0-9]{1,3},[0-9]{3})/',$e['package_selected'] ?? '',$m)) return (float)str_replace(',','',$m[1]);
-    if($program==='tutorial') return str_contains($pkg,'daily double')?9900:(str_contains($pkg,'daily')||str_contains($pkg,'double')?5500:3300);
-    if($program==='childcare') return str_contains($pkg,'weekly')?3500:(str_contains($pkg,'daily')?800:12000);
-    return ['playschool'=>5000,'workshop'=>6000,'madstudio'=>2500,'summerblast'=>3500][$program] ?? 3300;
+    if($best && preg_match('/[0-9][0-9,]*(?:\.[0-9]+)?/',$best['rate'],$m)) return $addRental((float)str_replace(',','',$m[0]));
+    if(preg_match('/([0-9]{1,3},[0-9]{3})/',$e['package_selected'] ?? '',$m)) return $addRental((float)str_replace(',','',$m[1]));
+    if($program==='tutorial') return $addRental(str_contains($pkg,'daily double')?9900:(str_contains($pkg,'daily')||str_contains($pkg,'double')?5500:3300));
+    if($program==='childcare') return $addRental(str_contains($pkg,'weekly')?3500:(str_contains($pkg,'daily')?800:12000));
+    return $addRental(['playschool'=>5000,'workshop'=>6000,'madstudio'=>2500,'summerblast'=>3500][$program] ?? 3300);
 }
 function balanceParseRecord(?string $notes): array { $r=json_decode($notes ?? '',true); return is_array($r)?$r:[]; }
 function balanceMoneyValue($value): ?float {

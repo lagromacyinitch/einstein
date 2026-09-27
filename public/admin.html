@@ -803,10 +803,17 @@
 
       <!-- ENROLLED STUDENTS -->
       <div class="card">
-        <div class="card-header">
-          <h3>Enrolled Students — M.A.D. Studio</h3>
-          <input type="text" placeholder="Search student…" oninput="filterProgramTable('mad-table',this.value)"
-            style="padding:6px 12px;border:1px solid var(--cream-dark);border-radius:6px;font-size:12px;outline:none;width:180px;font-family:inherit">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <h3 id="mad-table-title" style="margin:0">Enrolled Students — M.A.D. Studio</h3>
+          <div style="display:flex;align-items:center;gap:10px">
+            <select id="mad-view-filter" onchange="changeMadStudioView(this.value)"
+              style="padding:6px 12px;border:1px solid var(--cream-dark);border-radius:6px;font-size:12px;outline:none;background:#fff;color:var(--brown-primary);font-weight:600;font-family:inherit;cursor:pointer">
+              <option value="madstudio">M.A.D. Studio Students</option>
+              <option value="studio_rental">Studio Rental</option>
+            </select>
+            <input type="text" id="mad-student-search" placeholder="Search student…" oninput="filterProgramTable('mad-table',this.value)"
+              style="padding:6px 12px;border:1px solid var(--cream-dark);border-radius:6px;font-size:12px;outline:none;width:180px;font-family:inherit">
+          </div>
         </div>
         <div class="card-body" style="padding:0">
           <table id="mad-table">
@@ -817,8 +824,8 @@
                 <th>Age</th>
                 <th>Parent/Guardian</th>
                 <th>Contact</th>
-                <th>Package / Class</th>
-                <th>Timeslot</th>
+                <th id="mad-col-primary">Package / Class</th>
+                <th id="mad-col-secondary">Timeslot</th>
                 <th>Payment</th>
                 <th>Status</th>
                 <th>Enrolled</th>
@@ -871,6 +878,7 @@
               style="padding:6px 12px;border:1px solid var(--cream-dark);border-radius:6px;font-size:12px;outline:none;background:#fff;color:var(--brown-primary);font-weight:600;font-family:inherit;cursor:pointer">
               <option value="students">Students</option>
               <option value="reserved">Reserved students</option>
+              <option value="registration">Registration Fee</option>
             </select>
             <input type="text" placeholder="Search student…" oninput="filterProgramTable('summerblast-table',this.value)"
               style="padding:6px 12px;border:1px solid var(--cream-dark);border-radius:6px;font-size:12px;outline:none;width:180px;font-family:inherit">
@@ -2420,7 +2428,7 @@
                 <input type="number" id="modal-verified-payment-amount" min="0" step="0.01" class="form-control"
                   style="font-size:15px;font-weight:800;color:#2e7d32;padding:8px 12px;background:#fff;" placeholder="Amount in PHP">
               </div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <div id="modal-quick-payment-buttons" style="display:flex;gap:6px;flex-wrap:wrap;">
                 <button type="button" class="btn btn-outline btn-xs" id="btn-quick-deposit" style="font-size:11px;padding:6px 10px;" onclick="setQuickApprovalPayment('deposit')">₱1,000</button>
                 <button type="button" class="btn btn-outline btn-xs" id="btn-quick-half" style="font-size:11px;padding:6px 10px;" onclick="setQuickApprovalPayment('half')">Half (50%)</button>
                 <button type="button" class="btn btn-outline btn-xs" id="btn-quick-full" style="font-size:11px;padding:6px 10px;" onclick="setQuickApprovalPayment('full')">Full (100%)</button>
@@ -4709,11 +4717,12 @@
     }
 
     function updateDashboardStats() {
-      const total = enrollments.length;
-      const confirmed = enrollments.filter(e => e.status === 'confirmed').length;
-      const pending = enrollments.filter(e => e.status === 'pending').length;
-      const rejected = enrollments.filter(e => e.status === 'cancelled' || e.status === 'rejected').length;
-      const vip = enrollments.filter(e => (e.program || '').toLowerCase().includes('vip')).length;
+      const enrollmentRecords = enrollments.filter(e => !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e));
+      const total = enrollmentRecords.length;
+      const confirmed = enrollmentRecords.filter(e => e.status === 'confirmed').length;
+      const pending = enrollmentRecords.filter(e => e.status === 'pending').length;
+      const rejected = enrollmentRecords.filter(e => e.status === 'cancelled' || e.status === 'rejected').length;
+      const vip = enrollmentRecords.filter(e => (e.program || '').toLowerCase().includes('vip')).length;
 
       const el = id => document.getElementById(id);
       if (el('dash-total-students')) el('dash-total-students').textContent = total;
@@ -4736,7 +4745,7 @@
       if (nbPay) nbPay.textContent = pending || '0';
       const nbStudents = document.getElementById('nb-students');
       if (nbStudents) {
-        const studentCount = enrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && !String(e.program || '').toLowerCase().includes('vip')).length;
+        const studentCount = enrollmentRecords.filter(e => e.status === 'confirmed' && !e.student_archived_at && !String(e.program || '').toLowerCase().includes('vip')).length;
         nbStudents.textContent = studentCount || '0';
       }
 
@@ -4968,14 +4977,8 @@
       const recs = (Array.isArray(ids) ? ids : [ids]).map(id => enrollments.find(x => Number(x.id) === Number(id))).filter(Boolean);
       if (!recs.length) return;
       const first = recs[0];
-      const getParentKey = e => {
-        if (e.user_id && String(e.user_id).trim() !== '' && String(e.user_id) !== '0') return 'uid_' + e.user_id;
-        const gName = (e.guardian_name || '').trim().toLowerCase();
-        const contact = (e.contact || e.guardian_contact || e.email || '').trim().toLowerCase();
-        return (gName || contact) ? `g_${gName}|${contact}` : `id_${e.id}`;
-      };
-      const key = getParentKey(first);
-      const allParentRecs = enrollments.filter(e => getParentKey(e) === key);
+      const key = getEnrollmentGroupKeyAdmin(first);
+      const allParentRecs = enrollments.filter(e => getEnrollmentGroupKeyAdmin(e) === key);
       // Use explicit VIP context so modal title always shows the right label,
       // even if the parent also has non-VIP children (which would cause isAllVip = false).
       const vipCtx = (first.status === 'confirmed') ? 'vip-member' : 'vip-pending';
@@ -4987,14 +4990,7 @@
       const pending = vipList.filter(e => e.status === 'pending');
       const active = vipList.filter(e => e.status === 'confirmed' && (!e.user_id || vipAdminData.members[e.user_id]?.active));
 
-      const vipParentKey = e => {
-        if (e.user_id && String(e.user_id).trim() !== '' && String(e.user_id) !== '0') {
-          return 'uid_' + e.user_id;
-        }
-        const g = (e.guardian_name || '').trim().toLowerCase();
-        const c = (e.contact || e.guardian_contact || e.email || '').trim().toLowerCase();
-        return (g || c) ? ('g_' + g + '|' + c) : ('id_' + e.id);
-      };
+      const vipParentKey = e => getEnrollmentGroupKeyAdmin(e);
 
       // Set of parent keys who also have pending child enrollments.
       // If a parent enrolled children AND applied for VIP at the same time,
@@ -5230,11 +5226,13 @@
       const isVipStudent = e => (e.package_selected || '').toLowerCase().includes('(vip)') || isParentConfirmedVip(e);
       // Exclude VIP Club Membership (which is for parents), only show real students
       const students = enrollments.filter(e => e.status === 'confirmed' && Boolean(e.student_archived_at) === archived
+        && !isStandaloneStudioRentalRecord(e)
+        && !isStandaloneSummerBlastRegistrationRecord(e)
         && !String(e.program || '').toLowerCase().includes('vip')
         && (!selectedProgram || (selectedProgram === 'vip' ? isVipStudent(e) : programKey(e.program) === selectedProgram)));
       document.getElementById('official-students-title').textContent = archived ? 'Archived Students' : 'All Students';
       const nb = document.getElementById('nb-students');
-      if (nb) nb.textContent = enrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && !String(e.program || '').toLowerCase().includes('vip')).length || '0';
+      if (nb) nb.textContent = enrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) && !String(e.program || '').toLowerCase().includes('vip')).length || '0';
       if (!students.length) {
         tbody.innerHTML = `<tr><td colspan="8" style="padding:24px;text-align:center;color:#999">${archived ? 'No archived students.' : 'No active students yet.'}</td></tr>`;
         return;
@@ -5320,6 +5318,19 @@
       renderVIPPage();
       renderEnrollmentPage();
       renderStudentsTable();
+      if (document.getElementById('page-summerblast')?.classList.contains('active')) {
+        const sbFilter = document.getElementById('sb-view-filter');
+        if (sbFilter && isStandaloneSummerBlastRegistrationRecord(enrollments.find(e => Number(e.id) === Number(id)))) {
+          sbFilter.value = 'reserved';
+        }
+        changeSummerBlastView(sbFilter?.value || 'students');
+      }
+      if (document.getElementById('page-madstudio')?.classList.contains('active')) {
+        changeMadStudioView(document.getElementById('mad-view-filter')?.value || 'madstudio');
+      }
+      if (document.getElementById('page-balancemonitoring')?.classList.contains('active')) {
+        renderBalanceMonitoringPage();
+      }
       showToast(' Enrollment approved.');
     }
 
@@ -5362,6 +5373,9 @@
       renderVIPPage();
       renderEnrollmentPage();
       renderStudentsTable();
+      if (document.getElementById('page-madstudio')?.classList.contains('active')) {
+        changeMadStudioView(document.getElementById('mad-view-filter')?.value || 'madstudio');
+      }
       showToast('❌ Enrollment rejected.');
     }
     // ----------------------
@@ -5486,6 +5500,7 @@
     function programKey(p) {
       if (!p) return '';
       const lp = String(p).toLowerCase().trim();
+      if (lp.includes('rental')) return 'studio_rental';
       if (lp.includes('tutor') || lp.includes('academic')) return 'tutoring';
       if (lp.includes('workshop')) return 'workshop';
       if (lp.includes('playschool') || lp.includes('play school') || lp.includes('play_school')) return 'playschool';
@@ -5495,8 +5510,83 @@
       if (lp.includes('vip')) return 'vip';
       return lp.replace(/[\s_\-]+/g, '');
     }
+    function getStudioRentalAdminData(e) {
+      let payload = null;
+      try { payload = typeof e?.notes === 'string' ? JSON.parse(e.notes || '{}') : e?.notes; } catch (_) { payload = null; }
+      const rental = payload && typeof payload === 'object' ? payload.studio_rental : null;
+      if (!rental || typeof rental !== 'object') return null;
+      const rate = Number(rental.rate) > 0 ? Number(rental.rate) : 450;
+      const days = Array.isArray(rental.days) ? rental.days : [];
+      const total = Number(rental.total) > 0
+        ? Number(rental.total)
+        : days.reduce((sum, day) => sum + Math.max(0, Number(day?.hours) || 0) * rate, 0);
+      return { rate, days, total };
+    }
+    function isStandaloneStudioRentalRecord(e) {
+      const prog = String(e?.program || '').toLowerCase();
+      const rental = getStudioRentalAdminData(e);
+      return prog.includes('studio rental') || (prog.includes('mad') && !String(e?.package_selected || '').trim() && rental && rental.total > 0);
+    }
+    function standaloneRentalNeedsReview(e) {
+      return isStandaloneStudioRentalRecord(e)
+        && String(e?.status || '').toLowerCase() === 'confirmed'
+        && !String(e?.admin_notes || '').trim();
+    }
+    function formatStudioRentalAdmin(e) {
+      const rental = getStudioRentalAdminData(e);
+      if (!rental || rental.total <= 0) return '';
+      const hours = rental.days.reduce((sum, day) => sum + Math.max(0, Number(day?.hours) || 0), 0);
+      const dayCount = rental.days.length;
+      return `Studio Rental: ${dayCount} day${dayCount === 1 ? '' : 's'} · ${hours} hour${hours === 1 ? '' : 's'} · ${rental.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 })}`;
+    }
+    function formatStudioRentalDatesAdmin(e) {
+      const rental = getStudioRentalAdminData(e);
+      if (!rental || !rental.days.length) return '—';
+      return rental.days.map(day => {
+        const date = day?.date ? fmtDate(day.date) : '—';
+        const hours = Math.max(0, Number(day?.hours) || 0);
+        return `${date} (${hours} hr${hours === 1 ? '' : 's'})`;
+      }).join(' · ');
+    }
+    function formatStudioRentalAdminHtml(e) {
+      const rental = getStudioRentalAdminData(e);
+      if (!rental || rental.total <= 0) return '';
+      const dates = rental.days.map(day => {
+        const date = day?.date ? fmtDate(day.date) : '—';
+        const hours = Math.max(0, Number(day?.hours) || 0);
+        return `${date} (${hours} hr${hours === 1 ? '' : 's'})`;
+      }).join(' · ');
+      const amount = rental.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 });
+      return '<div style="font-size:12px;color:#8b6f47;margin-top:5px;line-height:1.45">' +
+        '<div style="font-weight:800;color:#5c3317;margin-bottom:2px">Studio Rental</div>' +
+        '<div><b style="display:inline-block;width:92px;color:#5c3317">Dates / Hrs:</b> ' + escHtml(dates || '—') + '</div>' +
+        '<div><b style="display:inline-block;width:92px;color:#5c3317">Amount:</b> ' + escHtml(amount) + '</div>' +
+        '</div>';
+    }
+    function getSummerBlastAdminData(e) {
+      const payload = getEnrollmentNotesAdmin(e);
+      const summer = payload && typeof payload === 'object' ? payload.summer_blast : null;
+      if (!summer || typeof summer !== 'object') return null;
+      return {
+        main: Array.isArray(summer.main_courses) ? summer.main_courses : [],
+        free: String(summer.free_course || '')
+      };
+    }
+    function formatSummerBlastAdmin(e) {
+      const summer = getSummerBlastAdminData(e);
+      if (!summer || (!summer.main.length && !summer.free)) return '';
+      return `Main: ${summer.main.join(' · ')} · Free: ${summer.free || '—'}`;
+    }
+    function formatSummerBlastAdminHtml(e) {
+      const summer = getSummerBlastAdminData(e);
+      if (!summer || (!summer.main.length && !summer.free)) return '';
+      return '<div style="font-size:12px;color:#8b6f47;margin-top:5px;line-height:1.45">' +
+        '<div><b style="display:inline-block;width:92px;color:#5c3317">Main Course:</b> ' + escHtml(summer.main.join(' · ') || '—') + '</div>' +
+        '<div><b style="display:inline-block;width:92px;color:#5c3317">Free Course:</b> ' + escHtml(summer.free || '—') + '</div>' +
+        '</div>';
+    }
     function buildEnrollmentInfo(e) {
-      let parts = [e.program || 'Program'];
+      let parts = [displayEnrollmentProgramAdmin(e.program) || 'Program'];
       if (e.package_selected) parts.push(e.package_selected);
       if (e.timeslot) parts.push(e.timeslot);
       return parts.join(' · ');
@@ -5505,6 +5595,64 @@
       const ref = e.reference_no || '—';
       const method = e.payment_method || 'GCash';
       return ref + ' ? ' + method;
+    }
+    function getEnrollmentNotesAdmin(e) {
+      try {
+        const payload = typeof e?.notes === 'string' ? JSON.parse(e.notes || '{}') : e?.notes;
+        return payload && typeof payload === 'object' ? payload : null;
+      } catch (_) {
+        return null;
+      }
+    }
+    function getEnrollmentParentKeyAdmin(e) {
+      if (e.user_id && String(e.user_id).trim() !== '' && String(e.user_id) !== '0') {
+        return 'uid_' + e.user_id;
+      }
+      const gName = (e.guardian_name || '').trim().toLowerCase();
+      const contact = (e.contact || e.guardian_contact || e.email || '').trim().toLowerCase();
+      return (gName || contact) ? `g_${gName}|${contact}` : `id_${e.id}`;
+    }
+    function getEnrollmentSubmissionKeyAdmin(e) {
+      const payload = getEnrollmentNotesAdmin(e);
+      const batchId = payload && typeof payload.submission_batch_id === 'string'
+        ? payload.submission_batch_id.trim()
+        : '';
+      if (batchId) return 'batch_' + batchId;
+
+      // Older records have no batch ID. Their database timestamp is the best
+      // available representation of one submit action and keeps later
+      // enrollments from the same parent from being merged together.
+      const createdAt = String(e.created_at || '').trim();
+      return createdAt ? 'time_' + createdAt.slice(0, 19) : 'id_' + e.id;
+    }
+    function getEnrollmentGroupKeyAdmin(e) {
+      return getEnrollmentParentKeyAdmin(e) + '|' + getEnrollmentSubmissionKeyAdmin(e);
+    }
+    function isSummerBlastRegistrationRecord(e) {
+      const payload = getEnrollmentNotesAdmin(e);
+      const registrationMeta = payload && typeof payload === 'object' ? payload.summer_blast_registration : null;
+      return programKey(e?.program) === 'summerblast'
+        && (/registration\s+fee|slot\s+reservation|reservation/i.test(String(e?.package_selected || ''))
+          || /registration\s+fee/i.test(String(e?.program || ''))
+          || (registrationMeta && typeof registrationMeta === 'object'));
+    }
+    function isStandaloneSummerBlastRegistrationRecord(e) {
+      if (!isSummerBlastRegistrationRecord(e)) return false;
+      const groupKey = getEnrollmentGroupKeyAdmin(e);
+      return !enrollments.some(other =>
+        Number(other?.id) !== Number(e?.id)
+        && getEnrollmentGroupKeyAdmin(other) === groupKey
+        && !isSummerBlastRegistrationRecord(other)
+        && !isStandaloneStudioRentalRecord(other)
+      );
+    }
+    function displayEnrollmentProgramAdmin(program) {
+      const raw = String(program || '').trim();
+      const key = raw.toLowerCase().replace(/[^a-z0-9]+/g, '');
+      if (key === 'summerblast') return 'Summer Blast';
+      if (key === 'madstudio') return 'M.A.D. Studio';
+      if (key === 'childcareprogram') return 'Child Care Program';
+      return raw;
     }
 
     // ─── NAVIGATION ───────────────────────────────────────────────────────────────
@@ -5556,7 +5704,7 @@
       if (pageId === 'workshop') renderProgramPage('workshop');
       if (pageId === 'playschool') renderProgramPage('playschool');
       if (pageId === 'childcare') renderProgramPage('childcare');
-      if (pageId === 'madstudio') renderProgramPage('madstudio');
+      if (pageId === 'madstudio') changeMadStudioView('madstudio');
       if (pageId === 'summerblast') renderProgramPage('summerblast');
       if (pageId === 'students') renderStudentsTable();
       if (pageId === 'payments') renderPaymentsPage();
@@ -5702,20 +5850,14 @@
       const countEl = document.getElementById('pending-approvals-count');
       if (!tbody) return;
 
-      const getParentKey = e => {
-        if (e.user_id && String(e.user_id).trim() !== '' && String(e.user_id) !== '0') {
-          return 'uid_' + e.user_id;
-        }
-        const gName = (e.guardian_name || '').trim().toLowerCase();
-        const contact = (e.contact || e.guardian_contact || e.email || '').trim().toLowerCase();
-        return (gName || contact) ? `g_${gName}|${contact}` : `id_${e.id}`;
-      };
-
       // All pending VIP enrollments
       const pendingVips = enrollments.filter(e => e.status === 'pending' && (e.program || '').toLowerCase().includes('vip'));
 
       // Filter list to pending child enrollments (programs that are NOT VIP)
-      const childEnrollments = (list || []).filter(e => e.status === 'pending' && !(e.program || '').toLowerCase().includes('vip'));
+      const childEnrollments = (list || []).filter(e => e.status === 'pending'
+        && !(e.program || '').toLowerCase().includes('vip')
+        && !isStandaloneStudioRentalRecord(e)
+        && !isStandaloneSummerBlastRegistrationRecord(e));
 
       if (!childEnrollments.length) {
         tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:#8D6A4E">No pending enrollment applications.</td></tr>';
@@ -5723,10 +5865,10 @@
         return;
       }
 
-      // Group child enrollments by parent
+      // Group only records from the same parent and the same submission.
       const groups = {};
       childEnrollments.forEach(e => {
-        const key = getParentKey(e);
+        const key = getEnrollmentGroupKeyAdmin(e);
         if (!groups[key]) {
           groups[key] = {
             parentName: e.guardian_name,
@@ -5745,7 +5887,7 @@
 
       // If this parent also applied for VIP at the same time, attach VIP record to this group
       pendingVips.forEach(v => {
-        const vKey = getParentKey(v);
+        const vKey = getEnrollmentGroupKeyAdmin(v);
         if (groups[vKey]) {
           groups[vKey].vipRecord = v;
           groups[vKey].ids.push(v.id);
@@ -5759,13 +5901,22 @@
         const allIds = grp.ids;
         const idsJson = JSON.stringify(allIds).replace(/"/g, '&quot;');
         
-        let childrenHtml = grp.children.map((c, ci) =>
-          '<div style="font-size:12px;padding:2px 0;color:#5c3317"><b>Child ' + (ci + 1) + ':</b> ' +
-          escHtml(c.child_name) + ' — ' + escHtml(c.program || '') +
+        let childrenHtml = grp.children.map((c, ci) => {
+          const summerLabel = formatSummerBlastAdmin(c);
+          return '<div style="font-size:12px;padding:2px 0;color:#5c3317"><b>Child ' + (ci + 1) + ':</b> ' +
+          escHtml(c.child_name) + ' — ' + escHtml(displayEnrollmentProgramAdmin(c.program)) +
           (c.package_selected ? ' &middot; ' + escHtml(c.package_selected) : '') +
           (c.timeslot ? ' &middot; ' + escHtml(c.timeslot) : '') +
-          '</div>'
-        ).join('');
+          (summerLabel ? '<div style="font-size:11px;color:#8b6f47;margin:1px 0 3px 52px">' + escHtml(summerLabel) + '</div>' : '') +
+          '</div>';
+        }).join('');
+
+        grp.children.forEach(c => {
+          const rentalLabel = formatStudioRentalAdmin(c);
+          if (rentalLabel) {
+            childrenHtml += '<div style="font-size:11px;color:#8b6f47;margin:1px 0 3px 52px">' + escHtml(rentalLabel) + '</div>';
+          }
+        });
 
         if (grp.vipRecord) {
           const vFee = parseEnrollmentFeeAdmin(grp.vipRecord);
@@ -5820,29 +5971,34 @@
     // Helper: parse a numeric fee from a single enrollment record for admin display
     function parseEnrollmentFeeAdmin(e) {
       if (!e) return 0;
+      if (Number.isFinite(Number(e.current_total_fee)) && e.current_total_fee != null) return Number(e.current_total_fee);
       const pkg = (e.package_selected || '').toLowerCase();
       const prog = (e.program || '').toLowerCase();
+      const rental = getStudioRentalAdminData(e);
+      const rentalTotal = rental?.total > 0 ? rental.total : 0;
+      const addRental = value => Number(value) + rentalTotal;
+      if (isStandaloneStudioRentalRecord(e)) return rentalTotal;
       if (prog.includes('vip')) {
         const m = (e.package_selected || '').match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/u);
-        if (m) { const v = parseFloat(m[1].replace(/,/g, '')); if (v > 0) return v; }
+        if (m) { const v = parseFloat(m[1].replace(/,/g, '')); if (v > 0) return addRental(v); }
         return window.vipFee || 500;
       }
       const m = (e.package_selected || '').match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/u);
-      if (m) { const v = parseFloat(m[1].replace(/,/g, '')); if (v > 0) return v; }
+      if (m) { const v = parseFloat(m[1].replace(/,/g, '')); if (v > 0) return addRental(v); }
       const m2 = (e.package_selected || '').match(/(?:[\u2013-])\s*[\u20b1P]?\s*([0-9]{3,6}(?:,[0-9]{3})*(?:\.[0-9]+)?)/u);
-      if (m2) { const v = parseFloat(m2[1].replace(/,/g, '')); if (v > 0) return v; }
+      if (m2) { const v = parseFloat(m2[1].replace(/,/g, '')); if (v > 0) return addRental(v); }
       if (prog.includes('tutor') || prog.includes('academic')) {
-        if (pkg.includes('daily double')) return 9900;
-        if (pkg.includes('daily')) return 5500;
-        if (pkg.includes('double')) return 5500;
-        return 3300;
+        if (pkg.includes('daily double')) return addRental(9900);
+        if (pkg.includes('daily')) return addRental(5500);
+        if (pkg.includes('double')) return addRental(5500);
+        return addRental(3300);
       }
-      if (prog.includes('workshop')) return 6000;
-      if (prog.includes('playschool')) return 5000;
-      if (prog.includes('child') || prog.includes('care')) return 12000;
-      if (prog.includes('mad') || prog.includes('studio')) return 2500;
-      if (prog.includes('summer')) return 3500;
-      return 3300;
+      if (prog.includes('workshop')) return addRental(6000);
+      if (prog.includes('playschool')) return addRental(5000);
+      if (prog.includes('child') || prog.includes('care')) return addRental(12000);
+      if (prog.includes('mad') || prog.includes('studio')) return addRental(2500);
+      if (prog.includes('summer')) return addRental(3500);
+      return addRental(3300);
     }
 
     // Approve all enrollments in a parent group (silently loops)
@@ -5897,18 +6053,9 @@
       showToast('\u274c ' + done + ' of ' + ids.length + ' enrollment(s) rejected for this parent.');
     }
     function groupApprovedEnrollmentsByParent(list) {
-      const getParentKey = e => {
-        if (e.user_id && String(e.user_id).trim() !== '' && String(e.user_id) !== '0') {
-          return 'uid_' + e.user_id;
-        }
-        const gName = (e.guardian_name || '').trim().toLowerCase();
-        const contact = (e.contact || e.guardian_contact || e.email || '').trim().toLowerCase();
-        return (gName || contact) ? `g_${gName}|${contact}` : `id_${e.id}`;
-      };
-
       const groups = {};
       list.forEach(e => {
-        const k = getParentKey(e);
+        const k = getEnrollmentGroupKeyAdmin(e);
         if (!groups[k]) groups[k] = [];
         groups[k].push(e);
       });
@@ -6036,7 +6183,7 @@
     function renderApprovedInquiries(list) {
       const tbody = document.getElementById('approved-inquiries-body');
       if (!tbody) return;
-      const allGroups = groupApprovedEnrollmentsByParent(list);
+      const allGroups = groupApprovedEnrollmentsByParent((list || []).filter(e => !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e)));
 
       // Auto-archive groups older than 7 days
       const liveGroups = [];
@@ -6107,7 +6254,7 @@
     function renderRejectedInquiries(list) {
       const tbody = document.getElementById('rejected-inquiries-body');
       if (!tbody) return;
-      const allGroups = groupApprovedEnrollmentsByParent(list);
+      const allGroups = groupApprovedEnrollmentsByParent((list || []).filter(e => !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e)));
 
       // Auto-archive groups older than 7 days
       const liveGroups = [];
@@ -6172,19 +6319,12 @@
     // ─── ENROLLMENT APPROVAL MODAL ────────────────────────────────────────────────
     function openEnrollmentApproval(record) {
       if (!record) return;
-      const getParentKey = e => {
-        if (e.user_id && String(e.user_id).trim() !== '' && String(e.user_id) !== '0') {
-          return 'uid_' + e.user_id;
-        }
-        const gName = (e.guardian_name || '').trim().toLowerCase();
-        const contact = (e.contact || e.guardian_contact || e.email || '').trim().toLowerCase();
-        return (gName || contact) ? `g_${gName}|${contact}` : `id_${e.id}`;
-      };
-      const key = getParentKey(record);
       // Derive context from record status so modal title is always correct
       const ctx = record.status === 'confirmed' ? 'approved' : record.status === 'cancelled' ? 'rejected' : '';
-      // Group related records with the same status (e.g. pending children + pending VIP)
-      const related = enrollments.filter(e => e.status === record.status && getParentKey(e) === key);
+      // Group related records with the same status and submission batch
+      // (e.g. pending children + pending VIP), not merely by parent account.
+      const key = getEnrollmentGroupKeyAdmin(record);
+      const related = enrollments.filter(e => e.status === record.status && getEnrollmentGroupKeyAdmin(e) === key);
       if (related.length > 1) {
         openParentEnrollmentApproval(related, ctx);
       } else {
@@ -6263,7 +6403,7 @@
 
     // Open modal for a parent enrollment application (single or multi-child, with or without VIP)
     let _currentParentGroupIds = [];
-    function openParentEnrollmentApproval(records, context) {
+    function openParentEnrollmentApproval(records, context, options = {}) {
       if (!records || !records.length) return;
       const first = records[0];
       _currentApprovalRecords = records;
@@ -6275,6 +6415,10 @@
       const isAllVip = records.every(r => String(r.program || '').toLowerCase().includes('vip'));
       const vipRec = records.find(r => String(r.program || '').toLowerCase().includes('vip'));
       const childRecs = records.filter(r => !String(r.program || '').toLowerCase().includes('vip'));
+      const isRentalOnly = records.length > 0 && records.every(r => isStandaloneStudioRentalRecord(r));
+      const isRegistrationOnly = records.length > 0 && records.every(r => isStandaloneSummerBlastRegistrationRecord(r));
+      const quickPaymentButtons = document.getElementById('modal-quick-payment-buttons');
+      if (quickPaymentButtons) quickPaymentButtons.style.display = (isRentalOnly || isRegistrationOnly || options.studioRentalReview) ? 'none' : 'flex';
 
       const titleEl = document.getElementById('modal-enrollment-title');
       if (titleEl) {
@@ -6282,6 +6426,14 @@
           titleEl.textContent = 'VIP Member';
         } else if (context === 'vip-pending') {
           titleEl.textContent = 'Pending VIP Registry';
+        } else if (isRentalOnly) {
+          titleEl.textContent = 'Studio Rental Review';
+        } else if (isRegistrationOnly) {
+          titleEl.textContent = context === 'approved'
+            ? 'Approved Registration Fee'
+            : context === 'rejected'
+              ? 'Rejected Registration Fee'
+              : 'Pending Registration Fee';
         } else if (context === 'approved') {
           titleEl.textContent = 'Approved Client';
         } else if (context === 'rejected') {
@@ -6336,17 +6488,24 @@
           clEl.innerHTML = childRecs.map((r, i) => {
             const fee = parseEnrollmentFeeAdmin(r);
             const feeStr = fee.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0 });
+            const summerSelectionHtml = formatSummerBlastAdminHtml(r);
             const safeId = Number(r.id);
+            const rentalSelectionHtml = formatStudioRentalAdminHtml(r);
+            const assignTutorButton = isStandaloneStudioRentalRecord(r) || isSummerBlastRegistrationRecord(r)
+              ? ''
+              : '<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="openAssignTutorForChild(' + safeId + ')">Assign Tutor</button>';
             return '<div style="background:#f9f5f0;border:1px solid #e0d4c8;border-radius:8px;padding:10px 14px">' +
               '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">' +
               '<div style="font-size:11px;color:#8b6f47;text-transform:uppercase;font-weight:700">Child ' + (i + 1) + '</div>' +
-              '<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="openAssignTutorForChild(' + safeId + ')">Assign Tutor</button>' +
+              assignTutorButton +
               '</div>' +
               '<div style="font-weight:600;color:#3d1f0a;font-size:14px">' + escHtml(r.child_name || '—') + '</div>' +
               (r.child_age && String(r.child_age).trim() !== '0' ? '<div style="font-size:12px;color:#8D6A4E">Age: ' + escHtml(r.child_age) + '</div>' : '') +
               (r.child_grade ? '<div style="font-size:12px;color:#8D6A4E">Grade: ' + escHtml(r.child_grade) + '</div>' : '') +
               (r.child_school ? '<div style="font-size:12px;color:#8D6A4E">School: ' + escHtml(r.child_school) + '</div>' : '') +
               '<div style="font-size:12px;color:#5c3317;margin-top:4px"><b>Program:</b> ' + escHtml(buildEnrollmentInfo(r)) + '</div>' +
+              rentalSelectionHtml +
+              summerSelectionHtml +
               '<div style="font-size:12px;color:#2e7d32;font-weight:700;margin-top:2px">Fee: ' + escHtml(feeStr) + '</div>' +
               '</div>';
           }).join('');
@@ -6358,7 +6517,7 @@
       }
 
       // 4. Programs summary
-      const progList = [...new Set(records.map(r => r.program).filter(Boolean))];
+      const progList = [...new Set(records.map(r => displayEnrollmentProgramAdmin(r.program)).filter(Boolean))];
       document.getElementById('modal-program').textContent = progList.join(', ') || '—';
 
       // 5. Payment Summary Section (dedicated section with VIP + enrollment fees + grand total)
@@ -6441,7 +6600,7 @@
       }
 
       // Action buttons & banner
-      const isActionable = records.some(r => r.status === 'pending' || r.status === 'cancelled');
+      const isActionable = records.some(r => r.status === 'pending' || r.status === 'cancelled' || standaloneRentalNeedsReview(r));
       const isRejected = (context === 'rejected') || records.every(r => r.status === 'cancelled');
       const isApproved = (context === 'approved') || records.every(r => r.status === 'confirmed' || r.payment_status === 'confirmed');
       const isVipPending = (context === 'vip-pending') || (!context && isAllVip && records.some(r => r.status === 'pending'));
@@ -6451,18 +6610,18 @@
       const rejectBtn = document.getElementById('modal-btn-reject');
       if (approveBtn) {
         approveBtn.style.display = isActionable ? '' : 'none';
-        approveBtn.textContent = records.length > 1 ? `Approve All (${records.length})` : (isAllVip ? 'Approve VIP' : 'Approve Enrollment');
+        approveBtn.textContent = records.length > 1 ? `Approve All (${records.length})` : (isAllVip ? 'Approve VIP' : (isRegistrationOnly ? 'Approve Registration' : (isRentalOnly ? 'Approve Rental' : 'Approve Enrollment')));
       }
       if (rejectBtn) {
         // Hide reject button in Rejected Clients review (requirement 3)
         rejectBtn.style.display = (isActionable && !isRejected) ? '' : 'none';
-        rejectBtn.textContent = records.length > 1 ? `Reject All (${records.length})` : (isAllVip ? 'Reject VIP' : 'Reject Enrollment');
+        rejectBtn.textContent = records.length > 1 ? `Reject All (${records.length})` : (isAllVip ? 'Reject VIP' : (isRegistrationOnly ? 'Reject Registration' : (isRentalOnly ? 'Reject Rental' : 'Reject Enrollment')));
       }
 
       // Print Receipt button visibility: ONLY show when approved (requirements 2 & 3)
       const printBtn = document.getElementById('modal-btn-print-receipt');
       if (printBtn) {
-        printBtn.style.display = (isApproved && !isVipMember) ? '' : 'none';
+        printBtn.style.display = (isApproved && !isVipMember && !isRentalOnly && !options.studioRentalReview) ? '' : 'none';
       }
 
       // Unsubscribe VIP button visibility: show when viewing active VIP member
@@ -6694,12 +6853,26 @@
 
     // ─── PROGRAM PAGES ────────────────────────────────────────────────────────────
     function renderProgramPage(programKey_) {
-      const progEnrollments = enrollments.filter(e => programKey(e.program) === programKey_);
-      const confirmed = progEnrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at);
-      const countEl = document.getElementById(programKey_ + '-count');
+      const isRentalView = programKey_ === 'studio_rental';
+      const progEnrollments = isRentalView
+        ? enrollments.filter(e => {
+            const rental = getStudioRentalAdminData(e);
+            const key = programKey(e.program);
+            return rental && rental.total > 0 && (key === 'studio_rental' || key === 'madstudio');
+          })
+        : enrollments.filter(e => programKey(e.program) === programKey_);
+      const confirmed = isRentalView
+        ? progEnrollments.filter(e => {
+            const standalone = isStandaloneStudioRentalRecord(e);
+            return standalone ? e.status !== 'cancelled' && !e.student_archived_at
+              : e.status === 'confirmed' && !e.student_archived_at;
+          })
+        : progEnrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && !isStandaloneSummerBlastRegistrationRecord(e));
+      const pageKey = programKey_ === 'studio_rental' ? 'madstudio' : programKey_;
+      const countEl = programKey_ === 'studio_rental' ? null : document.getElementById(pageKey + '-count');
       if (countEl) countEl.textContent = confirmed.length;
 
-      const bodyId = programKey_ + '-body';
+      const bodyId = pageKey + '-body';
       const tbody = document.getElementById(bodyId);
       if (!tbody) return;
 
@@ -6711,7 +6884,7 @@
 
       if (!confirmed.length) {
         const icons = { tutoring: '📚', workshop: '🎨', playschool: '🧸', childcare: '👶', madstudio: '💃', summerblast: '☀️' };
-        const labels = { tutoring: 'Academic Tutorial', workshop: 'Workshop', playschool: 'PlaySchool', childcare: 'Childcare', madstudio: 'M.A.D. Studio', summerblast: 'Summer Blast' };
+        const labels = { tutoring: 'Academic Tutorial', workshop: 'Workshop', playschool: 'PlaySchool', childcare: 'Childcare', madstudio: 'M.A.D. Studio', studio_rental: 'Studio Rental', summerblast: 'Summer Blast' };
         const label = labels[programKey_] || 'Students';
         tbody.innerHTML = `<tr><td colspan="${tbody.closest('table').querySelectorAll('thead th').length}" style="text-align:center;padding:48px;color:var(--brown-light)">
       <div style="font-size:36px;margin-bottom:8px">${icons[programKey_] || '📋'}</div>
@@ -6724,8 +6897,25 @@
       tbody.innerHTML = confirmed.map((e, i) => buildProgramRow(programKey_, e, i + 1)).join('');
     }
 
+    function changeMadStudioView(viewType) {
+      const isRental = viewType === 'studio_rental';
+      const filterEl = document.getElementById('mad-view-filter');
+      if (filterEl) filterEl.value = isRental ? 'studio_rental' : 'madstudio';
+      const titleEl = document.getElementById('mad-table-title');
+      if (titleEl) titleEl.textContent = isRental ? 'Studio Rental Bookings — M.A.D. Studio' : 'Enrolled Students — M.A.D. Studio';
+      const primaryCol = document.getElementById('mad-col-primary');
+      const secondaryCol = document.getElementById('mad-col-secondary');
+      if (primaryCol) primaryCol.textContent = isRental ? 'Studio Rental - Dates / Hrs' : 'Package / Class';
+      if (secondaryCol) secondaryCol.textContent = isRental ? 'Studio Rental - Timeslot / Amount' : 'Timeslot';
+      renderProgramPage(isRental ? 'studio_rental' : 'madstudio');
+      const search = document.getElementById('mad-student-search');
+      if (search && search.value) filterProgramTable('mad-table', search.value);
+    }
+
     function buildProgramRow(prog, e, idx) {
-      const viewBtn = `<button class="btn btn-sm btn-outline" onclick="viewEnrollmentDetail(${e.id})">View</button>`;
+      const viewBtn = prog === 'studio_rental'
+        ? `<button class="btn btn-sm btn-outline" onclick="openStudioRentalReview(${e.id})">View</button>`
+        : `<button class="btn btn-sm btn-outline" onclick="viewEnrollmentDetail(${e.id})">View</button>`;
       const baseInfo = `
     <td>${idx}</td>
     <td><strong style="color:#5c3317">${escHtml(e.child_name)}</strong></td>
@@ -6779,11 +6969,17 @@
       <td>${viewBtn}</td>
     </tr>`;
       }
-      if (prog === 'madstudio' || prog === 'summerblast') {
+      if (prog === 'madstudio' || prog === 'studio_rental' || prog === 'summerblast') {
+        const rental = prog === 'studio_rental' ? getStudioRentalAdminData(e) : null;
+        const amount = rental && rental.total > 0
+          ? rental.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 })
+          : '—';
+        const firstRentalColumn = prog === 'studio_rental' ? formatStudioRentalDatesAdmin(e) : (e.package_selected || e.workshop_class || '—');
+        const secondRentalColumn = prog === 'studio_rental' ? `${e.timeslot || '—'} / ${amount}` : (e.timeslot || '—');
         return `<tr>
       ${baseInfo}
-      <td>${escHtml(e.package_selected || e.workshop_class || '—')}</td>
-      <td>${escHtml(e.timeslot || '—')}</td>
+      <td>${escHtml(firstRentalColumn)}</td>
+      <td>${escHtml(secondRentalColumn)}</td>
       <td>${escHtml(e.payment_method || '—')}</td>
       <td>${statusBadge(e.status)}</td>
       <td>${fmtDate(e.created_at)}</td>
@@ -6795,6 +6991,13 @@
 
     let _currentViewEnrollmentId = null;
 
+    function openStudioRentalReview(id) {
+      const record = enrollments.find(e => Number(e.id) === Number(id));
+      if (!record) return;
+      const context = record.status === 'confirmed' ? 'approved' : record.status === 'cancelled' ? 'rejected' : '';
+      openParentEnrollmentApproval([record], context, { studioRentalReview: true });
+    }
+
     function viewEnrollmentDetail(id) {
       const e = enrollments.find(x => x.id === id);
       if (!e) return;
@@ -6802,22 +7005,6 @@
       _currentEnrollmentForAssign = e;
       document.getElementById('enrollment-view-title').textContent = (e.child_name || 'Student') + ' — Enrollment Details';
       document.getElementById('enrollment-view-body').innerHTML = `
-    <div class="enrollment-detail-section" style="background:#fcf9f5;border:1.5px solid #d9c5b2;border-radius:8px;padding:12px 14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <h4 style="margin:0;color:var(--brown-primary);font-size:13px;display:flex;align-items:center;gap:6px">
-          👨‍🏫 Assigned Tutor
-        </h4>
-        <button class="btn btn-outline btn-sm" id="btn-view-assign-tutor" onclick="openAssignTutorForChild(${e.id})" style="font-size:11px;padding:4px 10px;font-weight:600">
-          Assign Tutor
-        </button>
-      </div>
-      <div class="detail-grid">
-        <div class="detail-item full-width">
-          <label>Current Assigned Tutor</label>
-          <strong id="detail-assigned-tutor-name" style="font-size:13px;color:#5c3317">Checking assignment…</strong>
-        </div>
-      </div>
-    </div>
     <div class="enrollment-detail-section">
       <h4>Student / Child Information</h4>
       <div class="detail-grid">
@@ -6836,8 +7023,9 @@
     <div class="enrollment-detail-section">
       <h4>Program Details</h4>
       <div class="detail-grid">
-        <div class="detail-item"><label>Program</label><strong>${escHtml(e.program || '—')}</strong></div>
+        <div class="detail-item"><label>Program</label><strong>${escHtml(displayEnrollmentProgramAdmin(e.program) || '—')}</strong></div>
         <div class="detail-item"><label>Package / Section</label><strong>${escHtml(e.package_selected || e.section || e.workshop_class || '—')}</strong></div>
+        ${formatSummerBlastAdmin(e) ? `<div class="detail-item full-width"><label>Course Selection</label><strong>${escHtml(formatSummerBlastAdmin(e))}</strong></div>` : ''}
         <div class="detail-item"><label>Subject</label><strong>${escHtml(e.subject || '—')}</strong></div>
         <div class="detail-item"><label>Timeslot</label><strong>${escHtml(e.timeslot || '—')}</strong></div>
       </div>
@@ -6854,21 +7042,6 @@
     </div>
   `;
 
-      fetch(`api/assign_tutor.php?enrollment_id=${e.id}`, { credentials: 'include' })
-        .then(r => r.json()).then(d => {
-          const el = document.getElementById('detail-assigned-tutor-name');
-          const btn = document.getElementById('btn-view-assign-tutor');
-          if (el) {
-            if (d && d.assignment && d.assignment.full_name) {
-              el.innerHTML = `<span style="color:#2e7d32;font-weight:700">✓ ${escHtml(d.assignment.full_name)}</span>`;
-              if (btn) btn.textContent = 'Change Tutor';
-            } else {
-              el.innerHTML = '<span style="color:#c62828;font-weight:600">⚠ No tutor assigned yet</span>';
-              if (btn) btn.textContent = 'Assign Tutor';
-            }
-          }
-        }).catch(() => {});
-
       openModal('modal-enrollment-view');
     }
 
@@ -6881,7 +7054,48 @@
     }
 
     function getSummerBlastReservedStudents() {
-      return enrollments.filter(e => isSummerBlastReserved(e) && !e.student_archived_at);
+      return enrollments.filter(e => isSummerBlastReserved(e)
+        && (!isStandaloneSummerBlastRegistrationRecord(e) || String(e.status || '').toLowerCase() === 'confirmed')
+        && !e.student_archived_at);
+    }
+
+    function getSummerBlastRegistrationFeeStudents() {
+      return enrollments.filter(e => isStandaloneSummerBlastRegistrationRecord(e)
+        && String(e.status || '').toLowerCase() !== 'confirmed'
+        && !e.student_archived_at);
+    }
+
+    function openSummerBlastRegistrationReview(id) {
+      const record = enrollments.find(e => Number(e.id) === Number(id));
+      if (!record) return;
+      const context = record.status === 'confirmed' ? 'approved' : record.status === 'cancelled' ? 'rejected' : '';
+      openParentEnrollmentApproval([record], context);
+    }
+
+    function renderSummerBlastRegistrationFeeTable(records) {
+      const tbody = document.getElementById('summerblast-body');
+      if (!tbody) return;
+      if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="11" style="padding:32px;text-align:center;color:var(--brown-light)">No standalone Registration Fee submissions yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = records.map((e, idx) => {
+        const fee = typeof parseEnrollmentFeeAdmin === 'function' ? parseEnrollmentFeeAdmin(e) : 0;
+        const feeDisplay = fee ? ('₱' + fee.toLocaleString()) : '₱0';
+        return `<tr>
+          <td>${idx + 1}</td>
+          <td><strong style="color:#5c3317">${escHtml(e.child_name || '—')}</strong></td>
+          <td>${escHtml(e.child_age || '—')}</td>
+          <td>${escHtml(e.guardian_name || '—')}</td>
+          <td>${escHtml(e.contact || '—')}</td>
+          <td><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">Registration Fee</span></td>
+          <td>—</td>
+          <td>${escHtml(e.payment_method || '—')} (${feeDisplay})</td>
+          <td>${statusBadge(e.status)}</td>
+          <td>${fmtDate(e.created_at)}</td>
+          <td><button class="btn btn-sm btn-outline" onclick="openSummerBlastRegistrationReview(${e.id})">Review</button></td>
+        </tr>`;
+      }).join('');
     }
 
     // changeSummerBlastView — toggles the main summerblast table between
@@ -6890,6 +7104,12 @@
       const tbody = document.getElementById('summerblast-body');
       const titleEl = document.getElementById('sb-table-title');
       if (!tbody) return;
+
+      if (viewType === 'registration') {
+        if (titleEl) titleEl.textContent = 'Registration Fee — Summer Blast';
+        renderSummerBlastRegistrationFeeTable(getSummerBlastRegistrationFeeStudents());
+        return;
+      }
 
       if (viewType === 'reserved') {
         // Render reserved students into the summerblast table
@@ -7035,8 +7255,7 @@
           ],
           madstudio: [
             'Dance Fitness (VIP) - ₱2,500',
-            'Studio Extension (VIP) - ₱3,500',
-            'Studio Rental (VIP) - ₱450'
+            'Studio Extension (VIP) - ₱3,500'
           ],
           summerblast: [
             'Single Course (VIP) - ₱3,900',
@@ -7058,7 +7277,7 @@
         });
       }
       return [...new Set(packages
-        .filter(pkg => pkg && pkg.name && pkg.name !== 'Registration Fee')
+        .filter(pkg => pkg && pkg.name && pkg.name !== 'Registration Fee' && !/studio\s+rental/i.test(pkg.name))
         .map(pkg => program === 'workshop' && pkg.name.trim() === 'Group Subscription'
           ? 'Group Class' : pkg.name.trim()))];
     }
@@ -7898,14 +8117,15 @@
     // ══════════════════════════════════════════════════════════════════════
     function renderDashboardCharts() {
       const programs = {};
-      enrollments.filter(e => e.status === 'confirmed').forEach(e => {
+      enrollments.filter(e => e.status === 'confirmed' && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e)).forEach(e => {
         const p = (e.program || 'Other').split('–')[0].trim();
         programs[p] = (programs[p] || 0) + 1;
       });
 
-      const total = enrollments.length;
-      const confirmed = enrollments.filter(e => e.status === 'confirmed').length;
-      const pending = enrollments.filter(e => e.status === 'pending').length;
+      const enrollmentRecords = enrollments.filter(e => !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e));
+      const total = enrollmentRecords.length;
+      const confirmed = enrollmentRecords.filter(e => e.status === 'confirmed').length;
+      const pending = enrollmentRecords.filter(e => e.status === 'pending').length;
       const now = new Date();
       const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
 

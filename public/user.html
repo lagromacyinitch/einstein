@@ -2710,6 +2710,15 @@
         // Expose loadEnrollments globally for enrollment-flow.js to trigger refresh on success
         window.loadEnrollments = loadEnrollments;
 
+        function displayUserProgramName(program) {
+            const raw = String(program || '').trim();
+            const key = raw.toLowerCase().replace(/[^a-z0-9]+/g, '');
+            if (key === 'summerblast') return 'Summer Blast';
+            if (key === 'madstudio') return 'M.A.D. Studio';
+            if (key === 'childcareprogram') return 'Child Care Program';
+            return raw;
+        }
+
         function renderEnrollments(list) {
             list = list.filter(e => !String(e.program || '').toLowerCase().includes('vip'));
             const listContainer = document.getElementById('enrollmentList');
@@ -2738,11 +2747,12 @@
                 const pkg = e.package_selected ? `<span>Package: <strong>${escapeHTML(e.package_selected)}</strong></span>` : '';
                 const schedule = e.timeslot ? `<span>Schedule: <strong>${escapeHTML(e.timeslot)}</strong></span>` : '';
                 const start = e.start_date ? `<span>Preferred Start: <strong>${escapeHTML(e.start_date)}</strong></span>` : '';
+                const programLabel = displayUserProgramName(e.program);
 
                 return `
                     <div class="enrollment-card" style="display:flex;justify-content:space-between;align-items:flex-start;gap:1.25rem;flex-wrap:wrap;">
                         <div class="enrollment-details" style="flex:1;min-width:240px;">
-                            <div class="enrollment-program">${escapeHTML(e.program)}</div>
+                            <div class="enrollment-program">${escapeHTML(programLabel)}</div>
                             <div class="enrollment-meta">
                                 <span>Child: <strong>${escapeHTML(e.child_name || '—')}</strong> (Age: ${escapeHTML(e.child_age || '—')})</span>
                                 ${grade}
@@ -3455,6 +3465,7 @@
                 const childDisplay = e.child_name ? `Child: <strong>${escapeHTML(e.child_name)}</strong>` : 'Member';
                 const pkgDisplay = e.package_selected ? `<span>Package: <strong>${escapeHTML(e.package_selected)}</strong></span>` : '';
                 const scheduleDisplay = e.timeslot ? `<span>Schedule: <strong>${escapeHTML(e.timeslot)}</strong></span>` : '';
+                const programLabel = displayUserProgramName(e.program);
 
                 // Pay note
                 let noteText = '';
@@ -3476,7 +3487,7 @@
                     <div class="enrollment-card" style="${borderHighlight}display:block;padding:1.4rem;">
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
                             <div>
-                                <div class="enrollment-program" style="font-size:1.15rem;margin-bottom:0.35rem;">${escapeHTML(e.program)}</div>
+                                <div class="enrollment-program" style="font-size:1.15rem;margin-bottom:0.35rem;">${escapeHTML(programLabel)}</div>
                                 <div class="enrollment-meta" style="margin-bottom:0.5rem;">
                                     <span>${childDisplay}</span>
                                     ${pkgDisplay}
