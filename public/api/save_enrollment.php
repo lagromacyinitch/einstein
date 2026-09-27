@@ -31,8 +31,8 @@ function normalizeName(string $value, string $fieldLabel): string {
     if ($value === '') {
         throw new Exception($fieldLabel . ' is required.');
     }
-    if (!preg_match('/^[A-Za-z\s]+$/', $value)) {
-        throw new Exception($fieldLabel . ' may only contain letters and spaces.');
+    if (!preg_match('/^[A-Za-z\s\'-]+$/', $value)) {
+        throw new Exception($fieldLabel . ' may only contain letters, spaces, hyphens, and apostrophes.');
     }
     return ucwords(strtolower($value));
 }
@@ -80,8 +80,8 @@ function parseStudioRentalDays(PDO $db, string $program): array {
         if (!$dateObj || $dateObj->format('Y-m-d') !== $date) {
             throw new Exception('Each Studio Rental entry must have a valid specific day.');
         }
-        if ($hours === false || $hours < 1) {
-            throw new Exception('Each Studio Rental entry must be at least 1 hour.');
+        if ($hours === false || $hours < 1 || $hours > 99) {
+            throw new Exception('Each Studio Rental entry must be between 1 and 99 hours.');
         }
         $clean[] = ['date' => $date, 'hours' => $hours];
     }
