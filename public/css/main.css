@@ -48,9 +48,14 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         .nav-hamburger {
             display: none;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
             gap: 5px;
             cursor: pointer;
-            padding: 4px;
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            padding: 0;
             background: none;
             border: none;
             z-index: 101
@@ -75,45 +80,6 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
         .nav-hamburger.open span:nth-child(3) {
             transform: translateY(-7px) rotate(-45deg)
-        }
-
-        @media(max-width:768px) {
-            .nav-hamburger {
-                display: flex
-            }
-
-            nav ul {
-                display: none;
-                position: absolute;
-                top: 60px;
-                left: 0;
-                right: 0;
-                background: rgba(61, 31, 10, .98);
-                flex-direction: column;
-                padding: 12px 0;
-                border-bottom: 1px solid rgba(202, 161, 113, .15);
-                z-index: 99
-            }
-
-            nav ul.nav-open {
-                display: flex
-            }
-
-            nav ul li {
-                padding: 0
-            }
-
-            nav ul a {
-                display: block;
-                padding: 12px 24px;
-                font-size: .85rem
-            }
-
-            nav ul a.nav-cta {
-                margin: 8px 16px;
-                text-align: center;
-                border-radius: 6px
-            }
         }
 
         /* NAV */
@@ -211,8 +177,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 30px;
-            height: 30px;
+            width: 44px;
+            height: 44px;
             text-decoration: none;
             transition: all 0.3s ease;
             border-radius: 50%;
@@ -490,7 +456,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         }
 
         .pricing-label {
-            font-size: 0.68rem;
+            font-size: 0.75rem;
             letter-spacing: 0.18em;
             text-transform: uppercase;
             font-weight: 700;
@@ -596,7 +562,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             transform: translateY(-28px);
         }
 
-        @media (min-width: 992px) {
+        @media (min-width: 1025px) {
             #workshop .workshop-content {
                 margin-top: 0;
             }
@@ -716,6 +682,20 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             padding-top: 1rem;
             margin-top: -3.5rem;
             padding-bottom: 2rem;
+        }
+
+        .mad-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .mad-rate-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 0.3rem 1rem;
+            align-items: center;
         }
 
         .classes-grid {
@@ -1119,8 +1099,66 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
         /* MOBILE */
         @media (max-width: 768px) {
+            .nav-hamburger {
+                display: flex;
+            }
+
             nav ul {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                max-height: calc(100vh - 100%);
+                overflow-y: auto;
+                background: rgba(61, 31, 10, .98);
+                flex-direction: column;
+                gap: 0;
+                margin-left: 0;
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(202, 161, 113, .15);
+                z-index: 99;
+            }
+
+            nav ul.nav-open {
+                display: flex;
+            }
+
+            nav ul li {
+                padding: 0;
+            }
+
+            nav ul a {
+                display: block;
+                padding: 12px 24px;
+                font-size: .85rem;
+            }
+
+            nav ul a.active::after {
+                display: none;
+            }
+
+            nav ul a.nav-cta {
+                margin: 8px 16px;
+                text-align: center;
+                border-radius: 6px;
+            }
+
+            .nav-logo {
+                min-width: 0;
+            }
+
+            .login-icons {
+                margin-left: auto;
+                margin-right: 0.25rem;
+            }
+
+            .classes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mad-columns {
+                grid-template-columns: minmax(0, 1fr);
             }
 
             section {
@@ -1157,10 +1195,13 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
                 padding: 1rem;
             }
 
-            .workshop-content,
+            .workshop-content {
+                grid-template-columns: 1fr;
+            }
+
             .childcare-layout,
             .contact-layout {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
             }
 
             .classes-grid {
@@ -1246,6 +1287,21 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             .class-card-top h3 {
                 font-size: 1rem;
             }
+
+            .rates-table th,
+            .rates-table td {
+                padding: 0.5rem 0.5rem;
+            }
+
+            /* Schedule drops under the class name; price stays on the right. */
+            .mad-rate-row {
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+
+            .mad-rate-row > :nth-child(2) {
+                grid-column: 1;
+                grid-row: 2;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1260,7 +1316,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             }
         }
 
-        @media (min-width: 992px) {
+        @media (min-width: 1025px) {
             .features-strip {
                 margin-top: -2.8rem;
             }
@@ -1614,7 +1670,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             color: var(--maroon) !important;
         }
 
-        @media (min-width: 900px) {
+        @media (min-width: 769px) {
             #playschool .classes-grid {
                 display: flex !important;
                 flex-direction: row !important;
