@@ -7,6 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/admin_notifications.php';
 setSecurityHeaders();
 
 function generateRef($db): string {
@@ -93,6 +94,22 @@ try {
     ]);
 
     $newId = (int) $db->lastInsertId();
+
+    try {
+        $decryptedGuardian = decryptAES256((string) ($prev['guardian_name'] ?? '')) ?: 'Guardian';
+        createAdminNotification($db, [
+            'event_key' => 'reenrollment:' . $newId,
+            'type' => 'enrollment',
+            'title' => 'Re-enrollment Submitted',
+            'message' => $decryptedChild . ' requested re-enrollment for ' . $prev['program'] . ' • Ref: ' . $ref,
+            'entity_type' => 'enrollment',
+            'entity_id' => $newId,
+            'target_page' => 'enrollment',
+            'target_ref' => $ref,
+        ]);
+    } catch (Throwable $notificationError) {
+        error_log('[Admin Notification] Re-enrollment notification failed: ' . $notificationError->getMessage());
+    }
 
     ob_clean();
     echo json_encode([
