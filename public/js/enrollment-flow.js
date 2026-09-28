@@ -257,6 +257,12 @@
     return Boolean(service?.summerRegistration) || isSummerBlastRegistrationPackage(service?.package);
   }
 
+  function isSummerBlastRegistrationOnlyService(service) {
+    if (!isSummerBlastRegistrationService(service)) return false;
+    const packageValue = String(service?.package || '').trim();
+    return !packageValue || isSummerBlastRegistrationPackage(packageValue);
+  }
+
   function getSummerBlastPackageRule(packageValue) {
     const label = String(packageValue || '').toLowerCase();
     if (label.includes('special course')) return SUMMER_BLAST_RULES.special;
@@ -715,6 +721,9 @@
 
   function hasUsableService(svc, progKey) {
     if (!svc?.enrolled) return false;
+    if (isSummerBlastService(progKey)) {
+      return Boolean(String(svc.package || '').trim()) || Boolean(svc.summerRegistration);
+    }
     if (!isMadStudioService(progKey)) return true;
     return Boolean(String(svc.package || '').trim()) || (Array.isArray(svc.rentalDays) && svc.rentalDays.length > 0);
   }
@@ -1370,13 +1379,18 @@
               ? pkgs.filter(p => !isSummerBlastRegistrationPackage(p))
               : pkgs;
 
-            if (svc.summerRegistration && registrationPackage && !svc.package) {
-              svc.package = registrationPackage.value;
+            // Older drafts stored the registration fee as the package itself.
+            // Migrate that shape so the fee can now be selected together with a
+            // tuition package without losing either choice.
+            if (isSummerBlastService(prog.key) && isSummerBlastRegistrationPackage(svc.package)) {
+              svc.summerRegistration = true;
+              svc.package = '';
             }
             if (packageOptions.length === 1 && !svc.package && !svc.summerRegistration && !isSummerBlastService(prog.key)) {
               svc.package = packageOptions[0].value;
             }
-            const isSummerRegistration = isSummerBlastService(prog.key) && isSummerBlastRegistrationService(svc);
+            const hasSummerRegistrationFee = isSummerBlastService(prog.key) && isSummerBlastRegistrationService(svc);
+            const isSummerRegistrationOnly = isSummerBlastService(prog.key) && isSummerBlastRegistrationOnlyService(svc);
 
             return `
               <div style="padding:10px 12px;border:1px solid #e5d9ce;border-radius:8px;margin-bottom:8px;background:#fcfbf9;box-sizing:border-box;width:100%">
@@ -1387,17 +1401,17 @@
                 <div style="display:grid;gap:7px;box-sizing:border-box;width:100%">
                   ${registrationPackage ? `
                   <label style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:#fffaf3;border:1px solid #dec6ac;border-radius:7px;color:#5c3317;font-size:12px;line-height:1.35;cursor:pointer">
-                    <input type="radio" class="ec-sb-registration" data-ci="${ci}" data-prog="${prog.key}" data-package="${esc(registrationPackage.value)}" name="summer-registration-${ci}" ${isSummerRegistration ? 'checked' : ''} onchange="handleSummerBlastRegistrationChange(this, ${ci})" style="margin-top:2px;accent-color:#8b5e3c">
+                    <input type="checkbox" class="ec-sb-registration" data-ci="${ci}" data-prog="${prog.key}" data-package="${esc(registrationPackage.value)}" name="summer-registration-${ci}" ${hasSummerRegistrationFee ? 'checked' : ''} onchange="handleSummerBlastRegistrationChange(this, ${ci})" style="margin-top:2px;accent-color:#8b5e3c">
                     <span><strong>Registration Fee</strong><br><span style="font-size:11px;color:#8b6f47">${esc(registrationPackage.name)}</span></span>
                   </label>` : ''}
                   ${packageOptions.length ? `
                   <select class="ec-pkg" data-ci="${ci}" data-prog="${prog.key}" onchange="handlePkgChange(this, ${ci}, '${prog.key}')"
                     style="font-size:12px;padding:9px 12px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box;cursor:pointer">
                     ${packageOptions.length > 1 ? '<option value="">Select package…</option>' : ''}
-                    ${packageOptions.map(p => `<option value="${esc(p.value)}" ${svc.package === p.value && !isSummerRegistration ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+                    ${packageOptions.map(p => `<option value="${esc(p.value)}" ${svc.package === p.value ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
                   </select>` : ''}
-                  ${isSummerBlastService(prog.key) && !isSummerRegistration ? renderSummerBlastCoursePicker(ci, svc) : ''}
-                  ${isSummerRegistration ? '<div style="padding:8px 10px;background:#f7f1e7;border:1px solid #e5d9ce;border-radius:6px;color:#8b6f47;font-size:11px">Registration Fee only — preferred date and timeslot are not required.</div>' : ''}
+                  ${isSummerBlastService(prog.key) && !isSummerRegistrationOnly ? renderSummerBlastCoursePicker(ci, svc) : ''}
+                  ${isSummerRegistrationOnly ? '<div style="padding:8px 10px;background:#f7f1e7;border:1px solid #e5d9ce;border-radius:6px;color:#8b6f47;font-size:11px">Registration Fee only — preferred date and timeslot are not required.</div>' : ''}
                   ${prog.key === 'workshop' ? `
                   <div id="homebased-wrap-${ci}-${prog.key}" class="ec-hb-wrap" style="display:${(svc.package || '').toLowerCase().includes('home based') ? 'grid' : 'none'};grid-template-columns:1fr 1fr;gap:7px;box-sizing:border-box;width:100%;margin-top:2px;padding:9px 11px;background:#fbf7f0;border:1px solid #e0cfb8;border-radius:6px">
                     <div style="min-width:0">
@@ -1421,7 +1435,7 @@
                         style="font-size:12px;padding:8px 10px;border:1px solid #e5d9ce;border-radius:6px;font-family:inherit;background:#fff;width:100%;box-sizing:border-box">
                     </div>
                   </div>` : ''}
-                  ${prog.key !== 'vip' && !isSummerRegistration ? `
+                  ${prog.key !== 'vip' && !isSummerRegistrationOnly ? `
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;box-sizing:border-box;width:100%;overflow:hidden">
                     <input type="text" class="ec-date" data-ci="${ci}" data-prog="${prog.key}" data-validate="schedule"
                       list="dates-${ci}-${prog.key}"
@@ -1694,15 +1708,24 @@
         if (!svcs.length) return '';
         return `
           <div style="margin-bottom:12px">
-            <div style="font-size:12px;font-weight:700;color:#8b6f47;text-transform:uppercase;margin-bottom:6px">
-              • ${esc(c.name)} (Child ${i + 1}) — ${esc(c.age)} · ${esc(c.grade)} · ${esc(c.school)}
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 20px;padding:10px 12px;margin-bottom:6px;background:#fbf7f0;border:1px solid rgba(196,169,126,.35);border-radius:7px;color:#8b6f47;font-size:12px;line-height:1.45">
+              <strong style="color:#5e3a21">Child ${i + 1}: ${esc(c.name || '—')}</strong>
+              <span><strong style="color:#5e3a21">Grade Level:</strong> ${esc(c.grade || '—')}</span>
+              <span><strong style="color:#5e3a21">Age:</strong> ${esc(c.age || '—')}</span>
+              <span><strong style="color:#5e3a21">School:</strong> ${esc(c.school || '—')}</span>
             </div>
             ${svcs.map(([k, v]) => {
-              const pkgRaw = v.package || (isMadStudioService(k) && Array.isArray(v.rentalDays) && v.rentalDays.length ? 'Studio Rental Only' : (v.timeslot || 'Enrolled'));
+              const registrationPackage = isSummerBlastService(k)
+                ? (getProgramPackages('Summer Blast') || []).find(isSummerBlastRegistrationPackage)
+                : null;
+              const pkgRaw = [
+                v.package,
+                isSummerBlastService(k) && v.summerRegistration ? registrationPackage?.value : ''
+              ].filter(Boolean).join(' + ') || (isMadStudioService(k) && Array.isArray(v.rentalDays) && v.rentalDays.length ? 'Studio Rental Only' : (v.timeslot || 'Enrolled'));
               const isVipPkg = pkgRaw.toLowerCase().includes('(vip)');
               // Extract numeric price from package string (e.g. "Regular Package (VIP) – ₱2,970")
-              const priceMatch = pkgRaw.match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/);
-              const price = priceMatch ? '₱' + priceMatch[1] : null;
+              const priceTokens = pkgRaw.match(/[\u20b1P]\s*[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?/g) || [];
+              const price = priceTokens.length ? priceTokens.join(' + ') : null;
               // Clean display name: remove "(VIP Discounted)" / "(VIP)" suffix and price
               const cleanName = pkgRaw
                 .replace(/\s*\(VIP(?:\s+Discounted)?\)/gi, '')
@@ -1737,11 +1760,18 @@
       children.forEach((c) => {
         Object.entries(c.services || {}).forEach(([progKey, v]) => {
           if (!v || !v.enrolled) return;
-          const pkgRaw = v.package || v.timeslot || '';
-          const priceMatch = pkgRaw.match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/);
-          if (priceMatch) {
-            programsTotal += parseFloat(priceMatch[1].replace(/,/g, ''));
-          }
+          const registrationPackage = isSummerBlastService(progKey)
+            ? (getProgramPackages('Summer Blast') || []).find(isSummerBlastRegistrationPackage)
+            : null;
+          const pkgRaw = [
+            v.package,
+            isSummerBlastService(progKey) && v.summerRegistration ? registrationPackage?.value : ''
+          ].filter(Boolean).join(' + ') || v.timeslot || '';
+          const priceTokens = pkgRaw.match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/g) || [];
+          priceTokens.forEach(token => {
+            const amount = token.match(/[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?/);
+            if (amount) programsTotal += parseFloat(amount[0].replace(/,/g, ''));
+          });
           if (isMadStudioService(progKey)) studioRentalTotal += getStudioRentalTotal(v.rentalDays);
         });
       });
@@ -2162,8 +2192,6 @@
       const svc = newList[ci]?.services[prog];
       if (!svc) return;
       svc.summerRegistration = Boolean(el.checked);
-      if (el.checked) svc.package = el.dataset.package || svc.package || 'Registration Fee – ₱900';
-      else if (isSummerBlastRegistrationPackage(svc.package)) svc.package = '';
     });
     document.querySelectorAll('.ec-sb-main').forEach(el => {
       const ci = parseInt(el.dataset.ci);
@@ -2243,7 +2271,7 @@
 
       for (const [progKey, svc] of Object.entries(child.services || {})) {
         if (!svc || !svc.enrolled || !isSummerBlastService(progKey)) continue;
-        if (isSummerBlastRegistrationService(svc)) {
+        if (isSummerBlastRegistrationOnlyService(svc)) {
           svc.prefDate = '';
           svc.prefTime = '';
           svc.timeslot = '';
@@ -2323,8 +2351,7 @@
       const service = formData.children_list?.[ci]?.services?.[progKey];
       if (service) {
         service.package = sel.value;
-        service.summerRegistration = false;
-        if (isSummerBlastRegistrationPackage(service.package)) {
+        if (!service.package) {
           service.prefDate = '';
           service.prefTime = '';
           service.timeslot = '';
@@ -2358,14 +2385,11 @@
     const service = formData.children_list?.[ci]?.services?.summerblast;
     if (!service) return;
     service.summerRegistration = Boolean(sel?.checked);
-    if (service.summerRegistration) {
-      service.package = sel?.dataset?.package || service.package || 'Registration Fee – ₱900';
+    if (!service.package) {
       service.prefDate = '';
       service.prefTime = '';
       service.timeslot = '';
       service.summerCourses = { main: [], free: '' };
-    } else if (isSummerBlastRegistrationPackage(service.package)) {
-      service.package = '';
     }
     const body = qs('#efBody');
     if (body) { body.innerHTML = renders['3b'](); attachHandlers('3b'); }
@@ -2493,8 +2517,6 @@
       const svc = list[ci]?.services[prog];
       if (!svc) return;
       svc.summerRegistration = Boolean(el.checked);
-      if (el.checked) svc.package = el.dataset.package || svc.package || 'Registration Fee – ₱900';
-      else if (isSummerBlastRegistrationPackage(svc.package)) svc.package = '';
     });
     document.querySelectorAll('.ec-brgy').forEach(el => {
       const ci = parseInt(el.dataset.ci); const prog = el.dataset.prog;
@@ -2531,7 +2553,7 @@
         if (Array.isArray(svc.rentalDays)) svc.rentalDays = svc.rentalDays.filter(day => day && (day.date || day.hours));
       });
       Object.values(child.services || {}).forEach(svc => {
-        if (isSummerBlastRegistrationPackage(svc?.package)) {
+        if (isSummerBlastRegistrationOnlyService(svc)) {
           svc.prefDate = '';
           svc.prefTime = '';
           svc.timeslot = '';
@@ -2608,24 +2630,29 @@
           const isStudioRentalOnly = isMadStudioService(progKey) && !String(svc.package || '').trim() && studioRentalDays.length > 0;
           fd.append('program', isStudioRentalOnly ? 'Studio Rental' : (PROG_MAP[progKey] || progKey));
           let pkgSelected = svc.package || '';
-          const isSummerRegistration = isSummerBlastService(progKey) && isSummerBlastRegistrationService(svc);
-          if (isSummerRegistration && !pkgSelected) pkgSelected = 'Registration Fee – ₱900';
+          const hasSummerRegistrationFee = isSummerBlastService(progKey) && isSummerBlastRegistrationService(svc);
+          const isSummerRegistrationOnly = isSummerBlastService(progKey) && isSummerBlastRegistrationOnlyService(svc);
+          const summerRegistrationPackage = hasSummerRegistrationFee
+            ? (getProgramPackages('Summer Blast') || []).find(isSummerBlastRegistrationPackage)
+            : null;
           if (svc.barangay && svc.purok) {
             pkgSelected += ` (Brgy. ${svc.barangay}, Purok ${svc.purok})`;
             fd.append('barangay', svc.barangay);
             fd.append('purok', svc.purok);
           }
           fd.append('package_selected', pkgSelected);
-          fd.append('summer_registration_only', isSummerRegistration && !hasEnrollmentInSubmission ? '1' : '0');
-          fd.append('timeslot', isSummerRegistration ? '' : (svc.timeslot || ''));
-          if (isSummerBlastService(progKey) && !isSummerRegistration && svc.summerCourses) {
+          fd.append('summer_registration_fee', hasSummerRegistrationFee ? '1' : '0');
+          fd.append('summer_registration_fee_package', summerRegistrationPackage?.value || '');
+          fd.append('summer_registration_only', isSummerRegistrationOnly && !hasEnrollmentInSubmission ? '1' : '0');
+          fd.append('timeslot', isSummerRegistrationOnly ? '' : (svc.timeslot || ''));
+          if (isSummerBlastService(progKey) && !isSummerRegistrationOnly && svc.summerCourses) {
             fd.append('summerblast_courses', JSON.stringify(svc.summerCourses));
           }
           if (studioRentalDays.length) {
             fd.append('studio_rental_days', JSON.stringify(studioRentalDays));
             fd.append('studio_rental_rate', String(getStudioRentalRate()));
           }
-          fd.append('start_date', isSummerRegistration ? '' : (formData.start_date || ''));
+          fd.append('start_date', isSummerRegistrationOnly ? '' : (formData.start_date || ''));
           fd.append('child_name', child.name || '');
           fd.append('child_age', child.age || '');
           fd.append('child_grade', child.grade || '');

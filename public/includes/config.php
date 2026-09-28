@@ -635,6 +635,7 @@ function bootstrapMySQL(PDO $pdo): void
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS contact_number TEXT DEFAULT NULL",
         "ALTER TABLE password_reset_codes ADD COLUMN IF NOT EXISTS user_id INT DEFAULT NULL",
         "ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS admin_notes TEXT DEFAULT NULL",
+        "ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS guardian_age TEXT DEFAULT NULL AFTER guardian_name",
         "ALTER TABLE enrollments MODIFY COLUMN child_name TEXT NOT NULL",
         "ALTER TABLE enrollments MODIFY COLUMN guardian_name TEXT NOT NULL",
         "ALTER TABLE enrollments MODIFY COLUMN child_age TEXT DEFAULT NULL",

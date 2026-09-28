@@ -2,6 +2,7 @@
 ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/admin_notifications.php';
 setSecurityHeaders();
 startUserSession();
 require_once __DIR__ . '/../includes/balance_helpers.php';
@@ -84,6 +85,23 @@ try {
     $updateStmt->execute([json_encode($notes), $enrollment['id']]);
 
     $db->commit();
+
+    try {
+        $childName = decryptAES256((string) ($enrollment['child_name'] ?? '')) ?: 'Student';
+        $program = trim((string) ($enrollment['program'] ?? '')) ?: 'Enrollment';
+        createAdminNotification($db, [
+            'event_key' => 'balance_receipt:' . (int) $enrollment['id'] . ':' . $receiptEntry['file_hash'],
+            'type' => 'balance_payment',
+            'title' => 'Balance Payment Submitted',
+            'message' => $childName . ' submitted a balance payment receipt for ' . $program . ' • Ref: ' . $ref,
+            'entity_type' => 'enrollment',
+            'entity_id' => (int) $enrollment['id'],
+            'target_page' => 'balancemonitoring',
+            'target_ref' => $receiptEntry['path'],
+        ]);
+    } catch (Throwable $notificationError) {
+        error_log('[Admin Notification] Balance receipt notification failed: ' . $notificationError->getMessage());
+    }
 
     echo json_encode([
         'success' => true,

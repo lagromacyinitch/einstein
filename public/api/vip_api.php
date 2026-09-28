@@ -2,6 +2,7 @@
 ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../includes/vip_membership.php';
+require_once __DIR__ . '/../includes/admin_notifications.php';
 setSecurityHeaders();
 $admin = ($_GET['scope'] ?? '') === 'admin';
 if ($admin) { require_once __DIR__ . '/../includes/admin_auth.php'; }
@@ -23,7 +24,16 @@ try {
             if (empty($state['active'])) {
                 throw new RuntimeException('You do not have an active VIP membership to unsubscribe.');
             }
-            $db->prepare('INSERT INTO vip_unsubscriptions (user_id, unsubscribed_at) VALUES (?, NOW()) ON DUPLICATE KEY UPDATE unsubscribed_at=VALUES(unsubscribed_at)')->execute([$userId]);
+            $nameStmt = $db->prepare("SELECT guardian_name, child_name FROM enrollments
+                WHERE user_id=? AND (LOWER(program) LIKE '%vip%' OR LOWER(package_selected) LIKE '%(vip)%')
+                ORDER BY created_at DESC LIMIT 1");
+            $nameStmt->execute([$userId]);
+            $nameRow = $nameStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+            $vipName = decryptAES256((string) ($nameRow['guardian_name'] ?? ''))
+                ?: decryptAES256((string) ($nameRow['child_name'] ?? ''))
+                ?: 'VIP Member';
+            $unsubscribedAt = date('Y-m-d H:i:s');
+            $db->prepare('INSERT INTO vip_unsubscriptions (user_id, unsubscribed_at) VALUES (?, ?) ON DUPLICATE KEY UPDATE unsubscribed_at=VALUES(unsubscribed_at)')->execute([$userId, $unsubscribedAt]);
             // End the current VIP enrollment lifecycle in the enrollments table as
             // well. This makes the admin VIP Members List drop the member on its
             // next refresh, while the vip_unsubscriptions row remains available
@@ -31,6 +41,20 @@ try {
             $db->prepare("UPDATE enrollments
                 SET status='cancelled', payment_status='cancelled', updated_at=NOW()
                 WHERE user_id=? AND LOWER(program) LIKE '%vip%'")->execute([$userId]);
+            try {
+                createAdminNotification($db, [
+                    'event_key' => 'vip_unsubscribe:' . $userId . ':' . $unsubscribedAt,
+                    'type' => 'vip_unsubscribe',
+                    'title' => 'VIP Membership Unsubscribed',
+                    'message' => $vipName . ' unsubscribed from VIP membership.',
+                    'entity_type' => 'user',
+                    'entity_id' => $userId,
+                    'target_page' => 'vipmembers',
+                    'target_ref' => (string) $userId,
+                ]);
+            } catch (Throwable $notificationError) {
+                error_log('[Admin Notification] VIP unsubscribe notification failed: ' . $notificationError->getMessage());
+            }
         }
     }
     if (!$admin) {

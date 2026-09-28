@@ -12,6 +12,7 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/admin_notifications.php';
 setSecurityHeaders();
 
 function generateRef(): string {
@@ -178,16 +179,36 @@ try {
         throw new Exception('Invalid enrollment submission batch. Please refresh and try again.');
     }
     $isSummerBlastProgram = (bool) preg_match('/summer\s*blast/i', $submittedProgram);
-    $isSummerBlastRegistration = $isSummerBlastProgram && isSummerBlastRegistrationPackage($submittedPackage);
+    $packageHasRegistrationFee = $isSummerBlastProgram && isSummerBlastRegistrationPackage($submittedPackage);
+    $registrationFeeChecked = $isSummerBlastProgram
+        && filter_var($_POST['summer_registration_fee'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    $isSummerBlastRegistration = $isSummerBlastProgram && ($packageHasRegistrationFee || $registrationFeeChecked);
+    // Registration Fee is a standalone reservation only when no tuition
+    // package was selected. With a tuition package, both fees belong to the
+    // same Summer Blast enrollment.
     $isSummerBlastRegistrationOnly = $isSummerBlastRegistration
-        && filter_var($_POST['summer_registration_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
-    $summerBlastSelection = $isSummerBlastProgram && !$isSummerBlastRegistration
+        && ($submittedPackage === '' || $packageHasRegistrationFee);
+    if ($isSummerBlastProgram && !$isSummerBlastRegistration && $submittedPackage === '') {
+        throw new Exception('Please select a Summer Blast tuition package or the Registration Fee.');
+    }
+    $summerBlastSelection = $isSummerBlastProgram && $submittedPackage !== '' && !$packageHasRegistrationFee
         ? validateSummerBlastSelection($submittedPackage, (string) ($_POST['summerblast_courses'] ?? ''))
         : null;
+    $storedPackageSelected = $submittedPackage;
+    if ($isSummerBlastRegistration) {
+        $registrationPackage = trim((string) ($_POST['summer_registration_fee_package'] ?? ''));
+        if (!isSummerBlastRegistrationPackage($registrationPackage)) {
+            $registrationPackage = 'Registration Fee – ₱900';
+        }
+        $storedPackageSelected = $isSummerBlastRegistrationOnly
+            ? $registrationPackage
+            : ($submittedPackage . ' + ' . $registrationPackage);
+    }
     $storedStartDate = $isSummerBlastRegistration
+        && $isSummerBlastRegistrationOnly
         ? null
         : (!empty($_POST['start_date']) ? date('Y-m-d', strtotime($_POST['start_date'])) : null);
-    $storedTimeslot = $isSummerBlastRegistration ? '' : sanitize($_POST['timeslot'] ?? '');
+    $storedTimeslot = $isSummerBlastRegistrationOnly ? '' : sanitize($_POST['timeslot'] ?? '');
     $isMadStudioProgram = (bool) preg_match('/m\.?a\.?d\.?\s+studio|mad\s+studio/i', $submittedProgram);
     if ($isMadStudioProgram && $submittedPackage === '' && !$studioRentalDays) {
         throw new Exception('Please select a MAD Studio package or add at least one Studio Rental day.');
@@ -359,7 +380,7 @@ try {
     // standalone rentals, while the M.A.D. Studio rental view handles them.
     $initialStatus = 'pending';
     $storedProgram = $isStudioRentalOnly
-        ? 'Studio Rental'
+        ? 'M.A.D. Studio • Rental'
         : ($isSummerBlastRegistrationOnly ? 'Summer Blast Registration Fee' : $submittedProgram);
     $sql = "INSERT INTO enrollments
         (reference_no, user_id, program, package_selected, start_date, timeslot,
@@ -371,7 +392,7 @@ try {
         $ref,
         $userId,
         sanitize($storedProgram),
-        sanitize($_POST['package_selected'] ?? ''),
+        sanitize($storedPackageSelected),
         $storedStartDate,
         $storedTimeslot,
         $childNameEnc,
@@ -390,6 +411,49 @@ try {
     ]);
 
     $enrollmentId = (int) $db->lastInsertId();
+
+    // Persist an admin notification for every new submission type. A failure
+    // here must never prevent the parent from receiving a successful submit.
+    try {
+        $notificationType = 'enrollment';
+        $notificationTitle = 'New Enrollment Submitted';
+        $notificationMessage = ($rawChildName ?: $rawGuardianName) . ' • ' . $storedProgram . ' • Ref: ' . $ref;
+        $targetPage = 'enrollment';
+        $targetView = null;
+
+        if ($isVip) {
+            $notificationType = 'vip_request';
+            $notificationTitle = 'VIP Membership Request';
+            $notificationMessage = $rawGuardianName . ' submitted a VIP membership request • Ref: ' . $ref;
+            $targetPage = 'vipmembers';
+        } elseif ($studioRentalDays) {
+            $notificationType = 'studio_rental';
+            $notificationTitle = 'Studio Rental Payment Submitted';
+            $notificationMessage = ($rawChildName ?: $rawGuardianName) . ' submitted a Studio Rental request worth ₱' . number_format($studioRentalTotal, 2) . ' • Ref: ' . $ref;
+            $targetPage = 'madstudio';
+            $targetView = 'studio_rental';
+        } elseif ($isSummerBlastRegistration) {
+            $notificationType = 'registration_fee';
+            $notificationTitle = 'Summer Blast Registration Fee Submitted';
+            $notificationMessage = ($rawChildName ?: $rawGuardianName) . ' submitted a Summer Blast Registration Fee • Ref: ' . $ref;
+            $targetPage = 'summerblast';
+            $targetView = 'registration';
+        }
+
+        createAdminNotification($db, [
+            'event_key' => 'enrollment:' . $enrollmentId,
+            'type' => $notificationType,
+            'title' => $notificationTitle,
+            'message' => $notificationMessage,
+            'entity_type' => 'enrollment',
+            'entity_id' => $enrollmentId,
+            'target_page' => $targetPage,
+            'target_view' => $targetView,
+            'target_ref' => $ref,
+        ]);
+    } catch (Throwable $notificationError) {
+        error_log('[Admin Notification] Enrollment notification failed: ' . $notificationError->getMessage());
+    }
 
     // ── Sync guardian details to user profile if empty ──
     if ($userId > 0) {

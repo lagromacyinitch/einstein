@@ -20,6 +20,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="css/admin.css" />
 <script src="js/vip-price.js" defer></script>
+<script src="js/receipt-validation.js?v=2"></script>
 </head>
 
 <body>
@@ -30,28 +31,7 @@
       <h3>Notifications</h3>
       <button class="modal-close" onclick="toggleNotif()">✕</button>
     </div>
-    <div style="overflow-y:auto;flex:1">
-      <div class="notif-item unread">
-        <h4>New Enrollment — Maria Santos</h4>
-        <p>Enrolled in Daily Package tutoring.</p><time>5 mins ago</time>
-      </div>
-      <div class="notif-item unread">
-        <h4>Payment Received — Dela Cruz</h4>
-        <p>₱5,500 — Double Package confirmed.</p><time>18 mins ago</time>
-      </div>
-      <div class="notif-item unread">
-        <h4>VIP Membership Request</h4>
-        <p>Juan Reyes applied for VIP Club.</p><time>1 hr ago</time>
-      </div>
-      <div class="notif-item">
-        <h4>Session Reminder</h4>
-        <p>3 tutoring sessions at 2:00 PM today.</p><time>2 hrs ago</time>
-      </div>
-      <div class="notif-item">
-        <h4>Child Care — New Slot Taken</h4>
-        <p>Butterfly class now has 1 slot left.</p><time>Yesterday</time>
-      </div>
-    </div>
+    <div id="notif-list" style="overflow-y:auto;flex:1"></div>
   </div>
 
   <!-- ══════════ SIDEBAR ══════════ -->
@@ -2374,31 +2354,13 @@
           <div class="enrollment-detail-section">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
               <h4 style="margin:0">Payment Proof</h4>
-              <button type="button" id="modal-btn-toggle-blur" onclick="togglePaymentScreenshotBlur()"
-                class="btn btn-outline btn-xs"
-                style="display:none;font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer">
-                Unblur Photo
-              </button>
             </div>
             <p id="modal-reference-no" style="font-size:12px;color:#8D6A4E;margin:0 0 10px"></p>
 
             <div id="modal-screenshot-live" style="position:relative;display:none;margin-bottom:12px;border-radius:8px;overflow:hidden;border:1px solid #e0d4c8;background:#1a1008;max-width:100%;width:fit-content">
               <img id="modal-payment-image" src=""
                 alt="Payment screenshot"
-                style="max-width:100%;max-height:280px;border-radius:8px;display:block;transition:filter 0.2s ease">
-              
-              <!-- Sensitive/Gore/Irrelevant Warning Overlay -->
-              <div id="modal-screenshot-blur-badge" style="display:none;position:absolute;inset:0;background:rgba(25,12,6,0.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:#fff;flex-direction:column;align-items:center;justify-content:center;padding:16px;text-align:center;box-sizing:border-box">
-                <span style="font-size:32px;line-height:1;margin-bottom:6px">⚠️</span>
-                <strong style="font-size:13px;color:#fecaca;letter-spacing:0.3px">PHOTO BLURRED FOR REVIEW</strong>
-                <p style="margin:4px 0 10px;font-size:11px;color:#e5e7eb;max-width:320px;line-height:1.4">
-                  No payment amount was detected in this photo. Reveal only when ready to review.
-                </p>
-                <button type="button" onclick="togglePaymentScreenshotBlur(true)"
-                  style="background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.45);color:#fff;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:5px">
-                  👁️ Click to View
-                </button>
-              </div>
+                style="max-width:100%;max-height:280px;border-radius:8px;display:block">
             </div>
 
             <p id="modal-no-screenshot" style="display:none;font-size:13px;color:#8D6A4E;margin:0">No payment screenshot
@@ -2571,11 +2533,54 @@
           <h3>Add Student</h3><button class="modal-close" onclick="closeModal('modal-add-student')">✕</button>
         </div>
         <div class="modal-body">
-<div id="enrollment-children"><section class="enrollment-child" style="border-top:1px solid var(--cream-dark);padding-top:16px">          <div class="form-row">
+          <div class="manual-family-details" style="border:1.5px solid #d8b58d;border-radius:10px;background:#fffaf3;padding:14px 14px 16px;margin-bottom:18px">
+            <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown-primary);padding-bottom:9px;margin-bottom:12px;border-bottom:1px solid #e6cfb4">Parent / Guardian Information</div>
+            <div class="form-row">
+              <div class="form-group"><label for="student-guardian">Parent/Guardian</label><input class="form-control" id="student-guardian"
+                  placeholder="Full name of parent/guardian" required></div>
+              <div class="form-group"><label for="student-guardian-age">Age</label><input class="form-control" id="student-guardian-age" type="text"
+                  placeholder="Age" autocomplete="off" maxlength="2" required></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="student-contact">Contact</label><input class="form-control" id="student-contact" type="tel"
+                  placeholder="Phone number" required></div>
+              <div class="form-group"><label for="student-address">Address</label>
+                <input class="form-control" id="student-address" placeholder="Complete address" required>
+              </div>
+            </div>
+            <div class="form-group" style="background:#fdf8f3;border:1.5px solid #dec6ac;border-radius:10px;padding:12px 14px;margin-top:10px;margin-bottom:0;">
+              <label style="font-weight:700;color:var(--brown-primary);display:block;margin-bottom:6px;font-size:13px;">
+                VIP Club Membership
+              </label>
+              <div style="display:flex;gap:20px;align-items:center;">
+                <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;font-weight:500;">
+                  <input type="radio" name="manual-join-vip" id="manual-vip-no" value="no" checked onchange="toggleManualVipOption(this.value)">
+                  No (Regular Rates)
+                </label>
+                <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;font-weight:700;color:#8b6f47;">
+                  <input type="radio" name="manual-join-vip" id="manual-vip-yes" value="yes" onchange="toggleManualVipOption(this.value)">
+                  Yes, Join VIP Club (+₱500 • 2 Years)
+                </label>
+              </div>
+              <small id="manual-vip-hint" style="display:block;color:#8b6f47;margin-top:4px;font-size:11px;">
+                Select &quot;Yes&quot; to register parent as VIP member and apply center-wide VIP discounted package rates.
+              </small>
+            </div>
+          </div>
+<div id="enrollment-children"><section class="enrollment-child" style="border:1.5px solid #dec6ac;border-radius:10px;padding:14px 14px 16px;background:#fff">
+          <div data-child-section-heading style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown-primary);padding-bottom:9px;margin-bottom:14px;border-bottom:1px solid #e6cfb4">Student / Child Information</div>
+          <div class="form-row">
             <div class="form-group"><label>Student Name</label><input class="form-control" id="student-name" data-child-field="name"
                 placeholder="Full name" required></div>
-            <div class="form-group"><label>Age</label><input class="form-control" id="student-age" data-child-field="age" type="number"
-                placeholder="Age" min="0" max="120" required></div>
+            <div class="form-group"><label>Age</label><input class="form-control" id="student-age" data-child-field="age" type="text"
+                placeholder="Age" inputmode="numeric" pattern="[0-9]{1,3}" maxlength="3"
+                oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Grade Level</label><input class="form-control" id="student-grade" data-child-field="grade" type="number"
+                placeholder="Grade level" min="0" max="12"></div>
+            <div class="form-group"><label>School</label><input class="form-control" id="student-school" data-child-field="school"
+                placeholder="School name"></div>
           </div>
           <div class="form-group"><label>Program</label>
             <select class="form-control" id="student-program" data-child-field="program" onchange="updateStudentPackages(this.closest('.enrollment-child'))">
@@ -2583,61 +2588,67 @@
               <option value="workshop">Weekend Workshop</option>
               <option value="playschool">PlaySchool</option>
               <option value="childcare">Child Care</option>
-              <option value="madstudio">M.A.D Studio</option>
+              <option value="madstudio">M.A.D. Studio</option>
               <option value="summerblast">Summer Blast</option>
             </select>
           </div>
           <div class="form-group"><label for="student-package">Package / Section</label>
-            <select class="form-control" id="student-package" data-child-field="package" required>
+            <select class="form-control" id="student-package" data-child-field="package" onchange="updateStudentPackages(this.closest('.enrollment-child'))" required>
               <option value="" disabled hidden selected></option>
             </select>
           </div>
-          <div class="form-group"><label for="student-timeslot">Timeslot</label>
-            <input class="form-control" id="student-timeslot" data-child-field="timeslot" placeholder="e.g. Saturday 11:00–12:00" maxlength="100" required>
-          </div>
-<div class="manual-family-details">          <div class="form-row">
-            <div class="form-group"><label for="student-guardian">Parent/Guardian</label><input class="form-control" id="student-guardian"
-                placeholder="Full name of parent/guardian" required></div>
-            <div class="form-group"><label for="student-contact">Contact</label><input class="form-control" id="student-contact" type="tel"
-                placeholder="Phone number" required></div>
-          </div>
-          <div class="form-group"><label for="student-address">Address</label>
-            <input class="form-control" id="student-address" placeholder="Complete address" required>
-          </div>
-          <div class="form-group" style="background:#fdf8f3;border:1.5px solid #dec6ac;border-radius:10px;padding:12px 14px;margin-top:10px;margin-bottom:12px;">
-            <label style="font-weight:700;color:var(--brown-primary);display:block;margin-bottom:6px;font-size:13px;">
-              VIP Club Membership
+          <div class="form-group" id="student-summer-options" data-child-field="summer-options" hidden
+            style="background:#fffaf3;border:1px solid #dec6ac;border-radius:8px;padding:10px 12px;margin-top:8px">
+            <label style="display:flex;align-items:flex-start;gap:8px;margin:0;cursor:pointer;font-size:12px;color:#5c3317">
+              <input type="checkbox" class="student-summer-registration" id="student-summer-registration" data-child-field="summer-registration"
+                onchange="updateStudentPackages(this.closest('.enrollment-child'))" style="margin-top:2px;accent-color:#8b5e3c">
+              <span><strong>Registration Fee</strong><br><small id="student-summer-registration-label" style="color:#8b6f47">Slot reservation</small></span>
             </label>
-            <div style="display:flex;gap:20px;align-items:center;">
-              <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;font-weight:500;">
-                <input type="radio" name="manual-join-vip" id="manual-vip-no" value="no" checked onchange="toggleManualVipOption(this.value)">
-                No (Regular Rates)
-              </label>
-              <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;font-weight:700;color:#8b6f47;">
-                <input type="radio" name="manual-join-vip" id="manual-vip-yes" value="yes" onchange="toggleManualVipOption(this.value)">
-                Yes, Join VIP Club (+₱500 • 2 Years)
-              </label>
-            </div>
-            <small id="manual-vip-hint" style="display:block;color:#8b6f47;margin-top:4px;font-size:11px;">
-              Select &quot;Yes&quot; to register parent as VIP member and apply center-wide VIP discounted package rates.
-            </small>
           </div>
-</div>          <div class="form-group"><label>Payment Method</label>
-            <select class="form-control" id="student-payment-method" data-child-field="payment-method" onchange="updateStudentPaymentFields(this.closest('.enrollment-child'))" required>
+          <div class="form-group" id="student-summer-courses" data-child-field="summer-courses" hidden></div>
+          <div class="form-group" id="student-rental" data-child-field="rental" hidden
+            style="background:#fffaf3;border:1px solid #dec6ac;border-radius:8px;padding:10px 12px;margin-top:8px">
+            <div style="font-size:12px;font-weight:700;color:#5c3317;margin-bottom:3px">Studio Rental</div>
+            <div style="font-size:11px;color:#8b6f47;margin-bottom:8px">Leave the package blank for Studio Rental only.</div>
+            <div class="student-rental-days"></div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addManualRentalDay(this.closest('.enrollment-child'))" style="padding:5px 10px;font-size:11px;line-height:1.2">+ Add Day</button>
+            <span class="student-rental-total" style="float:right;font-size:12px;font-weight:700;color:#5c3317"></span>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label for="student-start-date">Preferred Date</label>
+              <input class="form-control" id="student-start-date" data-child-field="start-date" type="date">
+            </div>
+            <div class="form-group"><label for="student-timeslot">Preferred Timeslot</label>
+              <input class="form-control" id="student-timeslot" data-child-field="timeslot" placeholder="e.g. 11:00-12:00" inputmode="numeric" pattern="[0-9:.\-]*" maxlength="30"
+                oninput="this.value=this.value.replace(/[^0-9:.\-]/g,'')" required>
+            </div>
+          </div>
+          <div class="manual-program-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed #e6cfb4">
+            <button type="button" class="btn btn-outline" onclick="addEnrollmentProgram(this)">+ Add a Program</button>
+          </div>
+          </section></div>
+        <div class="manual-payment-section" style="border:1.5px solid #d8b58d;border-radius:10px;background:#fffaf3;padding:14px;margin-top:16px">
+          <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown-primary);padding-bottom:9px;margin-bottom:12px;border-bottom:1px solid #e6cfb4">Payment Information</div>
+          <div class="form-group"><label for="manual-payment-method">Payment Method</label>
+            <select class="form-control" id="manual-payment-method" data-manual-global-field="payment-method" onchange="updateStudentPaymentFields()" required>
               <option value="" disabled hidden selected></option>
               <option>Online Payment</option>
               <option>Walk-in (Cash)</option>
             </select>
           </div>
-          <div class="form-group" id="student-receipt-group" data-child-field="receipt-group" hidden>
-            <label for="student-receipt">Upload Receipt (Optional)</label>
-            <input class="form-control" id="student-receipt" data-child-field="receipt" type="file" accept="image/jpeg,image/png,image/gif,image/webp" disabled>
-            <small>JPG, PNG, GIF, or WEBP. Maximum 5 MB.</small>
+          <div class="form-group" id="manual-receipt-group" data-manual-global-field="receipt-group" hidden>
+            <label for="manual-receipt">Upload Receipt (Optional)</label>
+            <input class="form-control" id="manual-receipt" data-manual-global-field="receipt" type="file" accept="image/jpeg,image/png,image/webp" onchange="validateManualReceipt(this)" disabled>
+            <small class="manual-receipt-status">JPG, PNG, or WEBP. Maximum 5 MB.</small>
           </div>
-          <div class="form-group" id="student-amount-group" data-child-field="amount-group" hidden>
-            <label for="student-amount">Amount Paid (₱)</label>
-            <input class="form-control" id="student-amount" data-child-field="amount" type="number" min="0.01" step="0.01" placeholder="Enter amount paid" disabled>
-          </div></section></div><button type="button" class="btn btn-outline" onclick="addEnrollmentChild()">+ Add Child</button>
+          <div class="form-group" id="manual-amount-group" data-manual-global-field="amount-group" hidden>
+            <label for="manual-amount">Amount Paid (₱)</label>
+            <input class="form-control" id="manual-amount" data-manual-global-field="amount" type="number" min="0.01" step="0.01" placeholder="Enter amount paid" disabled>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button type="button" class="btn btn-outline" onclick="addEnrollmentChild()">+ Add Child</button>
+        </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" onclick="closeModal('modal-add-student')">Cancel</button>
@@ -5084,6 +5095,7 @@
       loadDatabaseSettings();
       loadHomepageContent();
       cancelVipDiscounts();
+      loadAdminNotifications();
       // A deep-linked page rendered before its data arrived; render it again once loaded.
       loadAllData().then(() => {
         const current = document.querySelector('.page.active')?.id.replace('page-', '');
@@ -5091,7 +5103,7 @@
       });
       // Auto-poll every 30s — silently checks for new pending enrollments
       setInterval(pollPendingBadge, 30000);
-      setInterval(async () => { await loadVipAdminData(); renderNotifications(); renderVIPPage(); }, 30000);
+      setInterval(async () => { await loadVipAdminData(); await loadAdminNotifications(); renderVIPPage(); }, 30000);
     });
 
     // ══════════════════════════════════════════════════════════════════════
@@ -5354,7 +5366,7 @@
       return results;
     }
 
-    function renderNotifications() {
+    function renderLegacyNotifications() {
       const panel = document.querySelector('#notif-panel > div[style*="overflow"]');
       const dot = document.querySelector('.notif-dot');
 
@@ -5420,6 +5432,122 @@
       panel.insertAdjacentHTML('afterbegin', vipAdminData.events.map(event => `<div class="notif-item unread"><h4>${escHtml(event.title)}</h4><p>${escHtml(event.name || 'VIP Member')}</p><time>${timeAgo(event.at)}</time></div>`).join('')); 
     }
 
+    // Persistent notification-center implementation. This definition is kept
+    // below the legacy renderer so it is the active one without changing any
+    // unrelated dashboard activity rendering.
+    let adminNotificationList = [];
+    let adminNotificationUnreadCount = 0;
+    let adminNotificationLoadPromise = null;
+
+    async function loadAdminNotifications() {
+      if (adminNotificationLoadPromise) return adminNotificationLoadPromise;
+      adminNotificationLoadPromise = fetch('api/admin_notifications.php?limit=50', {
+        credentials: 'same-origin',
+        cache: 'no-store'
+      }).then(async response => {
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || 'Unable to load notifications.');
+        adminNotificationList = Array.isArray(data.notifications) ? data.notifications : [];
+        adminNotificationUnreadCount = Number(data.unread_count || 0);
+        renderNotifications();
+        return data;
+      }).catch(() => null).finally(() => {
+        adminNotificationLoadPromise = null;
+      });
+      return adminNotificationLoadPromise;
+    }
+
+    function renderNotifications() {
+      const panel = document.getElementById('notif-list');
+      const dot = document.querySelector('.notif-dot');
+      const unreadCount = adminNotificationUnreadCount;
+
+      if (dot) {
+        dot.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+        dot.style.display = unreadCount > 0 ? 'block' : 'none';
+      }
+      if (!panel) return;
+
+      if (!adminNotificationList.length) {
+        panel.innerHTML = '<div style="padding:32px;text-align:center;color:#999;font-size:13px">No notifications yet.<br>New submissions will appear here.</div>';
+        return;
+      }
+
+      const icons = {
+        enrollment: '[NEW]',
+        vip_request: '[VIP]',
+        vip_unsubscribe: '[VIP]',
+        balance_payment: '[PAYMENT]',
+        studio_rental: '[RENTAL]',
+        registration_fee: '[REGISTRATION]'
+      };
+      panel.innerHTML = adminNotificationList.map(notification => {
+        const id = Number(notification.id);
+        const isUnread = Number(notification.unread) === 1;
+        const icon = icons[notification.type] || '[NOTICE]';
+        return `<div class="notif-item${isUnread ? ' unread' : ''}" onclick="openAdminNotification(${id})" style="cursor:pointer">
+          <h4>${icon} ${escHtml(notification.title || 'Admin Notification')}</h4>
+          <p>${escHtml(notification.message || '')}</p>
+          <time title="${escHtml(formatDateTime(notification.created_at))}">${timeAgo(notification.created_at)} · ${escHtml(formatDateTime(notification.created_at))}</time>
+        </div>`;
+      }).join('');
+    }
+
+    async function openAdminNotification(notificationId) {
+      const notification = adminNotificationList.find(n => Number(n.id) === Number(notificationId));
+      if (!notification) return;
+
+      try {
+        await fetch('api/admin_notifications.php', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({action: 'mark_read', notification_id: Number(notificationId)})
+        });
+      } catch (_) { /* Navigation should still work if the read request is delayed. */ }
+
+      if (Number(notification.unread) === 1) {
+        notification.unread = 0;
+        adminNotificationUnreadCount = Math.max(0, adminNotificationUnreadCount - 1);
+      }
+      renderNotifications();
+      document.getElementById('notif-panel')?.classList.remove('open');
+
+      const page = String(notification.target_page || 'dashboard');
+      const id = Number(notification.entity_id || 0);
+      const nav = adminNavButton(page);
+
+      if (page === 'balancemonitoring') {
+        showPage('balancemonitoring', nav);
+        if (id) reviewBalanceReceipts(id);
+        return;
+      }
+      if (page === 'madstudio') {
+        showPage('madstudio', nav);
+        if (notification.target_view === 'studio_rental') changeMadStudioView('studio_rental');
+        if (id && notification.target_view === 'studio_rental') openStudioRentalReview(id);
+        return;
+      }
+      if (page === 'summerblast') {
+        showPage('summerblast', nav);
+        if (notification.target_view === 'registration') changeSummerBlastView('registration');
+        if (id && notification.target_view === 'registration') openSummerBlastRegistrationReview(id);
+        return;
+      }
+      if (page === 'vipmembers') {
+        showPage('vipmembers', nav);
+        if (id && notification.type === 'vip_request') openVipEnrollmentApproval(id);
+        return;
+      }
+      if (page === 'enrollment') {
+        showPage('enrollment', nav);
+        const record = enrollments.find(e => Number(e.id) === id);
+        if (record) openEnrollmentApproval(record);
+        return;
+      }
+      showPage(page, nav);
+    }
+
     function renderRecentActivity() {
       const container = document.getElementById('recent-activity-list');
       if (!container) return;
@@ -5449,6 +5577,15 @@
       if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
       if (diff < 86400) return Math.floor(diff / 3600) + ' hr ago';
       return Math.floor(diff / 86400) + ' days ago';
+    }
+    function formatDateTime(iso) {
+      if (!iso) return '—';
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return '—';
+      return date.toLocaleString('en-PH', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', second: '2-digit'
+      });
     }
 
     function renderPaymentsPage() {
@@ -6089,6 +6226,11 @@
       const rental = getStudioRentalAdminData(e);
       return prog.includes('studio rental') || (prog.includes('mad') && !String(e?.package_selected || '').trim() && rental && rental.total > 0);
     }
+    function displayProgramLabelAdmin(e) {
+      return programKey(e?.program) === 'studio_rental' || isStandaloneStudioRentalRecord(e)
+        ? 'M.A.D. Studio • Rental'
+        : (e?.program || '—');
+    }
     function standaloneRentalNeedsReview(e) {
       return isStandaloneStudioRentalRecord(e)
         && String(e?.status || '').toLowerCase() === 'confirmed'
@@ -6200,6 +6342,12 @@
     }
     function isStandaloneSummerBlastRegistrationRecord(e) {
       if (!isSummerBlastRegistrationRecord(e)) return false;
+      const payload = getEnrollmentNotesAdmin(e);
+      const registrationMeta = payload && typeof payload === 'object' ? payload.summer_blast_registration : null;
+      if (registrationMeta && typeof registrationMeta === 'object' && registrationMeta.registration_only === false) return false;
+      // A combined Registration Fee + tuition package is a regular Summer
+      // Blast enrollment, not a standalone reservation.
+      if (/single\s+course|two\s+courses|special\s+course/i.test(String(e?.package_selected || ''))) return false;
       const groupKey = getEnrollmentGroupKeyAdmin(e);
       return !enrollments.some(other =>
         Number(other?.id) !== Number(e?.id)
@@ -6212,6 +6360,8 @@
       const raw = String(program || '').trim();
       const key = raw.toLowerCase().replace(/[^a-z0-9]+/g, '');
       if (key === 'summerblast') return 'Summer Blast';
+      if (key === 'summerblastregistrationfee') return 'Summer Blast';
+      if (key === 'studiorental' || key === 'madstudiorental') return 'M.A.D. Studio • Rental';
       if (key === 'madstudio') return 'M.A.D. Studio';
       if (key === 'childcareprogram') return 'Child Care Program';
       return raw;
@@ -6328,13 +6478,23 @@
     // ─── MODAL HELPERS ────────────────────────────────────────────────────────────
     function openModal(id) {
       if (id === 'modal-add-student') {
+        const parentAge = document.getElementById('student-guardian-age');
+        if (parentAge) {
+          parentAge.disabled = false;
+          parentAge.readOnly = false;
+        }
         updateStudentPackages();
         updateStudentPaymentFields();
       }
       document.getElementById(id)?.classList.add('open');
     }
     function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
-    function toggleNotif() { document.getElementById('notif-panel')?.classList.toggle('open'); }
+    function toggleNotif() {
+      const panel = document.getElementById('notif-panel');
+      if (!panel) return;
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) loadAdminNotifications();
+    }
     function toggleUserMenu() {
       const m = document.getElementById('user-menu'); if (!m) return;
       m.classList.toggle('open');
@@ -6548,8 +6708,14 @@
         if (m) { const v = parseFloat(m[1].replace(/,/g, '')); if (v > 0) return addRental(v); }
         return window.vipFee || 500;
       }
-      const m = (e.package_selected || '').match(/[\u20b1P]\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/u);
-      if (m) { const v = parseFloat(m[1].replace(/,/g, '')); if (v > 0) return addRental(v); }
+      const packageAmounts = (e.package_selected || '').match(/[\u20b1P]\s*[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?/gu) || [];
+      if (packageAmounts.length) {
+        const v = packageAmounts.reduce((sum, token) => {
+          const amount = token.match(/[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?/u);
+          return sum + (amount ? parseFloat(amount[0].replace(/,/g, '')) : 0);
+        }, 0);
+        if (v > 0) return addRental(v);
+      }
       const m2 = (e.package_selected || '').match(/(?:[\u2013-])\s*[\u20b1P]?\s*([0-9]{3,6}(?:,[0-9]{3})*(?:\.[0-9]+)?)/u);
       if (m2) { const v = parseFloat(m2[1].replace(/,/g, '')); if (v > 0) return addRental(v); }
       if (prog.includes('tutor') || prog.includes('academic')) {
@@ -7155,13 +7321,11 @@
         const shotSrc = receiptAssetUrl(shotRec.payment_screenshot);
         live.style.display = 'block'; noShot.style.display = 'none'; mock.style.display = 'none';
         img.src = shotSrc;
-        checkAndApplyPaymentProofSecurity(img, shotSrc);
+        img.style.filter = 'none';
       } else {
         live.style.display = 'none'; noShot.style.display = 'block'; mock.style.display = 'block';
         document.getElementById('modal-receipt-ref').textContent = refNos || '—';
         document.getElementById('modal-receipt-from').textContent = first.contact || '—';
-        const toggleBtn = document.getElementById('modal-btn-toggle-blur');
-        if (toggleBtn) toggleBtn.style.display = 'none';
       }
 
       // Action buttons & banner
@@ -7300,122 +7464,6 @@
       updateDashboardStats();
       showToast(`${parentName} has been unsubscribed from VIP Club Membership.`);
     }
-    let isCurrentScreenshotBlurred = false;
-    const receiptAmountCache = {};
-
-    function analyzeImageForSensitiveContent(img) {
-      try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const w = 120;
-        const h = 120;
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(img, 0, 0, w, h);
-        const data = ctx.getImageData(0, 0, w, h).data;
-        const totalPixels = w * h;
-
-        let bloodCount = 0;
-        let visceralCount = 0;
-        let surgicalContextCount = 0;
-        let neutralDocCount = 0;
-
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const a = data[i + 3];
-          if (a < 128) continue;
-
-          // 1. Blood red
-          const isBlood = (r > 95 && g < 65 && b < 65 && (r - Math.max(g, b) > 30)) ||
-                          (r > 135 && g < 80 && b < 80 && (r - g > 45) && (r - b > 45));
-          if (isBlood) bloodCount++;
-
-          // 2. Visceral organ / fleshy pink / internal body tissue
-          const isVisceral = (r > 125 && r < 240 && g > 35 && g < 145 && b > 20 && b < 125 && (r - g > 25) && (r - b > 30)) ||
-                             (r > 160 && g > 85 && g < 170 && b > 40 && b < 125 && (r - b > 45) && (g - b > 18));
-          if (isVisceral) visceralCount++;
-
-          // 3. Surgical context (surgical blue drape / medical latex glove)
-          const isSurgicalDrape = (b > 110 && b > r * 1.3 && g > 60 && g < 185 && r < 105);
-          const isLatexGlove = (r > 160 && g > 140 && b < 115 && Math.abs(r - g) < 40 && (r - b > 45));
-          if (isSurgicalDrape || isLatexGlove) surgicalContextCount++;
-
-          // 4. Clean document / receipt neutral whites & light grays
-          const isDocBg = (r > 185 && g > 185 && b > 185 && Math.abs(r - g) < 20 && Math.abs(g - b) < 20);
-          if (isDocBg) neutralDocCount++;
-        }
-
-        const bloodRatio = bloodCount / totalPixels;
-        const visceralRatio = visceralCount / totalPixels;
-        const surgicalRatio = surgicalContextCount / totalPixels;
-        const docRatio = neutralDocCount / totalPixels;
-
-        const isGoreOrSurgery = (visceralRatio > 0.07 && (bloodRatio > 0.02 || surgicalRatio > 0.03)) ||
-                                (bloodRatio > 0.035) ||
-                                (visceralRatio > 0.12) ||
-                                (surgicalRatio > 0.08 && visceralRatio > 0.04) ||
-                                ((bloodRatio + visceralRatio) > 0.08);
-
-        return {
-          isSensitive: isGoreOrSurgery,
-          reason: isGoreOrSurgery ? 'Medical surgery, viscera, or gore detected' : 'OK',
-          details: { bloodRatio, visceralRatio, surgicalRatio, docRatio }
-        };
-      } catch (err) {
-        console.warn('Canvas image analysis skipped/error:', err);
-        return { isSensitive: false, reason: 'Error' };
-      }
-    }
-
-    async function checkAndApplyPaymentProofSecurity(imgEl, srcUrl) {
-      if (!srcUrl) {
-        applyScreenshotBlur(false);
-        return;
-      }
-      if (receiptAmountCache[srcUrl] !== undefined) {
-        applyScreenshotBlur(!receiptAmountCache[srcUrl]);
-        return;
-      }
-      try {
-        const resp = await fetch('api/check_receipt_amount.php?src=' + encodeURIComponent(srcUrl), { credentials: 'same-origin' });
-        const data = await resp.json();
-        const hasAmount = !!(data && data.has_amount);
-        receiptAmountCache[srcUrl] = hasAmount;
-        // Don't blur if amount detected; blur only if no amount
-        applyScreenshotBlur(!hasAmount);
-      } catch (err) {
-        console.warn('Receipt amount scan error:', err);
-      }
-    }
-
-    function applyScreenshotBlur(blur, reason) {
-      isCurrentScreenshotBlurred = !!blur;
-      const img = document.getElementById('modal-payment-image');
-      const badge = document.getElementById('modal-screenshot-blur-badge');
-      const toggleBtn = document.getElementById('modal-btn-toggle-blur');
-
-      if (img) {
-        img.style.filter = blur ? 'blur(28px) contrast(80%)' : 'none';
-      }
-      if (badge) {
-        badge.style.display = blur ? 'flex' : 'none';
-      }
-      if (toggleBtn) {
-        toggleBtn.style.display = 'inline-block';
-        toggleBtn.textContent = blur ? 'Unblur Photo' : 'Blur Photo';
-      }
-    }
-
-    function togglePaymentScreenshotBlur(forceUnblur) {
-      if (forceUnblur === true) {
-        applyScreenshotBlur(false);
-      } else {
-        applyScreenshotBlur(!isCurrentScreenshotBlurred);
-      }
-    }
-
     // ─── PROGRAM PAGES ────────────────────────────────────────────────────────────
     function renderProgramPage(programKey_) {
       const isRentalView = programKey_ === 'studio_rental';
@@ -7448,11 +7496,9 @@
       }
 
       if (!confirmed.length) {
-        const icons = { tutoring: '📚', workshop: '🎨', playschool: '🧸', childcare: '👶', madstudio: '💃', summerblast: '☀️' };
         const labels = { tutoring: 'Academic Tutorial', workshop: 'Workshop', playschool: 'PlaySchool', childcare: 'Childcare', madstudio: 'M.A.D. Studio', studio_rental: 'Studio Rental', summerblast: 'Summer Blast' };
         const label = labels[programKey_] || 'Students';
         tbody.innerHTML = `<tr><td colspan="${tbody.closest('table').querySelectorAll('thead th').length}" style="text-align:center;padding:48px;color:var(--brown-light)">
-      <div style="font-size:36px;margin-bottom:8px">${icons[programKey_] || '📋'}</div>
       <strong>No confirmed ${label} enrollments yet</strong><br>
       <span style="font-size:12px">Approved students will appear here automatically from the Enrollment Management page.</span>
     </td></tr>`;
@@ -7688,7 +7734,6 @@
         const reserved = getSummerBlastReservedStudents();
         if (!reserved.length) {
           tbody.innerHTML = `<tr><td colspan="11" style="padding:32px;text-align:center;color:var(--brown-light)">
-            <div style="font-size:32px;margin-bottom:6px">📋</div>
             <strong>No reserved students yet</strong><br>
             <span style="font-size:12px">Students who pay the ₱1,000 slot reservation / registration fee will appear here.</span>
           </td></tr>`;
@@ -7703,7 +7748,7 @@
             <td>${escHtml(e.child_age || '—')}</td>
             <td>${escHtml(e.guardian_name || '—')}</td>
             <td>${escHtml(e.contact || '—')}</td>
-            <td>—</td>
+            <td>${escHtml(e.package_selected || '—')}</td>
             <td>${escHtml(e.timeslot || '—')}</td>
             <td>${escHtml(e.payment_method || '—')} (${feeDisplay})</td>
             <td>${statusBadge(e.status)}</td>
@@ -7735,7 +7780,6 @@
 
       if (!reserved.length) {
         tbody.innerHTML = `<tr><td colspan="11" style="padding:32px;text-align:center;color:var(--brown-light)">
-          <div style="font-size:32px;margin-bottom:6px">📋</div>
           <strong>No reserved students yet</strong><br>
           <span style="font-size:12px">Students who pay the ₱1,000 slot reservation / registration fee will appear here.</span>
         </td></tr>`;
@@ -7751,7 +7795,7 @@
           <td>${escHtml(e.child_age || '—')}</td>
           <td>${escHtml(e.guardian_name || '—')}</td>
           <td>${escHtml(e.contact || '—')}</td>
-          <td>—</td>
+          <td>${escHtml(e.package_selected || '—')}</td>
           <td>${escHtml(e.timeslot || '—')}</td>
           <td>${escHtml(e.payment_method || '—')} (${feeDisplay})</td>
           <td>${statusBadge(e.status)}</td>
@@ -7797,7 +7841,145 @@
       });
     }
 
+    function manualRateText(rate, program) {
+      const raw = String(rate || '').trim();
+      const amount = parseFloat(raw.replace(/[^0-9.]/g, '')) || 0;
+      if (!amount) return raw;
+      const suffix = program === 'madstudio'
+        ? (/(\/mo(?:nth)?|\/hour)/i.exec(raw)?.[1] || '/mo')
+        : (/(\/mo(?:nth)?|\/hour)/i.exec(raw)?.[1] || '');
+      return '₱' + amount.toLocaleString('en-PH') + suffix;
+    }
+
+    function manualVipDiscount(program) {
+      const value = siteSettings.vipDiscounts?.[program];
+      const parsed = value === '' || value === undefined || value === null ? 0 : parseFloat(value);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    }
+
+    function manualPackageLabel(pkg, program, isVip) {
+      const name = String(pkg?.name || '').trim();
+      const rawRate = String(pkg?.rate || '').trim();
+      const baseAmount = parseFloat(rawRate.replace(/[^0-9.]/g, '')) || 0;
+      const discount = isVip ? manualVipDiscount(program) : 0;
+      const amount = discount > 0 && baseAmount ? Math.round(baseAmount * (1 - discount / 100)) : baseAmount;
+      const rate = amount ? manualRateText(String(amount) + (program === 'madstudio' ? '/mo' : ''), program) : manualRateText(rawRate, program);
+      return rate ? `${name}${isVip && amount !== baseAmount ? ' (VIP)' : ''} – ${rate}` : name;
+    }
+
+    function getStudentSummerRegistrationPackage() {
+      ensureRatesDefaults();
+      const packages = Array.isArray(siteSettings.summerblast) ? siteSettings.summerblast : [];
+      return packages.find(pkg => /registration|reservation/i.test(`${pkg?.name || ''} ${pkg?.category || ''}`))
+        || { name: 'Registration Fee', rate: '₱900' };
+    }
+
+    const MANUAL_SUMMER_COURSES = {
+      Academics: ['Basic Read & Write', 'Reading w/ Comprehension', 'Math for Elementary', 'Math for High School', 'Public Speaking / Hosting', 'Wikang Tagalog / Filipino'],
+      Music: ['Drum Lessons', 'Guitar Lessons', 'Piano Lessons', 'Violin Lessons', 'Voice Coaching'],
+      'Arts & Dance': ['Ballet Lessons', 'Drawing & Painting', 'Pop Dancing & Afro Dance', 'Gymnastics', 'Modeling Class', 'Photography'],
+      Sports: ['Basketball Clinic', 'Chess Clinic'],
+      'Special Courses': ['Baking Class', 'Swimming Lessons', 'Taekwondo Class']
+    };
+
+    function manualSummerRule(packageValue) {
+      const value = String(packageValue || '').toLowerCase();
+      if (value.includes('special course')) return { count: 1, main: ['Special Courses'], free: Object.keys(MANUAL_SUMMER_COURSES), label: 'Special Course', instruction: 'Choose ONE Special Course + 1 Any Course FREE' };
+      if (value.includes('two courses')) return { count: 2, main: Object.keys(MANUAL_SUMMER_COURSES), free: ['Academics'], label: 'Main Course', instruction: 'Choose TWO courses + 1 Academics subject FREE' };
+      if (value.includes('single course')) return { count: 1, main: Object.keys(MANUAL_SUMMER_COURSES), free: ['Academics'], label: 'Main Course', instruction: 'Choose ONE course + 1 Academics subject FREE' };
+      return null;
+    }
+
+    function manualSummerOptions(categories, selected, excluded) {
+      const excludedSet = excluded || new Set();
+      return '<option value="">Select course...</option>' + categories.map(category => `<optgroup label="${escHtml(category)}">${(MANUAL_SUMMER_COURSES[category] || []).map(course => `<option value="${escHtml(course)}" ${selected === course ? 'selected' : ''} ${excludedSet.has(course) && selected !== course ? 'disabled' : ''}>${escHtml(course)}</option>`).join('')}</optgroup>`).join('');
+    }
+
+    function readManualSummerCourses(card) {
+      return { main: [...card.querySelectorAll('.manual-sb-main')].map(el => el.value), free: card.querySelector('.manual-sb-free')?.value || '' };
+    }
+
+    function renderManualSummerCourses(card) {
+      const wrap = card.querySelector('[data-child-field="summer-courses"]');
+      const program = card.querySelector('[data-child-field="program"]')?.value;
+      const packageValue = card.querySelector('[data-child-field="package"]')?.value || '';
+      if (!wrap || program !== 'summerblast' || !packageValue) { if (wrap) { wrap.hidden = true; wrap.innerHTML = ''; } return; }
+      const rule = manualSummerRule(packageValue);
+      if (!rule) { wrap.hidden = true; wrap.innerHTML = ''; return; }
+      const current = readManualSummerCourses(card);
+      const main = Array.from({ length: rule.count }, (_, index) => current.main[index] || '');
+      wrap.hidden = false;
+      wrap.innerHTML = `<div style="padding:10px 12px;background:#fffaf3;border:1px solid #dec6ac;border-radius:8px;color:#5c3317;font-size:12px">
+        <strong>Course Selection</strong><div style="font-size:11px;color:#8b6f47;margin:3px 0 9px">${escHtml(rule.instruction)}</div>
+        <div style="display:grid;grid-template-columns:repeat(${rule.count > 1 ? 2 : 1},minmax(0,1fr));gap:8px">${main.map((selected, index) => {
+          const excluded = new Set(main.filter((_, i) => i !== index).concat(current.free || ''));
+          return `<div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:4px">${escHtml(rule.label)}${rule.count > 1 ? ' ' + (index + 1) : ''} *</label><select class="form-control manual-sb-main" data-index="${index}" style="font-size:12px;padding:8px 9px">${manualSummerOptions(rule.main, selected, excluded)}</select></div>`;
+        }).join('')}</div>
+        <div style="margin-top:8px"><label style="display:block;font-size:11px;font-weight:700;margin-bottom:4px">${rule.free.length === 1 ? 'Free Academics Subject' : 'Free Course'} *</label><select class="form-control manual-sb-free" style="font-size:12px;padding:8px 9px">${manualSummerOptions(rule.free, current.free, new Set(main.filter(Boolean)))}</select></div>
+      </div>`;
+    }
+
+    function readManualRentalDays(card) {
+      return [...card.querySelectorAll('.manual-rental-row')].map(row => ({ date: row.querySelector('.manual-rental-date')?.value || '', hours: row.querySelector('.manual-rental-hours')?.value || '' }));
+    }
+
+    function manualRentalRate() {
+      const rental = (Array.isArray(siteSettings.madstudio) ? siteSettings.madstudio : []).find(pkg => /studio\s+rental/i.test(String(pkg?.name || '')));
+      return parseFloat(String(rental?.rate || '').replace(/[^0-9.]/g, '')) || 450;
+    }
+
+    function renderManualRentalDays(card) {
+      const wrap = card.querySelector('[data-child-field="rental"]');
+      const program = card.querySelector('[data-child-field="program"]')?.value;
+      if (!wrap || program !== 'madstudio') { if (wrap) wrap.hidden = true; return; }
+      wrap.hidden = false;
+      const days = readManualRentalDays(card);
+      const list = wrap.querySelector('.student-rental-days');
+      if (!list) return;
+      list.innerHTML = days.map((day, index) => `<div class="manual-rental-row" style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(90px,.8fr) auto;gap:7px;align-items:end;margin-top:7px">
+        <div><label style="display:block;font-size:10px;font-weight:700;color:#8b6f47;margin-bottom:3px">Specific Day</label><input type="date" class="form-control manual-rental-date" value="${escHtml(day.date)}" style="font-size:12px;padding:8px 9px"></div>
+        <div><label style="display:block;font-size:10px;font-weight:700;color:#8b6f47;margin-bottom:3px">Hours (1-99)</label><input type="number" min="1" max="99" maxlength="2" inputmode="numeric" class="form-control manual-rental-hours" value="${escHtml(day.hours)}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,2)" style="font-size:12px;padding:8px 9px"></div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="removeManualRentalDay(this.closest('.enrollment-child'), ${index})" style="height:34px;color:#c0392b">&times;</button>
+      </div>`).join('');
+      const total = days.reduce((sum, day) => sum + ((parseInt(day.hours, 10) || 0) * manualRentalRate()), 0);
+      const totalEl = wrap.querySelector('.student-rental-total');
+      if (totalEl) totalEl.textContent = total > 0 ? `Rental total: ₱${total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+    }
+
+    function addManualRentalDay(card) {
+      const list = card.querySelector('.student-rental-days');
+      if (!list) return;
+      list.insertAdjacentHTML('beforeend', `<div class="manual-rental-row" style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(90px,.8fr) auto;gap:7px;align-items:end;margin-top:7px">
+        <div><label style="display:block;font-size:10px;font-weight:700;color:#8b6f47;margin-bottom:3px">Specific Day</label><input type="date" class="form-control manual-rental-date" style="font-size:12px;padding:8px 9px"></div>
+        <div><label style="display:block;font-size:10px;font-weight:700;color:#8b6f47;margin-bottom:3px">Hours (1-99)</label><input type="number" min="1" max="99" maxlength="2" inputmode="numeric" class="form-control manual-rental-hours" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,2)" style="font-size:12px;padding:8px 9px"></div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="removeManualRentalDay(this.closest('.enrollment-child'), this.closest('.manual-rental-row'))" style="height:34px;color:#c0392b">&times;</button>
+      </div>`);
+      renderManualRentalDays(card);
+      updateStudentPackages(card);
+    }
+
+    function removeManualRentalDay(card, row) {
+      if (typeof row === 'number') {
+        card.querySelectorAll('.manual-rental-row')[row]?.remove();
+      } else if (row?.remove) {
+        row.remove();
+      }
+      renderManualRentalDays(card);
+      updateStudentPackages(card);
+    }
+
     function getStudentPackages(program, isVip = false) {
+      ensureRatesDefaults();
+      if (program === 'summerblast' && Array.isArray(siteSettings.summerblast)) {
+        return [...new Set(siteSettings.summerblast
+          .filter(pkg => pkg && pkg.name && !/registration|reservation/i.test(`${pkg.name} ${pkg.category || ''}`))
+          .map(pkg => manualPackageLabel(pkg, program, isVip)))];
+      }
+      if (program === 'madstudio' && Array.isArray(siteSettings.madstudio) && siteSettings.madstudio.length) {
+        return [...new Set(siteSettings.madstudio
+          .filter(pkg => pkg && pkg.name && !/studio\s+rental/i.test(pkg.name))
+          .map(pkg => manualPackageLabel(pkg, program, isVip)))];
+      }
       ensureRatesDefaults();
       if (isVip) {
         const vipPkgMap = {
@@ -7861,67 +8043,310 @@
       const select = card.querySelector('[data-child-field="package"]');
       if (!select) return;
       const isVip = document.querySelector('input[name="manual-join-vip"]:checked')?.value === 'yes';
+      const previous = select.value;
       const packages = getStudentPackages(program, isVip);
       const blank = new Option('', '', true, true);
       blank.disabled = true;
       blank.hidden = true;
       select.replaceChildren(blank);
       packages.forEach(name => select.add(new Option(name, name)));
-      select.value = '';
+      select.value = packages.includes(previous) ? previous : '';
+
+      const summerOptions = card.querySelector('[data-child-field="summer-options"]');
+      const summerCheckbox = card.querySelector('[data-child-field="summer-registration"]');
+      const summerLabel = card.querySelector('[id^="student-summer-registration-label"]');
+      const isSummer = program === 'summerblast';
+      const isRegistration = isSummer && Boolean(summerCheckbox?.checked);
+      if (summerOptions) summerOptions.hidden = !isSummer;
+      if (summerLabel && isSummer) {
+        const fee = getStudentSummerRegistrationPackage();
+        summerLabel.textContent = `${fee.name || 'Registration Fee'} – ${manualRateText(fee.rate, 'summerblast')}`;
+      }
+      const rental = card.querySelector('[data-child-field="rental"]');
+      if (rental) rental.hidden = program !== 'madstudio';
+      renderManualSummerCourses(card);
+      renderManualRentalDays(card);
+      const rentalDays = program === 'madstudio' ? readManualRentalDays(card).filter(day => day.date || day.hours) : [];
+      select.required = !(isSummer && isRegistration) && !(program === 'madstudio' && rentalDays.length > 0);
+      const timeslot = card.querySelector('[data-child-field="timeslot"]');
+      if (timeslot) timeslot.required = program !== 'summerblast' && program !== 'madstudio';
     }
 
-    function updateStudentPaymentFields(card = document.querySelector('.enrollment-child')) {
-      const field = key => card.querySelector('[data-child-field="' + key + '"]');
-      const walkIn = field('payment-method').value === 'Walk-in (Cash)';
-      const online = field('payment-method').value === 'Online Payment';
-      field('receipt-group').hidden = !online; field('receipt').disabled = !online;
-      field('amount-group').hidden = !walkIn; field('amount').disabled = !walkIn; field('amount').required = walkIn;
+    function updateStudentPaymentFields() {
+      const method = document.getElementById('manual-payment-method');
+      const receiptGroup = document.getElementById('manual-receipt-group');
+      const receipt = document.getElementById('manual-receipt');
+      const amountGroup = document.getElementById('manual-amount-group');
+      const amount = document.getElementById('manual-amount');
+      const walkIn = method?.value === 'Walk-in (Cash)';
+      const online = method?.value === 'Online Payment';
+      if (receiptGroup) receiptGroup.hidden = !online;
+      if (receipt) receipt.disabled = !online;
+      if (amountGroup) amountGroup.hidden = !walkIn;
+      if (amount) { amount.disabled = !walkIn; amount.required = walkIn; }
+      if (online && typeof window.preloadPaymentReceiptValidation === 'function') {
+        window.preloadPaymentReceiptValidation();
+      }
+    }
+
+    async function validateManualReceipt(input) {
+      const file = input.files?.[0];
+      const status = input.closest('.form-group')?.querySelector('.manual-receipt-status');
+      const token = `${Date.now()}-${Math.random()}`;
+      input.dataset.receiptValidationToken = token;
+
+      if (!file) {
+        input.dataset.receiptValidationState = 'empty';
+        if (status) {
+          status.textContent = 'JPG, PNG, or WEBP. Maximum 5 MB.';
+          status.style.color = '';
+        }
+        return;
+      }
+
+      input.dataset.receiptValidationState = 'pending';
+      if (status) {
+        status.textContent = 'Verifying payment receipt...';
+        status.style.color = '';
+      }
+      try {
+        if (typeof window.validatePaymentReceiptFile !== 'function') {
+          throw new Error('Receipt validator is unavailable');
+        }
+        const result = await window.validatePaymentReceiptFile(file, {
+          onProgress: message => { if (status) status.textContent = message; }
+        });
+        if (input.dataset.receiptValidationToken !== token || input.files?.[0] !== file) return;
+        if (!result.valid) {
+          input.dataset.receiptValidationState = 'invalid';
+          input.value = '';
+          if (status) {
+            status.textContent = result.message || window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid payment receipt image.';
+            status.style.color = '#c0392b';
+          }
+          showToast(result.message || window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid payment receipt image.', 'error');
+          return;
+        }
+        input.dataset.receiptValidationState = 'valid';
+        if (status) {
+          status.textContent = `Verified receipt: ${file.name}`;
+          status.style.color = '#28733b';
+        }
+      } catch (error) {
+        if (input.dataset.receiptValidationToken !== token || input.files?.[0] !== file) return;
+        input.dataset.receiptValidationState = 'invalid';
+        input.value = '';
+        if (status) {
+          status.textContent = window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid payment receipt image.';
+          status.style.color = '#c0392b';
+        }
+        showToast(window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Invalid payment receipt image.', 'error');
+      }
     }
     let manualChildSequence = 0;
-    function addEnrollmentChild() {
-      const card = document.querySelector('.enrollment-child').cloneNode(true);
+    function resetClonedManualCard(source, programOnly = false) {
+      const card = source.cloneNode(true);
       card.querySelector('.manual-family-details')?.remove();
+      if (programOnly) {
+        ['name', 'grade'].forEach(key => card.querySelector(`[data-child-field="${key}"]`)?.closest('.form-row')?.remove());
+        const heading = card.querySelector('[data-child-section-heading]');
+        if (heading) heading.textContent = 'Program / Service Details';
+      }
       const suffix = '-child-' + (++manualChildSequence);
       card.querySelectorAll('[id]').forEach(el => el.id += suffix);
       card.querySelectorAll('label[for]').forEach(el => el.htmlFor += suffix);
-      card.querySelectorAll('input').forEach(el => el.value = '');
-      card.querySelector('[data-child-field="payment-method"]').value = '';
+      card.querySelectorAll('input').forEach(el => { el.value = ''; if (el.type === 'checkbox' || el.type === 'radio') el.checked = false; });
+      card.querySelectorAll('select').forEach(el => { if (el.dataset.childField !== 'program') el.value = ''; });
+      card.querySelector('[data-child-field="summer-courses"]')?.replaceChildren();
+      card.querySelector('[data-child-field="summer-courses"]')?.setAttribute('hidden', '');
+      card.querySelector('.student-rental-days')?.replaceChildren();
+      const programActions = card.querySelector('.manual-program-actions');
+      if (programActions) { programActions.hidden = false; programActions.style.display = 'flex'; }
+      const clonedReceipt = card.querySelector('[data-child-field="receipt"]');
+      if (clonedReceipt) clonedReceipt.dataset.receiptValidationState = 'empty';
+      const clonedReceiptStatus = card.querySelector('.manual-receipt-status');
+      if (clonedReceiptStatus) {
+        clonedReceiptStatus.textContent = 'JPG, PNG, or WEBP. Maximum 5 MB.';
+        clonedReceiptStatus.style.color = '';
+      }
+      return card;
+    }
+
+    function addManualCardRemoveButton(card, label) {
       const remove = document.createElement('button');
-      remove.type = 'button'; remove.className = 'btn btn-outline btn-sm'; remove.textContent = 'Remove Child';
-      remove.onclick = () => card.remove(); card.prepend(remove);
+      remove.type = 'button'; remove.className = 'manual-remove-child'; remove.textContent = '×';
+      remove.title = label; remove.setAttribute('aria-label', label);
+      remove.style.cssText = 'position:absolute;top:8px;right:0;border:0;background:transparent;color:#c0392b;cursor:pointer;font-size:24px;line-height:1;padding:0 4px;font-family:Arial,sans-serif';
+      remove.onclick = () => card.remove();
+      card.style.position = 'relative';
+      card.append(remove);
+      return remove;
+    }
+
+    function addEnrollmentChild() {
+      const source = document.querySelector('.enrollment-child');
+      if (!source) return;
+      const card = resetClonedManualCard(source);
+      addManualCardRemoveButton(card, 'Remove child');
       document.getElementById('enrollment-children').append(card);
-      updateStudentPackages(card); updateStudentPaymentFields(card);
+      updateStudentPackages(card);
       card.querySelector('input').focus();
+    }
+
+    function addEnrollmentProgram(triggerButton) {
+      const cards = [...document.querySelectorAll('.enrollment-child')];
+      const source = cards[0];
+      if (!source) return;
+      const triggerCard = triggerButton?.closest('.enrollment-child') || source;
+      const childName = source.querySelector('[data-child-field="name"]')?.value.trim() || '';
+      if (!childName) {
+        showToast('Enter the child name before adding another program.', 'error');
+        source.querySelector('[data-child-field="name"]')?.focus();
+        return;
+      }
+      const usedPrograms = new Set(cards
+        .filter(card => card === source || card.dataset.manualProgramCopy === 'true'
+          || (card.querySelector('[data-child-field="name"]')?.value.trim() || '') === childName)
+        .map(card => card.querySelector('[data-child-field="program"]')?.value || '')
+        .filter(Boolean));
+      const sourceProgram = source.querySelector('[data-child-field="program"]')?.value || '';
+      const programOptions = [...source.querySelector('[data-child-field="program"]')?.options || []];
+      const nextProgram = programOptions.find(option => option.value && !usedPrograms.has(option.value))?.value;
+      if (!nextProgram) {
+        showToast('All available programs are already added for this child.', 'error');
+        return;
+      }
+
+      const card = resetClonedManualCard(source, true);
+      const programNote = document.createElement('div');
+      programNote.style.cssText = 'font-size:12px;font-weight:700;color:var(--brown-light);padding-bottom:10px;margin-bottom:14px;border-bottom:1px dashed #e6cfb4';
+      programNote.textContent = `Additional program for ${childName}`;
+      card.prepend(programNote);
+      ['start-date', 'timeslot'].forEach(key => {
+        const original = source.querySelector(`[data-child-field="${key}"]`);
+        const clone = card.querySelector(`[data-child-field="${key}"]`);
+        if (original && clone) clone.value = original.value;
+      });
+      card.querySelector('[data-child-field="program"]').value = nextProgram;
+      card.dataset.manualProgramCopy = 'true';
+      card.dataset.manualSourceProgram = sourceProgram;
+      const triggerActions = triggerCard.querySelector('.manual-program-actions');
+      if (triggerActions) { triggerActions.hidden = true; triggerActions.style.display = 'none'; }
+      const removeProgram = addManualCardRemoveButton(card, 'Remove program');
+      if (removeProgram) {
+        removeProgram.onclick = () => {
+          card.remove();
+          const hasAdditionalProgram = [...document.querySelectorAll('.enrollment-child')]
+            .some(item => item.dataset.manualProgramCopy === 'true');
+          if (triggerActions) {
+            const canRestoreTrigger = triggerCard.isConnected && (triggerCard !== source || !hasAdditionalProgram);
+            triggerActions.hidden = !canRestoreTrigger;
+            triggerActions.style.display = canRestoreTrigger ? 'flex' : 'none';
+          }
+        };
+      }
+      document.getElementById('enrollment-children').append(card);
+      updateStudentPackages(card);
+      card.querySelector('[data-child-field="package"]')?.focus();
     }
 
     async function saveManualEnrollment() {
       if (manualEnrollmentSaving) return;
       const modal = document.getElementById('modal-add-student');
+      const parentAgeInput = document.getElementById('student-guardian-age');
+      const paymentMethodInput = document.getElementById('manual-payment-method');
+      const receiptInput = document.getElementById('manual-receipt');
+      const amountInput = document.getElementById('manual-amount');
+      const parentAge = String(parentAgeInput?.value || '').replace(/\D/g, '').slice(0, 2);
+      if (parentAgeInput) parentAgeInput.value = parentAge;
+      if (!/^\d{1,2}$/.test(parentAge)) {
+        showToast('Parent/Guardian age must contain 1 to 2 digits.', 'error');
+        parentAgeInput?.focus();
+        return;
+      }
+      for (const receiptInput of modal.querySelectorAll('[data-manual-global-field="receipt"]')) {
+        if (receiptInput.disabled || !receiptInput.files?.length) continue;
+        if (receiptInput.dataset.receiptValidationState === 'pending') {
+          showToast('Please wait while the receipt image is being verified.', 'error');
+          receiptInput.focus();
+          return;
+        }
+        if (receiptInput.dataset.receiptValidationState !== 'valid') {
+          showToast(window.PAYMENT_RECEIPT_INVALID_MESSAGE || 'Please attach a valid payment receipt image.', 'error');
+          receiptInput.focus();
+          return;
+        }
+      }
       for (const field of modal.querySelectorAll('input, select')) {
         if (!field.disabled && (!field.reportValidity() || (field.required && !field.value.trim()))) { field.focus(); return; }
       }
-      const labels = {tutoring:'Academic Tutorial',workshop:'Weekend Workshop',playschool:'PlaySchool',childcare:'Child Care',madstudio:'M.A.D Studio',summerblast:'Summer Blast'};
+      const labels = {tutoring:'Academic Tutorial',workshop:'Weekend Workshop',playschool:'PlaySchool',childcare:'Child Care',madstudio:'M.A.D. Studio',summerblast:'Summer Blast'};
       const payload = new FormData(); const children = [];
       const isVip = document.querySelector('input[name="manual-join-vip"]:checked')?.value === 'yes';
+      const firstChildCard = modal.querySelector('.enrollment-child');
+      const paymentMethod = paymentMethodInput?.value.trim() || '';
+      const paidAmount = amountInput?.value.trim() || '';
 
       for (const [index, card] of [...modal.querySelectorAll('.enrollment-child')].entries()) {
         const field = key => card.querySelector('[data-child-field="' + key + '"]');
-        const val = key => field(key).value.trim();
-        if (!getStudentPackages(val('program'), isVip).includes(val('package'))) { field('package').focus(); return; }
-        children.push({child_name:val('name'),child_age:val('age'),program:labels[val('program')],package_selected:val('package'),timeslot:val('timeslot'),payment_method:val('payment-method'),paid_amount:val('amount'),guardian_name:document.getElementById('student-guardian').value.trim(),contact:document.getElementById('student-contact').value.trim(),address:document.getElementById('student-address').value.trim()});
-        const receipt = field('receipt').files[0];
-        if (!field('receipt').disabled && receipt) {
-          if (receipt.size > 5*1024*1024 || !['image/jpeg','image/png','image/gif','image/webp'].includes(receipt.type)) { showToast('Use an image receipt up to 5 MB.', 'error'); return; }
-          payload.append('payment_screenshot_' + index, receipt);
+        const val = key => {
+          const ownField = field(key);
+          const fallbackField = card.dataset.manualProgramCopy === 'true'
+            ? firstChildCard?.querySelector('[data-child-field="' + key + '"]')
+            : null;
+          return (ownField || fallbackField)?.value.trim() || '';
+        };
+        const programKey = val('program');
+        const packageValue = val('package');
+        const registrationFee = programKey === 'summerblast' && Boolean(field('summer-registration')?.checked);
+        const rentalDays = programKey === 'madstudio' ? readManualRentalDays(card).filter(day => day.date || day.hours) : [];
+        let summerCoursesJson = '';
+        if (programKey === 'summerblast') {
+          if (!packageValue && !registrationFee) { showToast('Select a Summer Blast package or Registration Fee.', 'error'); field('package').focus(); return; }
+          if (packageValue) {
+            const rule = manualSummerRule(packageValue);
+            const courses = readManualSummerCourses(card);
+            if (!rule || courses.main.length !== rule.count || courses.main.some(course => !course) || new Set(courses.main).size !== courses.main.length || !courses.free || courses.main.includes(courses.free)) {
+              showToast('Please complete the Summer Blast course selection.', 'error'); return;
+            }
+            summerCoursesJson = JSON.stringify(courses);
+          }
         }
+        if (programKey === 'madstudio') {
+          if (!packageValue && !rentalDays.length) { showToast('Select a M.A.D. Studio package or add a Studio Rental day.', 'error'); field('package').focus(); return; }
+          for (const day of rentalDays) {
+            const hours = parseInt(day.hours, 10);
+            if (!day.date || !/^\d+$/.test(String(day.hours || '')) || hours < 1 || hours > 99) { showToast('Each Studio Rental day needs a date and 1–99 hours.', 'error'); return; }
+          }
+        }
+        const child = {child_name:val('name'),child_age:val('age'),child_grade:val('grade'),child_school:val('school'),start_date:val('start-date'),program:labels[programKey],package_selected:packageValue,timeslot:val('timeslot'),payment_method:paymentMethod,paid_amount:paidAmount,guardian_name:document.getElementById('student-guardian').value.trim(),guardian_age:parentAge,contact:document.getElementById('student-contact').value.trim(),address:document.getElementById('student-address').value.trim()};
+        if (registrationFee) {
+          const fee = getStudentSummerRegistrationPackage();
+          child.summer_registration_fee = '1';
+          child.summer_registration_fee_package = `${fee.name || 'Registration Fee'} – ${manualRateText(fee.rate, 'summerblast')}`;
+        }
+        if (summerCoursesJson) child.summerblast_courses = summerCoursesJson;
+        if (rentalDays.length) {
+          child.studio_rental_days = JSON.stringify(rentalDays);
+          child.studio_rental_rate = String(manualRentalRate());
+        }
+        children.push(child);
+      }
+
+      const receipt = receiptInput?.files?.[0];
+      if (receiptInput && !receiptInput.disabled && receipt) {
+        if (receipt.size > 5*1024*1024 || !['image/jpeg','image/png','image/webp'].includes(receipt.type)) {
+          showToast('Use a JPG, PNG, or WEBP receipt up to 5 MB.', 'error');
+          return;
+        }
+        children.forEach((_, index) => payload.append('payment_screenshot_' + index, receipt));
       }
 
       if (isVip) {
         const parentName = document.getElementById('student-guardian').value.trim();
         const parentContact = document.getElementById('student-contact').value.trim();
         const parentAddress = document.getElementById('student-address').value.trim();
-        const firstCard = modal.querySelector('.enrollment-child');
-        const pmtMethod = firstCard ? firstCard.querySelector('[data-child-field="payment-method"]')?.value : 'Walk-in (Cash)';
+        const pmtMethod = paymentMethod || 'Walk-in (Cash)';
         children.push({
           child_name: parentName,
           child_age: '0',
@@ -7931,6 +8356,7 @@
           payment_method: pmtMethod || 'Walk-in (Cash)',
           paid_amount: String(window.vipFee || 500),
           guardian_name: parentName,
+          guardian_age: parentAge,
           contact: parentContact,
           address: parentAddress
         });
@@ -7948,11 +8374,31 @@
         renderEnrollmentPage(); loadSlotCapacities();
         closeModal('modal-add-student');
         modal.querySelectorAll('.enrollment-child').forEach((card,i) => { if(i) card.remove(); });
-        modal.querySelectorAll('input').forEach(el => el.value = '');
+        modal.querySelectorAll('input').forEach(el => {
+          if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+          else el.value = '';
+        });
+        modal.querySelectorAll('[data-manual-global-field="receipt"]').forEach(input => {
+          input.dataset.receiptValidationState = 'empty';
+          const status = input.closest('.form-group')?.querySelector('.manual-receipt-status');
+          if (status) {
+            status.textContent = 'JPG, PNG, or WEBP. Maximum 5 MB.';
+            status.style.color = '';
+          }
+        });
         const vipNoRadio = document.getElementById('manual-vip-no');
         if (vipNoRadio) vipNoRadio.checked = true;
-        document.getElementById('student-payment-method').value = '';
-        updateStudentPackages(); updateStudentPaymentFields();
+        const firstCard = modal.querySelector('.enrollment-child');
+        if (firstCard) {
+          firstCard.querySelector('[data-child-field="program"]').value = 'tutoring';
+          firstCard.querySelector('[data-child-field="package"]').value = '';
+          const programActions = firstCard.querySelector('.manual-program-actions');
+          if (programActions) { programActions.hidden = false; programActions.style.display = 'flex'; }
+          updateStudentPackages(firstCard);
+        }
+        const paymentMethod = document.getElementById('manual-payment-method');
+        if (paymentMethod) paymentMethod.value = '';
+        updateStudentPaymentFields();
         showToast(children.length + ' student(s) enrolled successfully.');
       } catch(error) { showToast(error.message, 'error'); }
       finally { manualEnrollmentSaving = false; button.disabled = false; button.textContent = 'Enroll Students'; }
@@ -8304,7 +8750,7 @@
             const handler = (isHeadAdminUser && !isPendingDelete)
               ? `onblur="saveSchedCell('${s.id}','${day}',this)" onkeydown="schedCellKey(event,this)"`
               : '';
-            return `<td ${editable} style="${style}" ${handler}>${escHtml(val)}</td>`;
+            return `<td ${editable} data-original-value="${escHtml(val)}" style="${style}" ${handler}>${escHtml(val)}</td>`;
           }).join('');
 
           const actBtn = isHeadAdminUser
@@ -8322,7 +8768,7 @@
 
           html += `<tr style="${rowBorder};${rowBg}">
             ${tutorCell}
-            <td ${tsEditable} style="${tsStyle}" ${tsHandler} title="${isHeadAdminUser && !isPendingDelete ? 'Click to edit timeslot' : ''}">${escHtml(formatTimeslotDigits(s.timeslot))}</td>
+            <td ${tsEditable} data-original-value="${escHtml(formatTimeslotDigits(s.timeslot))}" style="${tsStyle}" ${tsHandler} title="${isHeadAdminUser && !isPendingDelete ? 'Click to edit timeslot' : ''}">${escHtml(formatTimeslotDigits(s.timeslot))}</td>
             <td style="text-align:center;font-size:11px;font-weight:700;color:#7B5230;padding:6px 4px;border:1px solid #D4B69B;border-right:2px solid #A8815B">${escHtml(s.slot_type)}</td>
             ${dayCells}
             ${actBtn}
@@ -8336,6 +8782,12 @@
     // Inline cell save on blur
     async function saveSchedCell(rowId, day, el) {
       const val = el.textContent.trim();
+      const original = el.dataset.originalValue ?? '';
+      if (val === original) {
+        el.style.background = cellBg(val);
+        el.style.color = cellColor(val);
+        return;
+      }
       try {
         const r = await fetch('api/schedules.php', {
           method: 'POST', credentials: 'same-origin',
@@ -8350,6 +8802,7 @@
         // Re-color cell immediately
         el.style.background = cellBg(val);
         el.style.color = cellColor(val);
+        el.dataset.originalValue = val;
         showToast('Saved ✓');
       } catch(err) {
         showToast('⚠ Save failed: ' + err.message);
@@ -8360,7 +8813,9 @@
     async function saveSchedTimeslot(rowId, el) {
       const val = el.textContent.trim();
       const cleanVal = formatTimeslotDigits(val) || val;
+      const original = el.dataset.originalValue ?? '';
       el.textContent = cleanVal;
+      if (cleanVal === original) return;
       try {
         const r = await fetch('api/schedules.php', {
           method: 'POST', credentials: 'same-origin',
@@ -8371,6 +8826,7 @@
         if (!d.success) throw new Error(d.message);
         const row = schedulesList.find(s => s.id == rowId);
         if (row) row.timeslot = cleanVal;
+        el.dataset.originalValue = cleanVal;
         showToast('Timeslot updated ✓');
       } catch(err) {
         showToast('⚠ Timeslot save failed: ' + err.message);
@@ -10889,36 +11345,13 @@
           <div style="padding:16px;overflow:auto;display:flex;justify-content:center;align-items:center;background:#fafaf8">
             <img id="modal-receipt-lightbox-img" src="" alt="Receipt" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
           </div>
-          <div style="padding:10px 18px;display:flex;justify-content:flex-end;border-top:1px solid #f0e8dc;background:#fff">
-            <button type="button" class="btn btn-outline btn-sm" id="receipt-lightbox-blur" style="font-size:12px" onclick="const img=document.getElementById('modal-receipt-lightbox-img');const hidden=img.style.filter!=='none';img.style.filter=hidden?'none':'blur(28px)';this.textContent=hidden?'Blur Photo':'Unblur Photo'">Unblur Photo</button>
-          </div>
         </div>`;
         lb.onclick = (e) => { if (e.target === lb) lb.style.display = 'none'; };
         document.body.appendChild(lb);
       }
       const lbImg = document.getElementById('modal-receipt-lightbox-img');
-      const lbBtn = document.getElementById('receipt-lightbox-blur');
-      const resolvedSrc = receiptAssetUrl(src);
-      lbImg.src = resolvedSrc;
+      lbImg.src = receiptAssetUrl(src);
       lb.style.display = 'flex';
-
-      const applyLbBlur = (hasAmt) => {
-        lbImg.style.filter = hasAmt ? 'none' : 'blur(28px)';
-        lbBtn.textContent = hasAmt ? 'Blur Photo' : 'Unblur Photo';
-      };
-
-      if (receiptAmountCache[resolvedSrc] !== undefined) {
-        applyLbBlur(receiptAmountCache[resolvedSrc]);
-      } else {
-        fetch('api/check_receipt_amount.php?src=' + encodeURIComponent(resolvedSrc), { credentials: 'same-origin' })
-          .then(r => r.json())
-          .then(d => {
-            const hasAmt = !!(d && d.has_amount);
-            receiptAmountCache[resolvedSrc] = hasAmt;
-            applyLbBlur(hasAmt);
-          })
-          .catch(() => applyLbBlur(true));
-      }
     }
 
     async function reviewBalanceReceipts(id) {
@@ -10964,7 +11397,7 @@
           </div>
           <div>
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--brown-light);font-weight:700">Program</div>
-            <div style="font-size:13px;font-weight:600;color:var(--brown-primary)">${escHtml(record.program || '—')}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--brown-primary)">${escHtml(displayProgramLabelAdmin(record))}</div>
             ${record.package_selected ? `<div style="font-size:12px;color:var(--brown-light)">${escHtml(record.package_selected)}</div>` : ''}
           </div>
           <div>
@@ -10998,6 +11431,7 @@
           return { ...r, path: p };
         }).filter(Boolean);
         const validReceipts = receipts.filter(r => r && (r.method === 'Walk-in' || r.path));
+        const initialReceiptPath = String(record.payment_screenshot || '').replace(/\\/g, '/').replace(/^\/+/, '');
 
         const pendingReceipts  = validReceipts.filter(r => (r.status || 'pending') === 'pending');
         const reviewedReceipts = validReceipts.filter(r => r.status === 'approved' || r.status === 'rejected');
@@ -11006,6 +11440,42 @@
 
         // Auto-select latest pending receipt
         let selectedReceipt = hasPending ? pendingReceipts[pendingReceipts.length - 1] : null;
+
+        // The original enrollment/studio-rental payment is stored on the enrollment
+        // row, while later balance payments are stored in admin_notes.balance_receipts.
+        // Show both sources in this review so the initial receipt is never omitted.
+        if (initialReceiptPath) {
+          const initialHeader = document.createElement('div');
+          initialHeader.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--brown-light);margin-bottom:10px';
+          initialHeader.textContent = 'Initial Payment Receipt';
+          receiptsBox.appendChild(initialHeader);
+
+          const initialCard = document.createElement('div');
+          initialCard.style.cssText = 'border:1px solid #e5d9ce;border-radius:14px;padding:16px;margin-bottom:16px;background:#fff';
+
+          const initialMeta = document.createElement('div');
+          initialMeta.style.cssText = 'display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap';
+          const initialLabel = document.createElement('strong');
+          initialLabel.style.cssText = 'font-size:13px;color:var(--brown-primary)';
+          initialLabel.textContent = record.payment_method ? `Initial payment (${record.payment_method})` : 'Initial payment';
+          initialMeta.appendChild(initialLabel);
+          if (record.created_at) {
+            const initialDate = document.createElement('span');
+            initialDate.style.cssText = 'font-size:11px;color:var(--brown-light)';
+            initialDate.textContent = formatDateTime(record.created_at);
+            initialMeta.appendChild(initialDate);
+          }
+          initialCard.appendChild(initialMeta);
+
+          const initialImg = document.createElement('img');
+          initialImg.src = receiptAssetUrl(initialReceiptPath);
+          initialImg.alt = 'Initial payment receipt';
+          initialImg.title = 'Click to enlarge receipt';
+          initialImg.style.cssText = 'display:block;width:220px;height:150px;object-fit:cover;border-radius:10px;border:2px solid #e5d9ce;cursor:pointer';
+          initialImg.onclick = () => openReceiptLightbox(initialReceiptPath);
+          initialCard.appendChild(initialImg);
+          receiptsBox.appendChild(initialCard);
+        }
 
         // Render current pending receipts
         if (hasPending) {
@@ -11044,40 +11514,12 @@
             imgWrap.onmouseenter = () => { imgWrap.style.borderColor = '#a07850'; imgWrap.style.transform = 'scale(1.02)'; };
             imgWrap.onmouseleave = () => { imgWrap.style.borderColor = '#e5d9ce'; imgWrap.style.transform = 'scale(1)'; };
             const thumb = document.createElement('img');
-            if (receipt.method !== 'Walk-in') thumb.src = receipt.path;
+            if (receipt.method !== 'Walk-in') thumb.src = receiptAssetUrl(receipt.path);
             thumb.alt = 'Balance payment receipt';
             thumb.style.cssText = 'display:block;width:220px;height:150px;object-fit:cover';
             imgWrap.appendChild(thumb);
             imgWrap.onclick = (e) => { e.stopPropagation(); openReceiptLightbox(receipt.path); };
             if (receipt.method !== 'Walk-in') card.appendChild(imgWrap); else { const notice=document.createElement('p'); notice.textContent='Walk-in payment request. Verify cash received before approving.'; card.appendChild(notice); }
-            const blurButton = document.createElement('button');
-            blurButton.type = 'button'; blurButton.className = 'btn btn-outline btn-sm'; blurButton.textContent = 'Blur Photo';
-            blurButton.onclick = event => { event.stopPropagation(); const hidden = thumb.style.filter !== 'none'; thumb.style.filter = hidden ? 'none' : 'blur(28px)'; blurButton.textContent = hidden ? 'Blur Photo' : 'Unblur Photo'; };
-            const controls = document.createElement('div');
-            controls.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:8px';
-            controls.appendChild(header.lastElementChild); if (receipt.method !== 'Walk-in') controls.appendChild(blurButton); header.appendChild(controls);
-
-            if (receipt.method !== 'Walk-in' && receipt.path) {
-              const applyThumbBlur = (hasAmt) => {
-                thumb.style.filter = hasAmt ? 'none' : 'blur(28px)';
-                blurButton.textContent = hasAmt ? 'Blur Photo' : 'Unblur Photo';
-              };
-              if (receipt.detected_amount > 0) {
-                applyThumbBlur(true);
-              } else if (receiptAmountCache[receipt.path] !== undefined) {
-                applyThumbBlur(receiptAmountCache[receipt.path]);
-              } else {
-                fetch('api/check_receipt_amount.php?src=' + encodeURIComponent(receipt.path), { credentials: 'same-origin' })
-                  .then(r => r.json())
-                  .then(d => {
-                    const hasAmt = !!(d && d.has_amount);
-                    receiptAmountCache[receipt.path] = hasAmt;
-                    applyThumbBlur(hasAmt);
-                  })
-                  .catch(() => applyThumbBlur(true));
-              }
-            }
-
             card.onclick = () => {
               selectedReceipt = receipt;
               pendingReceipts.forEach((r, idx) => {
@@ -11109,7 +11551,7 @@
           noPending.innerHTML = `
             <div style="font-size:32px;margin-bottom:6px">🧾</div>
             <p style="margin:0 0 4px;font-weight:700;color:var(--brown-primary);font-size:14px">No Pending Receipts Awaiting Review</p>
-            <p style="margin:0;font-size:12px">${reviewedReceipts.length ? 'All previous receipts have already been reviewed.' : 'No digital receipts have been uploaded yet.'}</p>
+            <p style="margin:0;font-size:12px">${reviewedReceipts.length ? 'All previous receipts have already been reviewed.' : initialReceiptPath ? 'The initial payment receipt is shown above.' : 'No digital receipts have been uploaded yet.'}</p>
           `;
           receiptsBox.appendChild(noPending);
         }
@@ -11131,7 +11573,7 @@
             rCard.style.cssText = 'border:1px solid #eedfd0;border-radius:8px;padding:10px;background:#fff;display:flex;gap:12px;align-items:center;opacity:0.85';
             const isAppr = r.status === 'approved';
             rCard.innerHTML = `
-              <img src="${escHtml(r.path)}" style="width:70px;height:50px;object-fit:cover;border-radius:6px;border:1px solid #e5d9ce;cursor:pointer" onclick="openReceiptLightbox('${escHtml(r.path)}')">
+              <img src="${escHtml(receiptAssetUrl(r.path))}" style="width:70px;height:50px;object-fit:cover;border-radius:6px;border:1px solid #e5d9ce;cursor:pointer" onclick="openReceiptLightbox('${escHtml(r.path)}')">
               <div style="flex:1">
                 <div style="display:flex;justify-content:space-between;align-items:center">
                   <span style="font-size:12px;font-weight:700;color:var(--brown-primary)">Receipt #${rIdx + 1}</span>
@@ -11922,7 +12364,7 @@
     }
 
   </script>
-  <script src="js/validation.js?v=12"></script>
+  <script src="js/validation.js?v=13"></script>
 
 </body>
 

@@ -60,7 +60,7 @@
 
         // Name fields (Student Name, Guardian Name, Tutor Name, Admin Name, User Name, Full Name)
         if (
-            id.includes('gname') || id.includes('cname') || id.includes('guardian') ||
+            id.includes('gname') || id.includes('cname') || (id.includes('guardian') && !id.includes('age')) ||
             id.includes('tutor-name') || id.includes('student-name') || id.includes('user-name') ||
             id.includes('fullname') || id.includes('full-name') || name.includes('name') ||
             cls.includes('ec-cname') || placeholder.includes('name')
