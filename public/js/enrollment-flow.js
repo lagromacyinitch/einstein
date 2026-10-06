@@ -1541,7 +1541,7 @@
               <div class="ef-field" style="margin:0;min-width:0">
                 <label>School <span class="req">*</span></label>
                 <input type="text" class="ec-school" data-ci="${ci}" data-validate="school" placeholder="Current school" value="${esc(child.school || '')}"
-                  oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                  oninput="this.value = this.value.replace(/[^a-zA-Z\\s]/g, '')"
                   style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #e5d9ce;border-radius:8px;font-size:13px;font-family:inherit">
               </div>
             </div>
@@ -2583,14 +2583,16 @@
     clearError();
     goTo(5);
 
-    // Hard safety net: under NO circumstances will the user be stuck on Step 5 for > 3.5s
+    // Long-running uploads get a generous timeout instead of being marked as
+    // successful before the server has saved the submission.
     const safetyTimer = setTimeout(() => {
       if (step === 5) {
-        console.warn('[Enrollment] Safety timeout triggered — proceeding to Step 6');
-        goTo(6);
-        if (window.loadEnrollments) window.loadEnrollments(false);
+        console.warn('[Enrollment] Submission response timed out.');
+        setLoading(false);
+        goTo(4);
+        showError('The submission is taking too long. Please return to the review and try again.');
       }
-    }, 3500);
+    }, 60000);
 
     try {
       const isVipFlow = String(formData.program || programName || '').toLowerCase().includes('vip');
@@ -2716,24 +2718,44 @@
         submissions.push(fd);
       }
 
-      // Submit all enrollments in parallel with a strict 2.5-second cap and smooth progress animation
+      // Submit all records and wait for the actual server response. The old
+      // short abort plus fake-success fallback could show completion even
+      // though the VIP row was never saved.
       const submitPromises = submissions.map(subFd => {
         const controller = new AbortController();
-        const tId = setTimeout(() => controller.abort(), 2400);
+        const tId = setTimeout(() => controller.abort(), 60000);
         return fetch(apiUrl('api/save_enrollment.php'), {
           method: 'POST',
           body: subFd,
           signal: controller.signal
         })
-        .then(r => r.json())
-        .catch(() => ({ success: true, reference_no: 'ECL-' + Date.now().toString().slice(-6) }))
+        .then(async response => {
+          const responseText = await response.text();
+          let result;
+          try {
+            result = JSON.parse(responseText);
+          } catch (_) {
+            throw new Error('The server returned an invalid response. Please try again.');
+          }
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || 'The enrollment could not be submitted.');
+          }
+          return result;
+        })
+        .catch(err => {
+          if (err?.name === 'AbortError') {
+            throw new Error('The submission timed out. Please check your connection and try again.');
+          }
+          throw err;
+        })
         .finally(() => clearTimeout(tId));
       });
 
-      // Parallel fetches and 2.2s animation execute concurrently; total time is strictly capped
+      // Keep the processing state visible briefly, but never finish before the
+      // server confirms every record.
       const [results] = await Promise.all([
         Promise.all(submitPromises),
-        new Promise(r => setTimeout(r, 2200))
+        new Promise(r => setTimeout(r, 1200))
       ]);
 
       clearTimeout(safetyTimer);
@@ -2747,8 +2769,9 @@
     } catch (err) {
       console.error('[Enrollment] Error during submission:', err);
       clearTimeout(safetyTimer);
-      goTo(6);
-      if (window.loadEnrollments) window.loadEnrollments(false);
+      setLoading(false);
+      if (step === 5) goTo(4);
+      showError(err?.message || 'The enrollment could not be submitted. Please try again.');
     }
   };
 

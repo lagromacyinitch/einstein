@@ -2237,7 +2237,8 @@
         });
 
         // Routes: /user is Programs (dashboard), /user/<tab> the other tabs.
-        const USER_ROOT = new URL('user', document.baseURI).pathname;
+        const userRouteMatch = location.pathname.match(/^(.*\/user)(?:\/|$)/i);
+        const USER_ROOT = userRouteMatch ? userRouteMatch[1] : new URL('user', document.baseURI).pathname;
         const USER_TABS = ['dashboard', 'enrollments', 'vip', 'balance', 'announcements'];
         function userPageUrl(pageId) {
             return (pageId === 'dashboard' ? USER_ROOT : USER_ROOT + '/' + pageId) + location.search;
@@ -2307,6 +2308,7 @@
         }
 
         let accountToken = '';
+        let clientDisplayName = '';
         async function openProfileModal() {
             document.getElementById('account-form').reset();
             document.getElementById('account-security-form').reset();
@@ -2321,7 +2323,7 @@
                 const r=await fetch('api/user_account.php',{credentials:'same-origin',cache:'no-store'});const d=await r.json();
                 if(!r.ok || !d.success) throw Error(d.message);
                 accountToken=d.token;document.getElementById('account-name').value=d.name || '';document.getElementById('account-email').value=d.email;document.getElementById('account-phone').value=d.phone || '';document.getElementById('account-username').value=d.username || '';
-                returningPortalVisit=!!d.returning; updateWelcome(d.name);
+                clientDisplayName=String(d.name || '').trim(); returningPortalVisit=!!d.returning; updateWelcome(clientDisplayName); initDrawerUserInfo(clientDisplayName);
                 document.getElementById('profile-save-status').textContent='';
                 rememberProfile();
                 document.getElementById('account-message').textContent='';
@@ -2337,7 +2339,7 @@
             try {
                 const response=await fetch('api/user_account.php',{credentials:'same-origin',cache:'no-store'});
                 const data=await response.json();
-                if(response.ok && data.success) { returningPortalVisit=!!data.returning; updateWelcome(data.name); }
+                if(response.ok && data.success) { clientDisplayName=String(data.name || '').trim(); returningPortalVisit=!!data.returning; updateWelcome(clientDisplayName); initDrawerUserInfo(clientDisplayName); }
             } catch(_) {}
         }
         function currentProfileValues() { return JSON.stringify(['account-name','account-phone','account-username'].map(id=>document.getElementById(id).value.trim())); }
@@ -2368,15 +2370,17 @@
                 const r=await fetch('api/user_account.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();
                 if(!r.ok || !d.success) throw Error(d.message);
                 if(action==='delete'){localStorage.removeItem('userEmail');sessionStorage.removeItem('userEmail');location.href='login';return;}
-                if(action==='profile') {rememberProfile();message.style.color='#237035';message.textContent='Profile saved successfully.';document.getElementById('account-save').textContent='Saved';updateWelcome(value('account-name'));}
+                if(action==='profile') {clientDisplayName=value('account-name').trim();rememberProfile();message.style.color='#237035';message.textContent='Profile saved successfully.';document.getElementById('account-save').textContent='Saved';updateWelcome(clientDisplayName);initDrawerUserInfo(clientDisplayName);}
                 else {document.getElementById('account-security-form').reset();message.textContent='Password changed.';}
             }catch(e){message.style.color='#b42318';message.textContent=e.message || 'Unable to save. Please try again.';if(action==='profile')document.getElementById('account-save').textContent='Save Profile';}finally{buttons.forEach(b=>b.disabled=false);document.getElementById('account-save').disabled=currentProfileValues()===profileSnapshot;}
         }
 
-        function initDrawerUserInfo() {
+        function initDrawerUserInfo(profileName) {
             const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail') || '';
             let rawName = email.split('@')[0] || 'Member';
             let formattedName = rawName.replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const savedName = String(profileName || clientDisplayName || '').trim();
+            if (savedName) formattedName = savedName;
             const initials = formattedName.charAt(0).toUpperCase() || 'M';
 
             const nameEl = document.getElementById('drawer-user-name');
@@ -2639,13 +2643,8 @@
                     drawerBadge.style.display = totalCount > 0 ? 'inline-block' : 'none';
                 }
 
-                // Update notification bell badge
-                const userNotifDot = document.getElementById('userNotifDot');
-                if (userNotifDot) {
-                    const notifCount = allEnrollments.filter(e => e.status === 'confirmed' || e.status === 'cancelled').length;
-                    userNotifDot.textContent = notifCount;
-                    userNotifDot.style.display = notifCount > 0 ? 'flex' : 'none';
-                }
+                // Update the notification badge from the user's unread set.
+                updateUserNotificationBadge();
 
                 // Update enrollments count pill
                 const countPill = document.getElementById('enrollmentsCountPill');
@@ -4287,30 +4286,73 @@
             }
         });
         async function logoutUser() {
-            if (confirm('Are you sure you want to logout?')) {
-                stopEnrollmentPolling();
-                try {
-                    await fetch('api/logout.php', { method: 'POST', credentials: 'include' });
-                } catch (e) {
-                    console.error('Logout error:', e);
-                }
-                localStorage.removeItem('userEmail');
-                localStorage.removeItem('isVip');
-                sessionStorage.clear();
-                window.location.href = './';
+            if (!(await window.showLogoutConfirmation())) return;
+            stopEnrollmentPolling();
+            try {
+                await fetch('api/logout.php', { method: 'POST', credentials: 'include' });
+            } catch (e) {
+                console.error('Logout error:', e);
             }
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('isVip');
+            sessionStorage.clear();
+            window.location.href = './';
         }
 
         /* ── USER NOTIFICATIONS ─────────────────────────────── */
         let userNotifOpen = false;
+        let userNotificationItems = [];
+        let userNotificationReadOwner = '';
+        let userNotificationReadKeys = new Set();
 
-        function toggleUserNotif() {
+        function userNotificationOwner() {
+            return sessionStorage.getItem('userId')
+                || localStorage.getItem('userId')
+                || localStorage.getItem('userEmail')
+                || 'guest';
+        }
+
+        function loadUserNotificationReadKeys() {
+            const owner = userNotificationOwner();
+            if (owner === userNotificationReadOwner) return userNotificationReadKeys;
+            userNotificationReadOwner = owner;
+            try {
+                const raw = JSON.parse(localStorage.getItem('einstein_user_notification_reads_' + owner) || '[]');
+                userNotificationReadKeys = new Set(Array.isArray(raw) ? raw : []);
+            } catch (_) {
+                userNotificationReadKeys = new Set();
+            }
+            return userNotificationReadKeys;
+        }
+
+        function saveUserNotificationReadKeys() {
+            try {
+                localStorage.setItem(
+                    'einstein_user_notification_reads_' + userNotificationOwner(),
+                    JSON.stringify([...userNotificationReadKeys].slice(-200))
+                );
+            } catch (_) { }
+        }
+
+        function closeUserNotif() {
             const panel = document.getElementById('user-notif-panel');
             const overlay = document.getElementById('user-notif-overlay');
+            userNotifOpen = false;
+            if (panel) panel.style.right = '-360px';
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        function toggleUserNotif() {
             userNotifOpen = !userNotifOpen;
-            if (panel) panel.style.right = userNotifOpen ? '0' : '-360px';
-            if (overlay) overlay.style.display = userNotifOpen ? 'block' : 'none';
-            if (userNotifOpen) renderUserNotifications();
+            if (userNotifOpen) {
+                const panel = document.getElementById('user-notif-panel');
+                const overlay = document.getElementById('user-notif-overlay');
+                if (panel) panel.style.right = '0';
+                if (overlay) overlay.style.display = 'block';
+                renderUserNotifications();
+            } else {
+                closeUserNotif();
+            }
         }
 
         function timeAgoUser(iso) {
@@ -4322,49 +4364,99 @@
             return Math.floor(diff / 86400) + ' days ago';
         }
 
+        function updateUserNotificationBadge() {
+            const dot = document.getElementById('userNotifDot');
+            if (!dot) return;
+            const readKeys = loadUserNotificationReadKeys();
+            let unreadCount = 0;
+            const daysLeft = window.clientVipState?.days_left;
+            const expiryReminder = window.clientVipState?.active && daysLeft > 0 && daysLeft <= 15;
+            if (expiryReminder && !readKeys.has('vip-expiry:' + String(window.clientVipState.expires_at || daysLeft))) {
+                unreadCount++;
+            }
+            (allEnrollments || []).forEach(e => {
+                if (e.status !== 'confirmed' && e.status !== 'cancelled') return;
+                const stamp = e.updated_at || e.created_at || '';
+                const readKey = 'enrollment:' + e.id + ':' + e.status + ':' + stamp;
+                if (!readKeys.has(readKey)) unreadCount++;
+            });
+            dot.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+            dot.style.display = unreadCount > 0 ? 'flex' : 'none';
+        }
+
+        function openUserNotification(index) {
+            const item = userNotificationItems[index];
+            if (!item) return;
+            loadUserNotificationReadKeys();
+            if (item.unread) {
+                userNotificationReadKeys.add(item.readKey);
+                saveUserNotificationReadKeys();
+            }
+            updateUserNotificationBadge();
+            closeUserNotif();
+            showUserPage(item.route === 'vip' ? 'vip' : 'enrollments');
+        }
+
         function renderUserNotifications() {
             const container = document.getElementById('user-notif-list');
-            const dot = document.getElementById('userNotifDot');
             if (!container) return;
 
             const list = allEnrollments || [];
-            if (!list.length) {
+            const readKeys = loadUserNotificationReadKeys();
+            const daysLeft = window.clientVipState?.days_left;
+            const expiryReminder = window.clientVipState?.active && daysLeft > 0 && daysLeft <= 15;
+            const items = [];
+
+            if (expiryReminder) {
+                const expiryKey = 'vip-expiry:' + String(window.clientVipState.expires_at || daysLeft);
+                items.push({
+                    type: 'vip-expiry',
+                    title: 'VIP membership expires soon',
+                    message: 'Your VIP Club Membership expires in ' + daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + '.',
+                    when: '',
+                    route: 'vip',
+                    readKey: expiryKey,
+                    unread: !readKeys.has(expiryKey)
+                });
+            }
+
+            list
+                .filter(e => e.status === 'confirmed' || e.status === 'cancelled' || e.status === 'pending')
+                .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+                .slice(0, 15)
+                .forEach(e => {
+                    const statusLabel = e.status === 'confirmed' ? 'Confirmed' : e.status === 'cancelled' ? 'Rejected' : 'Submitted';
+                    const stamp = e.updated_at || e.created_at || '';
+                    const readKey = 'enrollment:' + e.id + ':' + e.status + ':' + stamp;
+                    const isUnread = (e.status === 'confirmed' || e.status === 'cancelled') && !readKeys.has(readKey);
+                    items.push({
+                        type: 'enrollment',
+                        title: e.program || 'Enrollment Update',
+                        message: (e.child_name || 'Student') + ' — ' + statusLabel,
+                        when: timeAgoUser(stamp),
+                        route: String(e.program || '').toLowerCase().includes('vip') ? 'vip' : 'enrollments',
+                        readKey,
+                        unread: isUnread,
+                        enrollment: e
+                    });
+                });
+
+            userNotificationItems = items;
+            updateUserNotificationBadge();
+
+            if (!items.length) {
                 container.innerHTML = '<div style="padding:2.5rem 1.5rem;text-align:center;color:var(--muted);font-size:0.85rem;">No notifications yet.<br>Your enrollment updates will appear here.</div>';
-                if (dot) dot.style.display = 'none';
                 return;
             }
 
-            // Show notifications for confirmed and cancelled enrollments
-            const notifs = list
-                .filter(e => e.status === 'confirmed' || e.status === 'cancelled' || e.status === 'pending')
-                .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
-                .slice(0, 15);
-
-            const daysLeft = window.clientVipState?.days_left;
-            const expiryReminder = window.clientVipState?.active && daysLeft > 0 && daysLeft <= 15;
-            const newCount = list.filter(e => e.status === 'confirmed' || e.status === 'cancelled').length + (expiryReminder ? 1 : 0);
-            if (dot) {
-                dot.textContent = newCount;
-                dot.style.display = newCount > 0 ? 'flex' : 'none';
-            }
-
-            container.innerHTML = (expiryReminder ? `<div class="user-notif-item unread"><h4>VIP membership expires soon</h4><p>Your VIP Club Membership expires in ${daysLeft} day${daysLeft === 1 ? '' : 's'}. Renew after expiry to continue enjoying your benefits.</p><button class="panel-btn panel-btn-secondary" onclick="showUserPage('vip');toggleUserNotif()">View VIP Section</button></div>` : '') + notifs.map(e => {
-                let statusLabel = 'Submitted';
-                let isUnread = false;
-                if (e.status === 'confirmed') {
-                    statusLabel = 'Confirmed'; isUnread = true;
-                } else if (e.status === 'cancelled') {
-                    statusLabel = 'Rejected'; isUnread = true;
-                }
-                const when = timeAgoUser(e.updated_at || e.created_at);
-                return `<div class="user-notif-item${isUnread ? ' unread' : ''}">
-                    <h4>${escapeHTML(e.program)}</h4>
-                    <p>${escapeHTML(e.child_name || 'Student')} &mdash; <strong>${statusLabel}</strong></p>
-                    <time>${when}</time>
-                </div>`;
-            }).join('');
+            container.innerHTML = items.map((item, index) => `<div class="user-notif-item${item.unread ? ' unread' : ''}" onclick="openUserNotification(${index})" role="button" tabindex="0" style="cursor:pointer">
+                <h4>${escapeHTML(item.title)}</h4>
+                <p>${escapeHTML(item.message)}</p>
+                ${item.when ? `<time>${escapeHTML(item.when)}</time>` : ''}
+            </div>`).join('');
         }
     </script>
+    <script src="js/logout-modal.js?v=1"></script>
     <script src="js/security.js"></script>
 </body>
 

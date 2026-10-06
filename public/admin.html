@@ -2271,6 +2271,13 @@
             onclick="closeModal('modal-enrollment-approval')">✕</button>
         </div>
         <div class="modal-body">
+          <div id="modal-submission-meta" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fffaf4;border:1px solid #e4d4c3;border-radius:9px;padding:10px 14px;margin-bottom:16px">
+            <div>
+              <div style="font-size:10px;color:#8b6f47;text-transform:uppercase;letter-spacing:.08em;font-weight:800">Submitted Date &amp; Time</div>
+              <strong id="modal-submitted-at" style="display:block;margin-top:3px;color:#5c3317;font-size:14px">—</strong>
+            </div>
+            <span id="modal-submitted-relative" aria-live="polite" style="font-size:11px;color:#2e7d32;font-weight:700;white-space:nowrap">Live · —</span>
+          </div>
           <!-- 1. Parent/Guardian Information (First) -->
           <div class="enrollment-detail-section" id="modal-parent-section">
             <h4>Parent/Guardian Information</h4>
@@ -2342,12 +2349,12 @@
             </div>
           </div>
 
-          <!-- 5. Enrollment Details -->
+          <!-- 5. Details -->
           <div class="enrollment-detail-section">
-            <h4>Enrollment Details</h4>
+            <h4 id="modal-details-title">Enrollment Details</h4>
             <div class="detail-grid">
               <div class="detail-item"><label>Program(s)</label><strong id="modal-program"></strong></div>
-              <div class="detail-item"><label>Enrollment Status</label><strong id="modal-payment-type"></strong></div>
+              <div class="detail-item"><label id="modal-status-label">Enrollment Status</label><strong id="modal-payment-type"></strong></div>
               <div class="detail-item"><label>Payment Method</label><strong id="modal-payment-mode"></strong></div>
             </div>
           </div>
@@ -2387,7 +2394,6 @@
                   style="font-size:15px;font-weight:800;color:#2e7d32;padding:8px 12px;background:#fff;" placeholder="Amount in PHP">
               </div>
               <div id="modal-quick-payment-buttons" style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button type="button" class="btn btn-outline btn-xs" id="btn-quick-deposit" style="font-size:11px;padding:6px 10px;" onclick="setQuickApprovalPayment('deposit')">₱1,000</button>
                 <button type="button" class="btn btn-outline btn-xs" id="btn-quick-half" style="font-size:11px;padding:6px 10px;" onclick="setQuickApprovalPayment('half')">Half (50%)</button>
                 <button type="button" class="btn btn-outline btn-xs" id="btn-quick-full" style="font-size:11px;padding:6px 10px;" onclick="setQuickApprovalPayment('full')">Full (100%)</button>
               </div>
@@ -2794,8 +2800,12 @@
     <!-- ════════ SUB-ADMIN: VIEW 2: MY STUDENTS ════════ -->
     <div class="page" id="page-my_students">
       <div class="card">
-        <div class="card-header">
-          <h3>My Assigned Students</h3>
+        <div class="card-header" style="display:flex;justify-content:flex-end;align-items:center">
+          <button type="button" class="btn btn-outline btn-sm" onclick="exportSubadminStudentsCsv()"
+            aria-label="Export my students as CSV" title="Export my students as CSV"
+            style="padding:7px 12px;border-radius:7px;font-size:12px;font-weight:700;white-space:nowrap">
+            Export CSV
+          </button>
         </div>
         <div class="card-body" style="padding:0;overflow-x:auto">
           <table class="data-table" style="width:100%">
@@ -2810,7 +2820,7 @@
               </tr>
             </thead>
             <tbody id="subadmin-students-table-body">
-              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--brown-light)">Loading assigned students…</td></tr>
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--brown-light)">Loading students…</td></tr>
             </tbody>
           </table>
         </div>
@@ -5677,7 +5687,11 @@
       // Use explicit VIP context so modal title always shows the right label,
       // even if the parent also has non-VIP children (which would cause isAllVip = false).
       const vipCtx = (first.status === 'confirmed') ? 'vip-member' : 'vip-pending';
-      openParentEnrollmentApproval(allParentRecs.length ? allParentRecs : recs, vipCtx);
+      const reviewRecords = allParentRecs.length ? allParentRecs : recs;
+      const options = first.status === 'pending'
+        ? { actionIds: reviewRecords.filter(r => r.status === 'pending').map(r => r.id) }
+        : {};
+      openParentEnrollmentApproval(reviewRecords, vipCtx, options);
     }
 
     function renderVIPPage() {
@@ -5687,11 +5701,13 @@
 
       const vipParentKey = e => getEnrollmentGroupKeyAdmin(e);
 
-      // Set of parent keys who also have pending child enrollments.
-      // If a parent enrolled children AND applied for VIP at the same time,
-      // they appear in Enrollment Management pending approvals (unified), NOT here!
+      // A VIP request belongs in this registry only when it is a standalone
+      // submission. If the same submission batch also contains a child
+      // enrollment, Enrollment Management owns the whole combined review.
       const pendingChildParentKeys = new Set(
-        enrollments.filter(e => e.status === 'pending' && !(e.program || '').toLowerCase().includes('vip'))
+        enrollments.filter(e => !(e.program || '').toLowerCase().includes('vip')
+          && !isStandaloneStudioRentalRecord(e)
+          && !isStandaloneSummerBlastRegistrationRecord(e))
           .map(e => vipParentKey(e))
       );
 
@@ -6377,7 +6393,7 @@
       schedule: 'Schedule',
       balancemonitoring: 'Balance Monitoring',
       activitylogs: 'Activity Logs', madstudio: 'M.A.D Studio', mad: 'M.A.D Studio', tutors: 'Tutor', sessions: 'Session Logs', payroll: 'Payroll',
-      my_schedule: 'My Schedule & Classes', my_students: 'My Assigned Students', my_hours: 'My Session Logs & Verified Hours', my_profile: 'My Profile'
+      my_schedule: 'My Schedule & Classes', my_students: 'My Students', my_hours: 'My Session Logs & Verified Hours', my_profile: 'My Profile'
     };
     // Pages that have their own search bar inside the card — hide the topbar one
     const PROGRAM_PAGES = new Set(['tutoring','workshop','playschool','childcare','madstudio','summerblast']);
@@ -6488,7 +6504,13 @@
       }
       document.getElementById(id)?.classList.add('open');
     }
-    function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+    function closeModal(id) {
+      document.getElementById(id)?.classList.remove('open');
+      if (id === 'modal-enrollment-approval' && _modalSubmissionTicker) {
+        clearInterval(_modalSubmissionTicker);
+        _modalSubmissionTicker = null;
+      }
+    }
     function toggleNotif() {
       const panel = document.getElementById('notif-panel');
       if (!panel) return;
@@ -6500,7 +6522,7 @@
       m.classList.toggle('open');
     }
     async function doLogout() {
-      if (!confirm('Are you sure you want to logout?')) return;
+      if (!(await window.showLogoutConfirmation())) return;
       try {
         await fetch('api/logout.php', { method: 'POST', credentials: 'include' });
       } catch (e) {
@@ -6578,11 +6600,26 @@
       // All pending VIP enrollments
       const pendingVips = enrollments.filter(e => e.status === 'pending' && (e.program || '').toLowerCase().includes('vip'));
 
-      // Filter list to pending child enrollments (programs that are NOT VIP)
-      const childEnrollments = (list || []).filter(e => e.status === 'pending'
-        && !(e.program || '').toLowerCase().includes('vip')
+      // A pending VIP with a child in the same submission batch is a combined
+      // application. Keep the child records visible even if one of them was
+      // already approved separately; the VIP request still needs review.
+      const combinedVipGroupKeys = new Set(
+        pendingVips
+          .filter(v => enrollments.some(other => Number(other?.id) !== Number(v?.id)
+            && !(other?.program || '').toLowerCase().includes('vip')
+            && !isStandaloneStudioRentalRecord(other)
+            && !isStandaloneSummerBlastRegistrationRecord(other)
+            && getEnrollmentGroupKeyAdmin(other) === getEnrollmentGroupKeyAdmin(v)))
+          .map(v => getEnrollmentGroupKeyAdmin(v))
+      );
+
+      // Filter to pending child enrollments plus children from a combined
+      // pending VIP batch (regardless of the child's current status).
+      const childEnrollments = (enrollments || []).filter(e =>
+        !(e.program || '').toLowerCase().includes('vip')
         && !isStandaloneStudioRentalRecord(e)
-        && !isStandaloneSummerBlastRegistrationRecord(e));
+        && !isStandaloneSummerBlastRegistrationRecord(e)
+        && (e.status === 'pending' || combinedVipGroupKeys.has(getEnrollmentGroupKeyAdmin(e))));
 
       if (!childEnrollments.length) {
         tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:#8D6A4E">No pending enrollment applications.</td></tr>';
@@ -6599,13 +6636,15 @@
             parentName: e.guardian_name,
             contact: e.contact || e.guardian_contact,
             ids: [],
+            records: [],
             children: [],
             vipRecord: null,
             paymentLabel: buildPaymentLabel(e),
             date: e.created_at
           };
         }
-        groups[key].ids.push(e.id);
+        groups[key].records.push(e);
+        if (e.status === 'pending') groups[key].ids.push(e.id);
         groups[key].children.push(e);
         if (e.created_at && (!groups[key].date || e.created_at < groups[key].date)) groups[key].date = e.created_at;
       });
@@ -6614,8 +6653,9 @@
       pendingVips.forEach(v => {
         const vKey = getEnrollmentGroupKeyAdmin(v);
         if (groups[vKey]) {
+          groups[vKey].records.push(v);
           groups[vKey].vipRecord = v;
-          groups[vKey].ids.push(v.id);
+          if (v.status === 'pending') groups[vKey].ids.push(v.id);
           if (v.created_at && (!groups[vKey].date || v.created_at < groups[vKey].date)) groups[vKey].date = v.created_at;
         }
       });
@@ -6623,7 +6663,10 @@
       const groupArr = Object.values(groups);
       let rowsHtml = '';
       groupArr.forEach((grp) => {
-        const allIds = grp.ids;
+        // Show the complete submission in the review modal, but only expose
+        // records that are still pending to approve/reject actions.
+        const actionIds = [...new Set(grp.ids.map(Number))];
+        const allIds = [...new Set(grp.records.map(r => Number(r.id)))];
         const idsJson = JSON.stringify(allIds).replace(/"/g, '&quot;');
         
         let childrenHtml = grp.children.map((c, ci) => {
@@ -6657,7 +6700,7 @@
         const combinedTotal = childrenTotal + vipTotal;
         const totalStr = combinedTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0 });
 
-        const checkboxes = allIds.map(id =>
+        const checkboxes = actionIds.map(id =>
           '<input type="checkbox" class="pending-chk" data-id="' + id + '" onchange="updateBulkButtons()" style="width:14px;height:14px;accent-color:#5c3317;cursor:pointer;display:block;margin:2px auto">'
         ).join('');
 
@@ -6672,8 +6715,8 @@
           '<td>' + escHtml(fmtDate(grp.date)) + '</td>' +
           '<td onclick="event.stopPropagation()">' +
             '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
-              '<button class="btn btn-success btn-sm" onclick="approveParentGroup(' + JSON.stringify(allIds) + ')" style="padding:4px 8px;font-size:11px;cursor:pointer">Approve</button>' +
-              '<button class="btn btn-danger btn-sm" onclick="rejectParentGroup(' + JSON.stringify(allIds) + ')" style="padding:4px 8px;font-size:11px;cursor:pointer">Reject</button>' +
+              '<button class="btn btn-success btn-sm" onclick="approveParentGroup(' + JSON.stringify(actionIds) + ')" style="padding:4px 8px;font-size:11px;cursor:pointer">Approve</button>' +
+              '<button class="btn btn-danger btn-sm" onclick="rejectParentGroup(' + JSON.stringify(actionIds) + ')" style="padding:4px 8px;font-size:11px;cursor:pointer">Reject</button>' +
             '</div>' +
           '</td>' +
           '</tr>';
@@ -6686,7 +6729,8 @@
           try {
             const ids = JSON.parse(row.dataset.ids || '[]');
             const recs = ids.map(id => enrollments.find(x => x.id === parseInt(id))).filter(Boolean);
-            if (recs.length) openParentEnrollmentApproval(recs);
+            const actionIds = recs.filter(r => r.status === 'pending').map(r => r.id);
+            if (recs.length) openParentEnrollmentApproval(recs, '', { actionIds });
           } catch(err) { console.warn('Could not open approval modal', err); }
         };
       });
@@ -7081,6 +7125,7 @@
 
     let _currentApprovalRecords = [];
     let _currentApprovalContext = '';
+    let _modalSubmissionTicker = null;
     async function approveFromModal() {
       const groupIds = _currentParentGroupIds && _currentParentGroupIds.length ? _currentParentGroupIds : null;
       const payInput = document.getElementById('modal-verified-payment-amount');
@@ -7139,9 +7184,28 @@
       const first = records[0];
       _currentApprovalRecords = records;
       _currentApprovalContext = context || '';
-      _currentParentGroupIds = records.map(r => r.id);
-      currentApprovalStudent = { ...first };
+      _currentParentGroupIds = Array.isArray(options.actionIds)
+        ? options.actionIds.map(Number)
+        : records.map(r => r.id);
+      const primaryActionRecord = records.find(r => _currentParentGroupIds.includes(Number(r.id))) || first;
+      currentApprovalStudent = { ...primaryActionRecord };
       _currentEnrollmentForAssign = { ...first };
+
+      const submittedAt = records
+        .map(r => r.created_at)
+        .filter(Boolean)
+        .sort((a, b) => new Date(a) - new Date(b))[0] || '';
+      const submittedAtEl = document.getElementById('modal-submitted-at');
+      const submittedRelativeEl = document.getElementById('modal-submitted-relative');
+      const refreshSubmissionTime = () => {
+        if (submittedAtEl) submittedAtEl.textContent = formatDateTime(submittedAt);
+        if (submittedRelativeEl) submittedRelativeEl.textContent = 'Live · ' + timeAgo(submittedAt);
+      };
+      if (_modalSubmissionTicker) clearInterval(_modalSubmissionTicker);
+      refreshSubmissionTime();
+      _modalSubmissionTicker = submittedAt
+        ? setInterval(refreshSubmissionTime, 30000)
+        : null;
 
       const isAllVip = records.every(r => String(r.program || '').toLowerCase().includes('vip'));
       const vipRec = records.find(r => String(r.program || '').toLowerCase().includes('vip'));
@@ -7176,6 +7240,11 @@
           titleEl.textContent = 'Enrollment Application Review';
         }
       }
+
+      const detailsTitleEl = document.getElementById('modal-details-title');
+      const statusLabelEl = document.getElementById('modal-status-label');
+      if (detailsTitleEl) detailsTitleEl.textContent = isAllVip ? 'Details' : 'Enrollment Details';
+      if (statusLabelEl) statusLabelEl.textContent = isAllVip ? 'Status' : 'Enrollment Status';
 
 
 
@@ -7260,23 +7329,30 @@
       const summaryVipRow = document.getElementById('modal-summary-vip-row');
       const summaryVipAmt = document.getElementById('modal-summary-vip-amount');
 
-      const grandTotal = records.reduce((s, r) => s + parseEnrollmentFeeAdmin(r), 0);
+      const actionIdSet = new Set(_currentParentGroupIds.map(id => String(id)));
+      const payableRecords = records.filter(r => actionIdSet.has(String(r.id)));
+      const summaryRecords = payableRecords.length ? payableRecords : records;
+      const grandTotal = summaryRecords.reduce((s, r) => s + parseEnrollmentFeeAdmin(r), 0);
 
       if (summarySection && tpEl) {
         summarySection.style.display = 'block';
 
         if (vipRec && childRecs.length > 0) {
           // Mixed: enrollment + VIP — show both rows
-          const childrenTotal = childRecs.reduce((s, r) => s + parseEnrollmentFeeAdmin(r), 0);
-          const vipFeeTotal = parseEnrollmentFeeAdmin(vipRec);
+          const payableChildren = childRecs.filter(r => actionIdSet.has(String(r.id)));
+          const payableVip = actionIdSet.has(String(vipRec.id)) ? vipRec : null;
+          const childrenTotal = payableChildren.reduce((s, r) => s + parseEnrollmentFeeAdmin(r), 0);
+          const vipFeeTotal = payableVip ? parseEnrollmentFeeAdmin(payableVip) : 0;
 
           if (summaryEnrollRow && summaryEnrollAmt) {
             summaryEnrollRow.style.display = 'flex';
             summaryEnrollAmt.textContent = childrenTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0 });
           }
           if (summaryVipRow && summaryVipAmt) {
-            summaryVipRow.style.display = 'flex';
-            summaryVipAmt.textContent = vipFeeTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0 });
+            summaryVipRow.style.display = payableVip ? 'flex' : 'none';
+            summaryVipAmt.textContent = payableVip
+              ? vipFeeTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0 })
+              : '';
           }
           if (breakdownEl) breakdownEl.style.display = 'none';
 
@@ -7329,22 +7405,24 @@
       }
 
       // Action buttons & banner
-      const isActionable = records.some(r => r.status === 'pending' || r.status === 'cancelled' || standaloneRentalNeedsReview(r));
+      const actionableRecords = records.filter(r => actionIdSet.has(String(r.id)));
+      const isActionable = actionableRecords.some(r => r.status === 'pending' || r.status === 'cancelled' || standaloneRentalNeedsReview(r));
       const isRejected = (context === 'rejected') || records.every(r => r.status === 'cancelled');
       const isApproved = (context === 'approved') || records.every(r => r.status === 'confirmed' || r.payment_status === 'confirmed');
       const isVipPending = (context === 'vip-pending') || (!context && isAllVip && records.some(r => r.status === 'pending'));
       const isVipMember = (context === 'vip-member');
+      const actionCount = actionableRecords.length;
 
       const approveBtn = document.getElementById('modal-btn-approve');
       const rejectBtn = document.getElementById('modal-btn-reject');
       if (approveBtn) {
         approveBtn.style.display = isActionable ? '' : 'none';
-        approveBtn.textContent = records.length > 1 ? `Approve All (${records.length})` : (isAllVip ? 'Approve VIP' : (isRegistrationOnly ? 'Approve Registration' : (isRentalOnly ? 'Approve Rental' : 'Approve Enrollment')));
+        approveBtn.textContent = actionCount > 1 ? `Approve All (${actionCount})` : (isAllVip ? 'Approve VIP' : (isRegistrationOnly ? 'Approve Registration' : (isRentalOnly ? 'Approve Rental' : 'Approve Enrollment')));
       }
       if (rejectBtn) {
         // Hide reject button in Rejected Clients review (requirement 3)
         rejectBtn.style.display = (isActionable && !isRejected) ? '' : 'none';
-        rejectBtn.textContent = records.length > 1 ? `Reject All (${records.length})` : (isAllVip ? 'Reject VIP' : (isRegistrationOnly ? 'Reject Registration' : (isRentalOnly ? 'Reject Rental' : 'Reject Enrollment')));
+        rejectBtn.textContent = actionCount > 1 ? `Reject All (${actionCount})` : (isAllVip ? 'Reject VIP' : (isRegistrationOnly ? 'Reject Registration' : (isRentalOnly ? 'Reject Rental' : 'Reject Enrollment')));
       }
 
       // Print Receipt button visibility: ONLY show when approved (requirements 2 & 3)
@@ -7371,7 +7449,7 @@
       const paySection = document.getElementById('modal-initial-payment-section');
       const payInput = document.getElementById('modal-verified-payment-amount');
       const payTitle = document.getElementById('modal-initial-payment-title');
-      const totalAmount = records.reduce((s, r) => s + parseEnrollmentFeeAdmin(r), 0);
+      const totalAmount = summaryRecords.reduce((s, r) => s + parseEnrollmentFeeAdmin(r), 0);
       _currentApprovalTotalAmount = totalAmount;
 
       const isPendingVipModal = (context === 'vip-pending') || (isAllVip && !records.some(r => r.status === 'confirmed' || r.payment_status === 'confirmed'));
@@ -7384,7 +7462,7 @@
           paySection.style.display = 'block';
           payInput.readOnly = false;
           // Check if any record already has a recorded paid_amount
-          const existingPaid = records.reduce((s, r) => {
+          const existingPaid = actionableRecords.reduce((s, r) => {
             let n = 0;
             try { n = Number(JSON.parse(r.admin_notes || '{}').paid_amount || 0); } catch(_){}
             return s + n;
@@ -9781,6 +9859,7 @@
   </div>
 
 
+  <script src="js/logout-modal.js?v=1"></script>
   <script src="js/security.js"></script>
   <script>
     // ═══════════════════════════════════════════════════════════════
@@ -11076,6 +11155,37 @@
           <td style="padding:12px 16px;font-weight:600;color:var(--brown-primary)">${escHtml(st.timeslot || 'Assigned')}</td>
         </tr>
       `).join('');
+    }
+
+    function exportSubadminStudentsCsv() {
+      if (!subadminAssignedStudents.length) {
+        showToast('There are no assigned students to export.', 'error');
+        return;
+      }
+
+      const headers = ['Student Name', 'Role / Type', 'Program', 'Parent/Guardian', 'Contact', 'Schedule'];
+      const csvCell = value => {
+        const text = String(value ?? '').replace(/\r?\n|\r/g, ' ').trim();
+        return `"${text.replace(/"/g, '""')}"`;
+      };
+      const rows = subadminAssignedStudents.map(st => [
+        st.child_name || 'Student',
+        'Enrolled',
+        st.program || 'Academic Tutorial',
+        st.guardian_name || '—',
+        st.contact || '—',
+        st.timeslot || 'Assigned'
+      ]);
+      const csv = [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `my_students_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     }
 
     async function loadSubadminHours() {

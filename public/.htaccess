@@ -20,6 +20,11 @@ RewriteRule ^ %1 [R=301,L,NE]
 
 # Portal sections: /admin/students and /user/enrollments are served by admin.html
 # and user.html, whose scripts open the section named in the URL.
+# The portal documents use relative asset/API URLs. When they are opened at a
+# clean section URL, browsers resolve those URLs under /user/ or /admin/;
+# normalize them back to the public asset/API directories before the portal
+# page rule can catch them.
+RewriteRule ^(admin|user)/(api|js|css|images|uploads)/(.*)$ $2/$3 [L]
 RewriteRule ^(admin|user)/[a-z0-9-]+/?$ $1.html [L]
 
 # Homepage sections: /programs, /programs/workshop and /membership are served by

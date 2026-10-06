@@ -1350,17 +1350,16 @@
 
         async function logoutUser(e) {
             if (e) e.preventDefault();
-            if (confirm('Are you sure you want to logout?')) {
-                try {
-                    await fetch('api/logout.php', { method: 'POST', credentials: 'include' });
-                } catch (err) {
-                    console.error('Logout error:', err);
-                }
-                localStorage.removeItem('userEmail');
-                localStorage.removeItem('isVip');
-                sessionStorage.clear();
-                window.location.href = './';
+            if (!(await window.showLogoutConfirmation())) return;
+            try {
+                await fetch('api/logout.php', { method: 'POST', credentials: 'include' });
+            } catch (err) {
+                console.error('Logout error:', err);
             }
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('isVip');
+            sessionStorage.clear();
+            window.location.href = './';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1875,6 +1874,7 @@
         })();
     </script>
 
+    <script src="js/logout-modal.js?v=1"></script>
     <script src="js/security.js"></script>
     <script src="js/validation.js?v=12"></script>
 </body>
