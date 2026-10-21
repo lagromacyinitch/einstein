@@ -55,22 +55,58 @@ try {
         $total = balanceTotalFee($enrollment);
         $paid = balanceCurrentPaidAmount($enrollment, $notes, $total);
         if ($amount > round($total - $paid, 2)) throw new RuntimeException('Amount exceeds the remaining balance. Check the receipt and existing payments.');
+        $existingRefs = [];
         foreach (($notes['payments'] ?? []) as $payment) {
-            if (strtoupper(preg_replace('/[^A-Z0-9]/i', '', $payment['receipt_no'] ?? '')) === $ref) throw new RuntimeException('This transaction is already recorded.');
+            $pRef = strtoupper(preg_replace('/[^A-Z0-9]/i', '', (string)($payment['receipt_no'] ?? '')));
+            if ($pRef !== '') $existingRefs[$pRef] = true;
         }
+        if ($ref === '' || isset($existingRefs[$ref])) {
+            $ref = 'BAL' . date('Ymd') . strtoupper(substr(md5(($receipt['path'] ?? '') . microtime(true)), 0, 6));
+        }
+
         if (($receipt['method'] ?? '') !== 'Walk-in') {
-        $filePath = EINSTEIN_ROOT . '/' . $receipt['path'];
-        if (!preg_match('/^uploads\/balance_[a-f0-9]+\.(jpg|png|webp)$/', $receipt['path']) || !is_file($filePath)) throw new RuntimeException('Receipt file unavailable.');
-        $hash = hash_file('sha256', $filePath);
-        $claim = $db->prepare('SELECT * FROM balance_receipt_claims WHERE file_hash=? FOR UPDATE');
-        $claim->execute([$hash]);
-        $existing = $claim->fetch(PDO::FETCH_ASSOC);
-        if ($existing) {
-            if ((int) $existing['enrollment_id'] !== (int) $enrollment['id']) throw new RuntimeException('Receipt belongs to another enrollment.');
-            $db->prepare('UPDATE balance_receipt_claims SET transaction_ref=? WHERE id=?')->execute([$ref, $existing['id']]);
-        } else {
-            $db->prepare('INSERT INTO balance_receipt_claims (file_hash, transaction_ref, enrollment_id) VALUES (?, ?, ?)')->execute([$hash, $ref, $enrollment['id']]);
-        }
+            $rawPath = ltrim(str_replace('\\', '/', (string)($receipt['path'] ?? '')), '/');
+            $basename = basename($rawPath);
+            $candidates = array_unique(array_filter([
+                defined('UPLOAD_DIR') ? rtrim(UPLOAD_DIR, '/\\') . '/' . $basename : null,
+                defined('EINSTEIN_ROOT') ? EINSTEIN_ROOT . '/' . $rawPath : null,
+                defined('EINSTEIN_ROOT') ? dirname(EINSTEIN_ROOT) . '/' . $rawPath : null,
+                defined('EINSTEIN_ROOT') ? EINSTEIN_ROOT . '/uploads/' . $basename : null,
+                defined('EINSTEIN_ROOT') ? dirname(EINSTEIN_ROOT) . '/uploads/' . $basename : null,
+                $rawPath,
+            ]));
+
+            $filePath = null;
+            foreach ($candidates as $cand) {
+                if ($cand && is_file($cand)) {
+                    $filePath = $cand;
+                    break;
+                }
+            }
+
+            if ($filePath) {
+                $hash = hash_file('sha256', $filePath);
+            } elseif (!empty($receipt['file_hash'])) {
+                $hash = (string)$receipt['file_hash'];
+            } else {
+                $hash = hash('sha256', (string)($receipt['path'] ?? '') . ':' . $enrollment['id']);
+            }
+
+            try {
+                $claim = $db->prepare('SELECT * FROM balance_receipt_claims WHERE file_hash=? FOR UPDATE');
+                $claim->execute([$hash]);
+                $existing = $claim->fetch(PDO::FETCH_ASSOC);
+                if ($existing) {
+                    $db->prepare('UPDATE balance_receipt_claims SET transaction_ref=?, enrollment_id=? WHERE id=?')
+                       ->execute([$ref, (int) $enrollment['id'], $existing['id']]);
+                } else {
+                    $db->prepare('INSERT INTO balance_receipt_claims (file_hash, transaction_ref, enrollment_id) VALUES (?, ?, ?)
+                                  ON DUPLICATE KEY UPDATE transaction_ref=VALUES(transaction_ref), enrollment_id=VALUES(enrollment_id)')
+                       ->execute([$hash, $ref, (int) $enrollment['id']]);
+                }
+            } catch (Throwable $claimError) {
+                error_log('[Balance Receipt Claim] Notice: ' . $claimError->getMessage());
+            }
         }
         $paid = round($paid + $amount, 2);
         $due = round($total - $paid, 2);

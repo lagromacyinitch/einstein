@@ -215,4 +215,259 @@
             pendingResolve = resolve;
         });
     };
+
+    // ── APP NOTICE MODAL (matching logout confirmation modal design) ──
+    const NOTICE_OVERLAY_ID = 'app-notice-modal-overlay';
+    let noticePendingResolve = null;
+    let noticePreviouslyFocused = null;
+    let noticePreviousBodyOverflow = '';
+
+    function ensureNoticeModal() {
+        let overlay = document.getElementById(NOTICE_OVERLAY_ID);
+        if (overlay) return overlay;
+
+        const style = document.createElement('style');
+        style.id = 'app-notice-modal-styles';
+        style.textContent = `
+            .app-notice-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 10060;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                box-sizing: border-box;
+                background: rgba(25, 12, 5, .62);
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity .18s ease, visibility .18s ease;
+            }
+            .app-notice-overlay.is-open {
+                opacity: 1;
+                visibility: visible;
+            }
+            .app-notice-dialog {
+                position: relative;
+                width: min(100%, 380px);
+                box-sizing: border-box;
+                padding: 24px 22px 22px;
+                border: 1px solid rgba(166, 119, 72, .3);
+                border-radius: 18px;
+                background: #fffaf5;
+                color: #3d1f0a;
+                box-shadow: 0 22px 70px rgba(25, 12, 5, .3);
+                text-align: center;
+                transform: translateY(8px) scale(.98);
+                transition: transform .18s ease;
+                outline: none;
+            }
+            .app-notice-overlay.is-open .app-notice-dialog {
+                transform: translateY(0) scale(1);
+            }
+            .app-notice-close {
+                position: absolute;
+                top: 10px;
+                right: 12px;
+                width: 38px;
+                height: 38px;
+                border: 0;
+                border-radius: 50%;
+                background: transparent;
+                color: #8b6f47;
+                font-size: 25px;
+                line-height: 1;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .app-notice-close:hover,
+            .app-notice-close:focus-visible {
+                background: #f1e4d7;
+                outline: none;
+            }
+            .app-notice-icon-badge {
+                width: 48px;
+                height: 48px;
+                margin: 0 auto 14px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 22px;
+                font-weight: 700;
+                background: #eef7ed;
+                color: #2e7d32;
+                border: 1.5px solid #bbf7d0;
+            }
+            .app-notice-title {
+                margin: 0;
+                color: #5e3a21;
+                font-family: 'Playfair Display', Georgia, serif;
+                font-size: 1.25rem;
+                font-weight: 700;
+                line-height: 1.25;
+            }
+            .app-notice-message {
+                margin: 10px 0 20px;
+                color: #765b45;
+                font-size: .88rem;
+                line-height: 1.55;
+                word-break: break-word;
+            }
+            .app-notice-actions {
+                display: flex;
+                justify-content: center;
+            }
+            .app-notice-confirm {
+                min-width: 110px;
+                min-height: 38px;
+                padding: 8px 26px;
+                border-radius: 9px;
+                font: inherit;
+                font-size: .85rem;
+                font-weight: 700;
+                cursor: pointer;
+                border: 1px solid #6d3f1e;
+                background: #6d3f1e;
+                color: #fff;
+                box-shadow: 0 4px 12px rgba(109, 63, 30, .2);
+                transition: background .15s ease, transform .15s ease;
+            }
+            .app-notice-confirm:hover,
+            .app-notice-confirm:focus-visible {
+                background: #512d16;
+                outline: 2px solid rgba(109, 63, 30, .3);
+                outline-offset: 2px;
+            }
+            @media (max-width: 420px) {
+                .app-notice-dialog { padding: 22px 18px 20px; }
+                .app-notice-confirm { width: 100%; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        overlay = document.createElement('div');
+        overlay.id = NOTICE_OVERLAY_ID;
+        overlay.className = 'app-notice-overlay';
+        overlay.hidden = true;
+        overlay.innerHTML = `
+            <div class="app-notice-dialog" role="dialog" aria-modal="true"
+                 aria-labelledby="app-notice-title" aria-describedby="app-notice-message" tabindex="-1">
+                <button type="button" class="app-notice-close" data-notice-close aria-label="Close dialog">&times;</button>
+                <div class="app-notice-icon-badge" id="app-notice-icon-badge">&#x2713;</div>
+                <h2 class="app-notice-title" id="app-notice-title">Notification</h2>
+                <p class="app-notice-message" id="app-notice-message"></p>
+                <div class="app-notice-actions">
+                    <button type="button" class="app-notice-confirm" data-notice-confirm>OK</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        overlay.addEventListener('click', function (event) {
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+            if (target === overlay || target.closest('[data-notice-close]') || target.closest('[data-notice-confirm]')) {
+                finishNotice(true);
+            }
+        });
+
+        return overlay;
+    }
+
+    function finishNotice(result) {
+        const overlay = document.getElementById(NOTICE_OVERLAY_ID);
+        if (!overlay || !noticePendingResolve) return;
+
+        const resolve = noticePendingResolve;
+        noticePendingResolve = null;
+        overlay.classList.remove('is-open');
+        overlay.hidden = true;
+        document.body.style.overflow = noticePreviousBodyOverflow;
+        resolve(result);
+
+        if (noticePreviouslyFocused && typeof noticePreviouslyFocused.focus === 'function') {
+            noticePreviouslyFocused.focus({ preventScroll: true });
+        }
+        noticePreviouslyFocused = null;
+    }
+
+    document.addEventListener('keydown', function (event) {
+        const overlay = document.getElementById(NOTICE_OVERLAY_ID);
+        if (!overlay || overlay.hidden || !noticePendingResolve) return;
+
+        if (event.key === 'Escape' || event.key === 'Enter') {
+            event.preventDefault();
+            finishNotice(true);
+            return;
+        }
+
+        if (event.key !== 'Tab') return;
+        const focusables = Array.from(overlay.querySelectorAll('button:not([disabled])'));
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
+
+    window.showNoticeModal = function (options) {
+        if (typeof options === 'string') {
+            options = { message: options };
+        }
+        options = options || {};
+
+        const overlay = ensureNoticeModal();
+        if (noticePendingResolve) finishNotice(false);
+
+        const titleEl = document.getElementById('app-notice-title');
+        const msgEl   = document.getElementById('app-notice-message');
+        const iconEl  = document.getElementById('app-notice-icon-badge');
+        const btnEl   = overlay.querySelector('.app-notice-confirm');
+
+        if (titleEl) titleEl.textContent = options.title || 'Notification';
+        if (msgEl)   msgEl.textContent   = options.message || '';
+
+        if (iconEl) {
+            if (options.icon === false || options.icon === null) {
+                iconEl.style.display = 'none';
+            } else {
+                iconEl.style.display = 'flex';
+                iconEl.textContent = typeof options.icon === 'string' ? options.icon : '✓';
+                if (options.iconType === 'error') {
+                    iconEl.style.background = '#fee2e2';
+                    iconEl.style.color = '#b91c1c';
+                    iconEl.style.borderColor = '#fca5a5';
+                } else {
+                    iconEl.style.background = '#eef7ed';
+                    iconEl.style.color = '#2e7d32';
+                    iconEl.style.borderColor = '#bbf7d0';
+                }
+            }
+        }
+
+        if (btnEl) btnEl.textContent = options.confirmText || 'OK';
+
+        noticePreviouslyFocused = document.activeElement;
+        noticePreviousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        overlay.hidden = false;
+        requestAnimationFrame(function () {
+            overlay.classList.add('is-open');
+            btnEl?.focus();
+        });
+
+        return new Promise(function (resolve) {
+            noticePendingResolve = resolve;
+        });
+    };
+
+    window.showAlertModal = window.showNoticeModal;
 })();
