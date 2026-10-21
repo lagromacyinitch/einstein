@@ -68,20 +68,15 @@
             return 'name';
         }
 
-        // Phone / Contact
+        // Phone / Contact / Numbers / Capacity / Slots / Prices
         if (
-            type === 'tel' || id.includes('phone') || id.includes('contact') || id.includes('tel') ||
-            name.includes('phone') || name.includes('contact') || cls.includes('phone') || cls.includes('contact')
-        ) {
-            return 'number';
-        }
-
-        // Age / Grade / Prices / Rate
-        if (
+            type === 'number' || type === 'tel' ||
+            id.includes('phone') || id.includes('contact') || id.includes('tel') ||
             id.includes('age') || id.includes('grade') || id.includes('price') || id.includes('rate') ||
-            id.includes('slots') || id.includes('capacity') || id.includes('hours') ||
+            id.includes('slot') || id.includes('capacity') || id.includes('hours') || id.includes('discount') ||
             cls.includes('ec-age') || cls.includes('ec-grade') || cls.includes('price') || cls.includes('rate') ||
-            name.includes('age') || name.includes('grade') || name.includes('price') || name.includes('rate')
+            name.includes('phone') || name.includes('contact') || name.includes('age') || name.includes('grade') ||
+            name.includes('price') || name.includes('rate') || name.includes('discount')
         ) {
             return 'number';
         }
@@ -110,10 +105,11 @@
             return 'purok';
         }
 
-        // School (Alphabets only)
+        // School (Alphabets only - exclude program names like playschool)
         if (
-            dataVal === 'school' || id.includes('school') || cls.includes('ec-school') ||
-            name.includes('school') || placeholder.includes('school')
+            dataVal === 'school' || cls.includes('ec-school') ||
+            ((id.includes('school') || name.includes('school') || placeholder.includes('school')) &&
+             !id.includes('playschool') && !name.includes('playschool') && !placeholder.includes('playschool'))
         ) {
             return 'school';
         }
