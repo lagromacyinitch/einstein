@@ -5,11 +5,12 @@ function vipSetup($db) {
     $db->exec("CREATE TABLE IF NOT EXISTS vip_settings (id INT PRIMARY KEY, duration_years INT NOT NULL DEFAULT 2)");
     $db->exec('INSERT IGNORE INTO vip_settings (id, duration_years) VALUES (1, 2)');
     $db->exec('CREATE TABLE IF NOT EXISTS vip_unsubscriptions (user_id INT UNSIGNED PRIMARY KEY, unsubscribed_at DATETIME NOT NULL)');
+    $db->exec('CREATE TABLE IF NOT EXISTS vip_reactivations (enrollment_id INT UNSIGNED PRIMARY KEY, reactivated_at DATETIME NOT NULL)');
 }
 function vipState($db, int $userId): array {
     vipSetup($db);
     $years = (int) $db->query('SELECT duration_years FROM vip_settings WHERE id=1')->fetchColumn();
-    $q = $db->prepare("SELECT id, created_at FROM enrollments WHERE user_id=? AND status='confirmed' AND LOWER(program) LIKE '%vip%' ORDER BY created_at, id");
+    $q = $db->prepare("SELECT e.id, COALESCE(r.reactivated_at,e.created_at) AS created_at FROM enrollments e LEFT JOIN vip_reactivations r ON r.enrollment_id=e.id WHERE e.user_id=? AND e.status='confirmed' AND LOWER(e.program) LIKE '%vip%' ORDER BY created_at, e.id");
     $q->execute([$userId]);
     $rows = $q->fetchAll(PDO::FETCH_ASSOC);
     $q = $db->prepare('SELECT unsubscribed_at FROM vip_unsubscriptions WHERE user_id=?');
