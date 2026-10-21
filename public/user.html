@@ -3856,8 +3856,23 @@
                 await loadEnrollments(false);
                 setTimeout(() => {
                     closeBalancePaymentInfoModal();
-                    alert('✓ Payment submitted successfully! Your receipt is now under review by the administrator. Your remaining balance will update once approved.');
-                }, 800);
+                    const isWalkin = (balancePaymentMethod === 'Walk-in');
+                    const modalTitle = isWalkin ? 'Walk-In Request Submitted' : 'Payment Submitted';
+                    const modalMsg = isWalkin
+                        ? 'Your walk-in payment request has been submitted. Please proceed to the Einstein Center front desk to settle your remaining balance.'
+                        : 'Payment submitted successfully! Your receipt is now under review by the administrator. Your remaining balance will update once approved.';
+
+                    if (typeof window.showNoticeModal === 'function') {
+                        window.showNoticeModal({
+                            title: modalTitle,
+                            message: modalMsg,
+                            icon: '✓',
+                            confirmText: 'OK'
+                        });
+                    } else {
+                        alert(modalMsg);
+                    }
+                }, 400);
             }catch(e){
                 message.style.color='#b91c1c';
                 message.textContent=e.message || 'Unable to submit.';
