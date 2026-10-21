@@ -17,6 +17,8 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/schedule_sync.php';
+require_once __DIR__ . '/../includes/student_archive_schema.php';
 setSecurityHeaders();
 startPortalSession();
 
@@ -78,6 +80,9 @@ function parseScheduleTimePreference($rawTimeslot, $program = '', $package = '')
     $raw = trim($rawTimeslot ?? '');
     $prog = trim($program ?? '');
     $pkg = trim($package ?? '');
+    if (strcasecmp($raw, 'Unscheduled') === 0) {
+        return ['days' => array_fill_keys(['mon','tue','wed','thu','fri','sat','sun'], false), 'timeslot' => ''];
+    }
     
     $tUpper = strtoupper($raw);
     
@@ -149,6 +154,17 @@ function normalizeTimeSlotKey($ts) {
 
 function mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tutorMap = []) {
     $days = ['mon','tue','wed','thu','fri','sat','sun'];
+    $expanded = [];
+    foreach ($assignedStudents as $student) {
+        if (strcasecmp(trim($student['timeslot'] ?? ''), 'Unscheduled') === 0) continue;
+        foreach (explode(';', $student['timeslot'] ?? '') as $slotIndex => $slot) {
+            $copy = $student;
+            $copy['timeslot'] = trim($slot);
+            $copy['schedule_suffix'] = $slotIndex ? '_' . substr(sha1(trim($slot)), 0, 8) : '';
+            $expanded[] = $copy;
+        }
+    }
+    $assignedStudents = $expanded;
 
     $tutorRows = [];
     foreach ($manualSchedules as $ms) {
@@ -192,7 +208,7 @@ function mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tuto
                     $currVal = trim($tutorRows[$tId][$matchedIndex][$d] ?? '');
                     if (!$currVal || $currVal === 'AVAILABLE' || $currVal === 'Available') {
                         $tutorRows[$tId][$matchedIndex][$d] = $cName;
-                    } elseif (stripos($currVal, $cName) === false) {
+                    } elseif (!in_array(strtolower($cName), array_map('strtolower', scheduleCellNames($currVal)), true)) {
                         $tutorRows[$tId][$matchedIndex][$d] = $currVal . ', ' . $cName;
                     }
                 }
@@ -202,7 +218,7 @@ function mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tuto
             }
         } else {
             $newRow = [
-                'id' => 'assign_' . $st['enrollment_id'],
+                'id' => 'assign_' . $st['enrollment_id'] . ($st['schedule_suffix'] ?? ''),
                 'tutor_id' => $tId,
                 'tutor_name' => $tName,
                 'timeslot' => $parsed['timeslot'], // Digits only!
@@ -236,6 +252,7 @@ function mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tuto
 
 try {
     $db = getDB();
+    ensureStudentArchiveTable($db);
 
     // ── Ensure table exists ────────────────────────────────────────────────
     $db->exec("CREATE TABLE IF NOT EXISTS tutor_schedules (
@@ -330,7 +347,9 @@ try {
                 $tutorMap[$t['id']] = $t['full_name'];
             }
 
-            $merged = mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tutorMap);
+            $roster = activeScheduleStudents($db);
+            $assignedStudents = array_values(array_filter($assignedStudents, fn($student) => isset($roster[(int)$student['enrollment_id']])));
+            $merged = mergeSchedulesAndAssignments(filterScheduleRoster($manualSchedules, $roster), $assignedStudents, $tutorMap);
 
             echo json_encode([
                 'success' => true,
@@ -402,7 +421,9 @@ try {
             }
 
             $tutorMap = [$tutorId => $displayName ?: 'Me'];
-            $merged = mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tutorMap);
+            $roster = activeScheduleStudents($db);
+            $assignedStudents = array_values(array_filter($assignedStudents, fn($student) => isset($roster[(int)$student['enrollment_id']])));
+            $merged = mergeSchedulesAndAssignments(filterScheduleRoster($manualSchedules, $roster), $assignedStudents, $tutorMap);
 
             echo json_encode([
                 'success' => true,
@@ -496,22 +517,8 @@ try {
         $allowed = ['mon','tue','wed','thu','fri','sat','sun'];
         if (!$idRaw || !in_array($day,$allowed)) throw new Exception('Invalid row ID or day.');
 
-        if (is_numeric($idRaw)) {
-            $id = intval($idRaw);
-            $stmt = $db->prepare("UPDATE tutor_schedules SET `$day`=? WHERE id=?");
-            $stmt->execute([$val, $id]);
-        } else if (strpos($idRaw, 'assign_') === 0) {
-            $eid = intval(substr($idRaw, 7));
-            $aStmt = $db->prepare("SELECT ta.tutor_id, e.timeslot, e.program, e.package_selected FROM tutor_assignments ta JOIN enrollments e ON ta.enrollment_id = e.id WHERE ta.enrollment_id = ?");
-            $aStmt->execute([$eid]);
-            $aRow = $aStmt->fetch(PDO::FETCH_ASSOC);
-            if ($aRow) {
-                $p = parseScheduleTimePreference($aRow['timeslot'], $aRow['program'], $aRow['package_selected']);
-                $ins = $db->prepare("INSERT INTO tutor_schedules (tutor_id, timeslot, slot_type, `$day`, sort_order) VALUES (?, ?, 'CB', ?, 50)");
-                $ins->execute([$aRow['tutor_id'], $p['timeslot'], $val]);
-            }
-        }
-        echo json_encode(['success'=>true,'message'=>'Cell updated.']);
+        $savedId = saveScheduleAndEnrollmentTimeslots($db, $idRaw, [$day => $val]);
+        echo json_encode(['success'=>true,'message'=>'Cell updated.', 'id'=>$savedId]);
 
     } elseif ($action === 'update_timeslot' || $action === 'update_row') {
         $idRaw     = trim((string)($body['id'] ?? ''));
@@ -522,20 +529,10 @@ try {
         // Format timeslot to 12-hour format
         $timeslot = formatTimeslot12Hour($timeslot) ?: $timeslot;
 
-        if (is_numeric($idRaw)) {
-            $id = intval($idRaw);
-            if ($slot_type) {
-                $stmt = $db->prepare("UPDATE tutor_schedules SET timeslot=?, slot_type=? WHERE id=?");
-                $stmt->execute([$timeslot, $slot_type, $id]);
-            } else {
-                $stmt = $db->prepare("UPDATE tutor_schedules SET timeslot=? WHERE id=?");
-                $stmt->execute([$timeslot, $id]);
-            }
-        } else if (strpos($idRaw, 'assign_') === 0) {
-            $eid = intval(substr($idRaw, 7));
-            $db->prepare("UPDATE enrollments SET timeslot=? WHERE id=?")->execute([$timeslot, $eid]);
-        }
-        echo json_encode(['success'=>true,'message'=>'Timeslot updated.']);
+        $changes = ['timeslot' => $timeslot];
+        if ($slot_type) $changes['slot_type'] = $slot_type;
+        $savedId = saveScheduleAndEnrollmentTimeslots($db, $idRaw, $changes);
+        echo json_encode(['success'=>true,'message'=>'Timeslot updated.', 'id'=>$savedId]);
 
     } elseif ($action === 'delete') {
         $idRaw = trim((string)($body['id'] ?? ''));

@@ -198,9 +198,14 @@
         }
     });
 
-    window.showLogoutConfirmation = function () {
+    window.showAppConfirmation = function (options = {}) {
         const overlay = ensureModal();
         if (pendingResolve) finish(false);
+        overlay.querySelector('#logout-confirm-title').textContent = options.title || 'Confirmation';
+        overlay.querySelector('#logout-confirm-message').textContent = options.message || 'Are you sure?';
+        overlay.querySelector('[data-logout-confirm]').textContent = options.confirmText || 'Confirm';
+        overlay.querySelector('.logout-confirm-cancel').textContent = options.cancelText || 'Cancel';
+        overlay.querySelector('.logout-confirm-close').setAttribute('aria-label', 'Close confirmation');
 
         previouslyFocused = document.activeElement;
         previousBodyOverflow = document.body.style.overflow;
@@ -213,6 +218,12 @@
 
         return new Promise(function (resolve) {
             pendingResolve = resolve;
+        });
+    };
+
+    window.showLogoutConfirmation = function () {
+        return window.showAppConfirmation({
+            title: 'Logout Confirmation', message: 'Are you sure you want to log out?', confirmText: 'Log out'
         });
     };
 

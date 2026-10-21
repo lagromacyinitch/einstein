@@ -418,7 +418,11 @@
           <div class="card-body" style="padding:0;overflow-x:auto"><table><thead><tr><th>Parent</th><th>Submitted</th><th>Payment</th><th>Action</th></tr></thead><tbody id="pending-vip-body"></tbody></table></div>
         </section>
         <section class="card">
-          <div class="card-header"><h3>VIP Members List</h3><span class="nav-badge" id="vip-active-count">0</span></div>
+          <div class="card-header" style="flex-wrap:wrap;gap:12px"><h3>VIP Members List</h3><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <select id="vip-member-filter" class="form-control" style="width:auto" aria-label="VIP membership status" onchange="renderVIPPage()"><option value="active">Active</option><option value="unsubscribed">Unsubscribed</option><option value="all">All</option></select>
+            <button type="button" class="btn btn-outline btn-sm" onclick="exportVisibleTableCSV(document.getElementById('vip-members-body').closest('table'),'vip-members')">Export CSV</button>
+            <span class="nav-badge" id="vip-active-count" style="display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:28px;padding:3px 9px;background:#e3bf59;color:#3d210d;font-size:14px;font-weight:800;border:1px solid #8b6420" aria-label="Displayed VIP members">0</span>
+          </div></div>
           <div class="card-body" style="padding:0;overflow-x:auto"><table><thead><tr><th>Parent</th><th>Enrollment Date</th><th>Status</th><th>Action</th></tr></thead><tbody id="vip-members-body"></tbody></table></div>
         </section>
       </div>
@@ -602,7 +606,7 @@
             </select>
           </div>
         </div>
-        <div class="card-body" style="padding:0">
+        <div class="card-body" style="padding:0;overflow-x:auto">
           <table id="playschool-table">
             <thead>
               <tr>
@@ -612,6 +616,7 @@
                 <th>Parent/Guardian</th>
                 <th>Contact</th>
                 <th>Section</th>
+                <th>Timeslot</th>
                 <th>Address</th>
                 <th>Payment</th>
                 <th>Status</th>
@@ -621,7 +626,7 @@
             </thead>
             <tbody id="playschool-body">
               <tr>
-                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="12" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No PlaySchool enrollments yet</strong><br>
                   <span style="font-size:12px">Toddlers enrolled via the PlaySchool form will appear here
@@ -671,7 +676,7 @@
             
           </div>
         </div>
-        <div class="card-body" style="padding:0">
+        <div class="card-body" style="padding:0;overflow-x:auto">
           <table id="childcare-table">
             <thead>
               <tr>
@@ -682,6 +687,7 @@
                 <th>Contact</th>
                 <th>Address</th>
                 <th>Package</th>
+                <th>Timeslot</th>
                 <th>Payment</th>
                 <th>Status</th>
                 <th>Enrolled</th>
@@ -690,7 +696,7 @@
             </thead>
             <tbody id="childcare-body">
               <tr>
-                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="12" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No Child Care enrollments yet</strong><br>
                   <span style="font-size:12px">Children enrolled via the Child Care form will appear here
@@ -5127,9 +5133,11 @@
         if (!Number.isFinite(capacity)) return;
         row.dataset.filled = String(Number(data.filled?.[key]) || 0);
         row.querySelector('.slot-filled').textContent = row.dataset.filled;
-        document.getElementById('slot-' + key).value = capacity;
-        document.getElementById('slot-' + key).disabled = !data.can_edit;
-        document.getElementById('slot-' + key).dataset.savedCapacity = String(capacity);
+        const input = document.getElementById('slot-' + key);
+        const editing = document.activeElement === input || (input.dataset.savedCapacity !== undefined && input.value !== input.dataset.savedCapacity);
+        if (savedKey === key || !editing) input.value = capacity;
+        input.disabled = !data.can_edit;
+        input.dataset.savedCapacity = String(capacity);
         updateSlotSaveState(key);
         document.getElementById('slot-available-' + key).textContent = Math.max(0, capacity - Number(row.dataset.filled));
       });
@@ -5137,7 +5145,7 @@
     function updateSlotSaveState(key) {
       const input = document.getElementById('slot-' + key);
       const button = document.getElementById('slot-save-' + key);
-      button.disabled = input.disabled || !input.value || !input.checkValidity()
+      button.disabled = input.disabled || !/^\d+$/.test(input.value) || Number(input.value) > 100000 || !input.checkValidity()
         || Number(input.value) === Number(input.dataset.savedCapacity);
       button.style.opacity = button.disabled ? '0.45' : '1';
       button.style.cursor = button.disabled ? 'not-allowed' : 'pointer';
@@ -5153,7 +5161,7 @@
     async function saveSlotCapacity(key) {
       const input = document.getElementById('slot-' + key);
       const button = document.getElementById('slot-save-' + key);
-      if (!input.value || !input.reportValidity() || button.disabled) return;
+      if (!/^\d+$/.test(input.value) || Number(input.value) > 100000 || !input.reportValidity() || button.disabled) return;
       button.disabled = true;
       input.disabled = true;
       try {
@@ -5678,7 +5686,7 @@
         await refreshVipFee();input.hidden=true;display.hidden=false;button.textContent='Edit Prices';button.disabled=false;showToast('VIP fee saved.');
       }catch(e){button.disabled=false;showToast(e.message,'error');}
     }
-    function openVipEnrollmentApproval(ids) {
+    function openVipEnrollmentApproval(ids, membershipStatus = null) {
       const recs = (Array.isArray(ids) ? ids : [ids]).map(id => enrollments.find(x => Number(x.id) === Number(id))).filter(Boolean);
       if (!recs.length) return;
       const first = recs[0];
@@ -5686,18 +5694,27 @@
       const allParentRecs = enrollments.filter(e => getEnrollmentGroupKeyAdmin(e) === key);
       // Use explicit VIP context so modal title always shows the right label,
       // even if the parent also has non-VIP children (which would cause isAllVip = false).
-      const vipCtx = (first.status === 'confirmed') ? 'vip-member' : 'vip-pending';
+      const vipCtx = membershipStatus || first.status !== 'pending' ? 'vip-member' : 'vip-pending';
       const reviewRecords = allParentRecs.length ? allParentRecs : recs;
       const options = first.status === 'pending'
         ? { actionIds: reviewRecords.filter(r => r.status === 'pending').map(r => r.id) }
         : {};
+      options.membershipStatus = membershipStatus || (first.status === 'confirmed' ? 'active' : 'unsubscribed');
       openParentEnrollmentApproval(reviewRecords, vipCtx, options);
     }
 
     function renderVIPPage() {
       const vipList = enrollments.filter(e => (e.program || '').toLowerCase().includes('vip'));
       const pending = vipList.filter(e => e.status === 'pending');
-      const active = vipList.filter(e => e.status === 'confirmed' && (!e.user_id || vipAdminData.members[e.user_id]?.active));
+      const memberStatus = e => {
+        const state = e.user_id ? vipAdminData.members[e.user_id] : null;
+        if (state?.active || (!e.user_id && e.status === 'confirmed')) return 'active';
+        if (state?.unsubscribed || (e.status === 'cancelled' && e.payment_status !== 'rejected')) return 'unsubscribed';
+        if (e.status === 'confirmed' && state?.expires_at) return 'expired';
+        return null;
+      };
+      const filter = document.getElementById('vip-member-filter')?.value || 'active';
+      const active = vipList.filter(e => memberStatus(e) && (filter === 'all' || (filter === 'unsubscribed' ? memberStatus(e) !== 'active' : memberStatus(e) === filter)));
 
       const vipParentKey = e => getEnrollmentGroupKeyAdmin(e);
 
@@ -5737,13 +5754,14 @@
       // Deduplicate active VIP members by parent (all active members)
       const activeGroups = {};
       active.forEach(e => {
-        const k = vipParentKey(e);
+        const k = e.user_id ? 'user-' + e.user_id : [e.guardian_name || e.child_name, e.contact].join('|').toLowerCase();
         if (!activeGroups[k]) {
           activeGroups[k] = {
             records: [],
             parentName: e.guardian_name || e.child_name || '—',
             reference_no: e.reference_no,
-            created_at: e.created_at
+            created_at: e.created_at,
+            membershipStatus: memberStatus(e)
           };
         }
         activeGroups[k].records.push(e);
@@ -5755,7 +5773,7 @@
 
       document.getElementById('vip-active-count').textContent = activeParents.length;
       document.getElementById('vip-pending-count').textContent = pendingParents.length;
-      const nav = document.getElementById('nb-vip'); if (nav) nav.textContent = activeParents.length;
+      const nav = document.getElementById('nb-vip'); if (nav) nav.textContent = new Set(vipList.filter(e => memberStatus(e) === 'active').map(e => e.user_id || [e.guardian_name || e.child_name, e.contact].join('|').toLowerCase())).size;
 
       document.getElementById('vip-members-body').innerHTML = activeParents.length ? activeParents.map(grp => {
         const idsJson = JSON.stringify(grp.records.map(r => Number(r.id))).replace(/"/g, '&quot;');
@@ -5763,10 +5781,11 @@
         return `<tr>
           <td><strong>${escHtml(grp.parentName)}</strong><br><small>${escHtml(refs || '')}</small></td>
           <td>${fmtDate(grp.created_at)}</td>
-          <td><span class="badge badge-green">Active</span></td>
-          <td><button type="button" class="btn btn-outline btn-sm" onclick="openVipEnrollmentApproval(${idsJson})">View</button></td>
+          <td><span class="badge ${grp.membershipStatus === 'active' ? 'badge-green' : 'badge-gold'}">${grp.membershipStatus === 'active' ? 'Active' : grp.membershipStatus === 'expired' ? 'Expired' : 'Unsubscribed'}</span></td>
+          <td><button type="button" class="btn btn-outline btn-sm" onclick="openVipEnrollmentApproval(${idsJson}, '${grp.membershipStatus}')">View</button>
+          ${grp.membershipStatus !== 'active' ? `<button type="button" class="btn btn-primary btn-sm" onclick="reactivateVip(${Number(grp.records[0].id)},this)">Reactivate VIP</button>` : ''}</td>
         </tr>`;
-      }).join('') : '<tr><td colspan="4" style="padding:24px;text-align:center">No active VIP members yet.</td></tr>';
+      }).join('') : '<tr><td colspan="4" style="padding:24px;text-align:center">No VIP members match this filter.</td></tr>';
 
       document.getElementById('pending-vip-body').innerHTML = pendingParents.length ? pendingParents.map(grp => {
         const idsJson = JSON.stringify(grp.records.map(r => Number(r.id))).replace(/"/g, '&quot;');
@@ -5918,9 +5937,10 @@
 
     function isParentConfirmedVip(e) {
       if (!e) return false;
+      if (e.user_id && vipAdminData.members[e.user_id]) return Boolean(vipAdminData.members[e.user_id].active);
       return enrollments.some(x =>
         String(x.program || '').toLowerCase().includes('vip') &&
-        (x.status === 'confirmed' || x.payment_status === 'confirmed') &&
+        x.status === 'confirmed' && (!x.user_id || vipAdminData.members[x.user_id]?.active) &&
         (
           (e.user_id && x.user_id && String(e.user_id) === String(x.user_id) && String(e.user_id) !== '0') ||
           (e.guardian_name && x.guardian_name && e.guardian_name.trim().toLowerCase() === x.guardian_name.trim().toLowerCase())
@@ -5954,7 +5974,7 @@
         const archiveIcon = archived
           ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7"></path><path d="M4 4v5h5"></path><path d="M12 8v4l2.5 1.5"></path></svg>`
           : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16v12H4z"></path><path d="M3 4h18v4H3z"></path><path d="M9 12h6"></path></svg>`;
-        return `<tr>
+        return `<tr tabindex="0" style="cursor:pointer" onclick="if (!event.target.closest('button')) viewEnrollmentDetail(${Number(e.id)})" onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); viewEnrollmentDetail(${Number(e.id)}); }" aria-label="View ${escHtml(e.child_name)} enrollment details">
           <td>${String(i + 1).padStart(3, '0')}</td>
           <td><b>${escHtml(e.child_name)}</b></td>
           <td>${escHtml(e.child_age || '—')}</td>
@@ -5974,7 +5994,7 @@
       const message = archived
         ? `Archive ${record.child_name} from ${record.program}? This removes this program record from active student lists. Payment history and balances are kept.`
         : `Restore ${record.child_name} to active students for ${record.program}?`;
-      if (!confirm(message)) return;
+      if (!await showAppConfirmation({title: archived ? 'Archive Student' : 'Restore Student', message, confirmText: archived ? 'Archive' : 'Restore'})) return;
       button.disabled = true;
       try {
         const response = await fetch('api/archive_student.php', {
@@ -5991,7 +6011,7 @@
     }
 
     async function approveEnrollment(id, verifiedAmount) {
-      if (!confirm('Approve this enrollment?')) return;
+      if (!await showAppConfirmation({ title: 'Approve Enrollment', message: 'Approve this enrollment?', confirmText: 'Approve' })) return;
       try {
         const payload = { enrollment_id: id, action: 'approve' };
         if (verifiedAmount !== undefined && verifiedAmount !== null && !isNaN(verifiedAmount)) {
@@ -6047,10 +6067,11 @@
         renderBalanceMonitoringPage();
       }
       showToast(' Enrollment approved.');
+      return true;
     }
 
     async function rejectEnrollment(id) {
-      if (!confirm('Reject this enrollment?')) return;
+      if (!await showAppConfirmation({ title: 'Reject Enrollment', message: 'Reject this enrollment?', confirmText: 'Reject' })) return;
       try {
         const response = await fetch('api/admin_update_enrollment.php', {
           method: 'POST',
@@ -6092,6 +6113,7 @@
         changeMadStudioView(document.getElementById('mad-view-filter')?.value || 'madstudio');
       }
       showToast('❌ Enrollment rejected.');
+      return true;
     }
     // ----------------------
 
@@ -6494,6 +6516,10 @@
     // ─── MODAL HELPERS ────────────────────────────────────────────────────────────
     function openModal(id) {
       if (id === 'modal-add-student') {
+        // Start each new application at regular rates unless joining VIP explicitly.
+        const vipNo = document.getElementById('manual-vip-no');
+        if (vipNo) vipNo.checked = true;
+        toggleManualVipOption('no');
         const parentAge = document.getElementById('student-guardian-age');
         if (parentAge) {
           parentAge.disabled = false;
@@ -6567,6 +6593,51 @@
     }
 
     // ── CSV EXPORT ───────────────────────────────────────────────────────
+    function exportVisibleTableCSV(table, filename) {
+      const columns = [...table.querySelectorAll('thead th')].filter(th => !/^actions?$/i.test(th.textContent.trim()));
+      const rows = [...table.querySelectorAll('tbody tr')].filter(row => row.style.display !== 'none' && !row.querySelector('[colspan]'));
+      const quote = value => {
+        let text = String(value ?? '').trim();
+        if (/^[=+@-]/.test(text)) text = "'" + text;
+        return '"' + text.replace(/"/g, '""') + '"';
+      };
+      const csv = [columns.map(th => th.textContent), ...rows.map(row => columns.map(th => row.cells[th.cellIndex]?.innerText || ''))]
+        .map(row => row.map(quote).join(',')).join('\r\n');
+      const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'}));
+      const link = document.createElement('a');
+      link.href = url; link.download = 'einstein-' + filename + '.csv';
+      document.body.append(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('slot-playschool');
+      input.type = 'text'; input.inputMode = 'numeric'; input.pattern = '[0-9]{1,6}'; input.maxLength = 6;
+      input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, ''); updateSlotSaveState('playschool'); });
+      for (const id of ['tutoring-table','workshop-table','playschool-table','childcare-table','mad-table','summerblast-table']) {
+        const table = document.getElementById(id);
+        const controls = table.closest('.card').querySelector('.card-header').lastElementChild;
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'btn btn-outline btn-sm'; button.textContent = 'Export CSV';
+        button.onclick = () => exportVisibleTableCSV(table, id.replace('-table',''));
+        controls.prepend(button); controls.style.flexWrap = 'wrap';
+      }
+      const pendingBadge = document.getElementById('vip-pending-count');
+      pendingBadge.style.cssText = document.getElementById('vip-active-count').style.cssText;
+    });
+
+    async function reactivateVip(id, button) {
+      if (!await showAppConfirmation({title:'Reactivate VIP',message:'Reactivate this VIP membership for a new membership term? Existing enrollment prices and payments will stay unchanged.',confirmText:'Reactivate'})) return;
+      button.disabled = true;
+      try {
+        const response = await fetch('api/vip_api.php?scope=admin', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reactivate',enrollment_id:id})});
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Unable to reactivate VIP.');
+        await loadEnrollmentsFromServer(); renderVIPPage();
+        showToast('VIP membership reactivated.');
+      } catch (error) { showToast(error.message,'error'); }
+      finally { button.disabled = false; }
+    }
+
     function exportEnrollmentsCSV() {
       const statusFilter = document.getElementById('enroll-status-filter')?.value || '';
       const q = (document.getElementById('enroll-search')?.value || '').toLowerCase().trim();
@@ -6779,7 +6850,7 @@
     // Approve all enrollments in a parent group (silently loops)
     async function approveParentGroup(ids, totalVerifiedAmount) {
       if (!ids || !ids.length) return;
-      if (!confirm('Approve all ' + ids.length + ' enrollment(s) for this parent?')) return;
+      if (!await showAppConfirmation({ title: 'Approve Enrollments', message: 'Approve all ' + ids.length + ' enrollment(s) for this parent?', confirmText: 'Approve' })) return;
       let done = 0;
       const allRecs = (enrollments || getAllStoredEnrollments()).filter(r => ids.includes(r.id));
       const totalFees = allRecs.reduce((s, r) => s + parseEnrollmentFeeAdmin(r), 0);
@@ -6809,12 +6880,13 @@
       updateDashboardStats(); renderPaymentsPage(); renderVIPPage(); renderEnrollmentPage(); renderStudentsTable();
       if (document.getElementById('page-balancemonitoring')?.classList.contains('active')) renderBalanceMonitoringPage();
       showToast('\u2713 ' + done + ' of ' + ids.length + ' enrollment(s) approved for this parent.');
+      return done === ids.length;
     }
 
     // Reject all enrollments in a parent group (silently loops)
     async function rejectParentGroup(ids) {
       if (!ids || !ids.length) return;
-      if (!confirm('Reject all ' + ids.length + ' enrollment(s) for this parent?')) return;
+      if (!await showAppConfirmation({ title: 'Reject Enrollments', message: 'Reject all ' + ids.length + ' enrollment(s) for this parent?', confirmText: 'Reject' })) return;
       let done = 0;
       for (const id of ids) {
         try {
@@ -6826,6 +6898,7 @@
       await loadEnrollmentsFromServer();
       updateDashboardStats(); renderPaymentsPage(); renderVIPPage(); renderEnrollmentPage(); renderStudentsTable();
       showToast('\u274c ' + done + ' of ' + ids.length + ' enrollment(s) rejected for this parent.');
+      return done === ids.length;
     }
     function groupApprovedEnrollmentsByParent(list) {
       const groups = {};
@@ -7140,7 +7213,7 @@
       // In Enrollment Application Review (Image 2), entering verified initial payment is strictly REQUIRED!
       if (!isPendingVip) {
         if (valStr === '' || isNaN(parseFloat(valStr)) || parseFloat(valStr) <= 0) {
-          alert('Verified initial payment amount is required for enrollment application review. Please enter the amount received from the payment receipt before approving.');
+          await showNoticeModal({ title: 'Payment Amount Required', message: 'Verified initial payment amount is required for enrollment application review. Please enter the amount received from the payment receipt before approving.', icon: false });
           if (payInput) {
             payInput.focus();
             payInput.style.borderColor = '#c62828';
@@ -7161,20 +7234,24 @@
 
       // In Pending VIP Registry (Image 1), verified initial amount can be left blank (optional)
       const verifiedAmount = (valStr !== '' && !isNaN(parseFloat(valStr))) ? parseFloat(valStr) : null;
-      closeModal('modal-enrollment-approval');
-      if (groupIds && groupIds.length > 1) { await approveParentGroup(groupIds, verifiedAmount); return; }
+      if (groupIds && groupIds.length > 1) {
+        if (await approveParentGroup(groupIds, verifiedAmount)) closeModal('modal-enrollment-approval');
+        return;
+      }
       const rec = currentApprovalStudent;
       if (!rec || !rec.id) return;
-      await approveEnrollment(rec.id, verifiedAmount);
+      if (await approveEnrollment(rec.id, verifiedAmount)) closeModal('modal-enrollment-approval');
     }
 
     async function rejectFromModal() {
       const groupIds = _currentParentGroupIds && _currentParentGroupIds.length ? _currentParentGroupIds : null;
-      closeModal('modal-enrollment-approval');
-      if (groupIds && groupIds.length > 1) { await rejectParentGroup(groupIds); return; }
+      if (groupIds && groupIds.length > 1) {
+        if (await rejectParentGroup(groupIds)) closeModal('modal-enrollment-approval');
+        return;
+      }
       const rec = currentApprovalStudent;
       if (!rec || !rec.id) return;
-      await rejectEnrollment(rec.id);
+      if (await rejectEnrollment(rec.id)) closeModal('modal-enrollment-approval');
     }
 
     // Open modal for a parent enrollment application (single or multi-child, with or without VIP)
@@ -7299,14 +7376,17 @@
               '<div style="font-size:11px;color:#8b6f47;text-transform:uppercase;font-weight:700">Child ' + (i + 1) + '</div>' +
               assignTutorButton +
               '</div>' +
-              '<div style="font-weight:600;color:#3d1f0a;font-size:14px">' + escHtml(r.child_name || '—') + '</div>' +
-              (r.child_age && String(r.child_age).trim() !== '0' ? '<div style="font-size:12px;color:#8D6A4E">Age: ' + escHtml(r.child_age) + '</div>' : '') +
-              (r.child_grade ? '<div style="font-size:12px;color:#8D6A4E">Grade: ' + escHtml(r.child_grade) + '</div>' : '') +
-              (r.child_school ? '<div style="font-size:12px;color:#8D6A4E">School: ' + escHtml(r.child_school) + '</div>' : '') +
-              '<div style="font-size:12px;color:#5c3317;margin-top:4px"><b>Program:</b> ' + escHtml(buildEnrollmentInfo(r)) + '</div>' +
+              '<div class="detail-grid">' +
+              '<div class="detail-item"><label>Child Name</label><strong>' + escHtml(r.child_name || '—') + '</strong></div>' +
+              '<div class="detail-item"><label>Age</label><strong>' + escHtml(r.child_age || '—') + '</strong></div>' +
+              '<div class="detail-item"><label>Grade</label><strong>' + escHtml(r.child_grade || '—') + '</strong></div>' +
+              '<div class="detail-item"><label>School</label><strong>' + escHtml(r.child_school || '—') + '</strong></div>' +
+              '<div class="detail-item full-width"><label>Program</label><strong>' + escHtml(r.program || '—') + '</strong></div>' +
+              '<div class="detail-item full-width"><label>Package</label><strong>' + escHtml(r.package_selected || '—') + '</strong></div>' +
+              '<div class="detail-item"><label>Timeslot</label><strong>' + escHtml(r.timeslot || '—') + '</strong></div>' +
+              '<div class="detail-item"><label>Fee</label><strong style="color:#2e7d32">' + escHtml(feeStr) + '</strong></div></div>' +
               rentalSelectionHtml +
               summerSelectionHtml +
-              '<div style="font-size:12px;color:#2e7d32;font-weight:700;margin-top:2px">Fee: ' + escHtml(feeStr) + '</div>' +
               '</div>';
           }).join('');
         } else {
@@ -7383,6 +7463,11 @@
       const statusEl = document.getElementById('modal-payment-type');
       statusEl.style.color = sv === 'confirmed' ? '#2e7d32' : sv === 'rejected' ? '#c62828' : '#e65100';
       statusEl.textContent = sv === 'confirmed' ? '✓ Confirmed' : sv === 'rejected' ? '✕ Rejected' : '⏳ Pending Approval';
+      if (context === 'vip-member') {
+        const membershipStatus = options.membershipStatus || 'active';
+        statusEl.textContent = membershipStatus === 'active' ? 'Active' : membershipStatus === 'expired' ? 'Expired' : 'Unsubscribed';
+        statusEl.style.color = membershipStatus === 'active' ? '#2e7d32' : '#8b6f47';
+      }
       document.getElementById('modal-payment-mode').textContent = first.payment_method || (first.payment_screenshot ? 'Online (QR)' : 'Walk-in');
       const refNos = records.map(r => r.reference_no).filter(Boolean).join(', ');
       document.getElementById('modal-reference-no').textContent = 'Reference(s): ' + (refNos || '—');
@@ -7406,7 +7491,7 @@
 
       // Action buttons & banner
       const actionableRecords = records.filter(r => actionIdSet.has(String(r.id)));
-      const isActionable = actionableRecords.some(r => r.status === 'pending' || r.status === 'cancelled' || standaloneRentalNeedsReview(r));
+      const isActionable = context !== 'vip-member' && actionableRecords.some(r => r.status === 'pending' || r.status === 'cancelled' || standaloneRentalNeedsReview(r));
       const isRejected = (context === 'rejected') || records.every(r => r.status === 'cancelled');
       const isApproved = (context === 'approved') || records.every(r => r.status === 'confirmed' || r.payment_status === 'confirmed');
       const isVipPending = (context === 'vip-pending') || (!context && isAllVip && records.some(r => r.status === 'pending'));
@@ -7434,7 +7519,7 @@
       // Unsubscribe VIP button visibility: show when viewing active VIP member
       const unsubBtn = document.getElementById('modal-btn-unsubscribe-vip');
       if (unsubBtn) {
-        unsubBtn.style.display = (context === 'vip-member') ? 'inline-block' : 'none';
+        unsubBtn.style.display = (context === 'vip-member' && options.membershipStatus === 'active') ? 'inline-block' : 'none';
       }
 
       const banner = document.getElementById('modal-pending-banner');
@@ -7458,7 +7543,11 @@
         payInput.style.borderColor = '';
         payInput.style.boxShadow = '';
 
-        if (isActionable) {
+        if (isVipMember) {
+          paySection.style.display = 'none';
+          payInput.value = '';
+          payInput.readOnly = true;
+        } else if (isActionable) {
           paySection.style.display = 'block';
           payInput.readOnly = false;
           // Check if any record already has a recorded paid_amount
@@ -7640,6 +7729,7 @@
         return `<tr>
       ${baseInfo}
       <td>${escHtml(e.section || e.package_selected || '—')}</td>
+      <td>${escHtml(e.timeslot || '—')}</td>
       <td>${escHtml(e.address || '—')}</td>
       <td>${escHtml(e.payment_method || '—')}</td>
       <td>${statusBadge(e.status)}</td>
@@ -7652,6 +7742,7 @@
       ${baseInfo}
       <td>${escHtml(e.address || '—')}</td>
       <td>${escHtml(e.package_selected || '—')}</td>
+      <td>${escHtml(e.timeslot || '—')}</td>
       <td>${escHtml(e.payment_method || '—')}</td>
       <td>${statusBadge(e.status)}</td>
       <td>${fmtDate(e.created_at)}</td>
@@ -7688,7 +7779,7 @@
     }
 
     function viewEnrollmentDetail(id) {
-      const e = enrollments.find(x => x.id === id);
+      const e = enrollments.find(x => Number(x.id) === Number(id));
       if (!e) return;
       _currentViewEnrollmentId = e.id;
       _currentEnrollmentForAssign = e;
@@ -7699,7 +7790,10 @@
       <div class="detail-grid">
         <div class="detail-item"><label>Name</label><strong>${escHtml(e.child_name || '—')}</strong></div>
         <div class="detail-item"><label>Age</label><strong>${escHtml(e.child_age || '—')}</strong></div>
+        <div class="detail-item"><label>Grade</label><strong>${escHtml(e.child_grade || '—')}</strong></div>
+        <div class="detail-item"><label>School</label><strong>${escHtml(e.child_school || '—')}</strong></div>
       </div>
+      ${!e.student_archived_at && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px"><span id="detail-assigned-tutor-name">Loading tutor assignment…</span><button type="button" id="btn-view-assign-tutor" class="btn btn-outline btn-sm" onclick="openAssignTutorForChild(${Number(e.id)})">Assign Tutor</button></div>` : ''}
     </div>
     <div class="enrollment-detail-section">
       <h4>Parent/Guardian Information</h4>
@@ -7732,6 +7826,19 @@
   `;
 
       openModal('modal-enrollment-view');
+      fetch(`api/assign_tutor.php?enrollment_id=${Number(e.id)}`, {credentials:'same-origin'})
+        .then(response => response.json()).then(data => {
+          if (Number(_currentViewEnrollmentId) !== Number(e.id)) return;
+          const label = document.getElementById('detail-assigned-tutor-name');
+          const button = document.getElementById('btn-view-assign-tutor');
+          if (label) label.textContent = data.success ? (data.assignment?.full_name || 'No tutor assigned. Assign a tutor to show this child in the schedule.') : 'Unable to load tutor assignment.';
+          if (button) button.textContent = data.assignment ? 'Change Tutor' : 'Assign Tutor';
+        }).catch(() => {
+          if (Number(_currentViewEnrollmentId) === Number(e.id)) {
+            const label = document.getElementById('detail-assigned-tutor-name');
+            if (label) label.textContent = 'Unable to load tutor assignment.';
+          }
+        });
     }
 
     // ─── SUMMER BLAST RESERVED STUDENTS ──────────────────────────────────────────
@@ -8877,12 +8984,18 @@
         // Update local data
         const row = schedulesList.find(s => s.id == rowId);
         if (row) row[day] = val;
+        if (row && d.id) row.id = d.id;
         // Re-color cell immediately
         el.style.background = cellBg(val);
         el.style.color = cellColor(val);
         el.dataset.originalValue = val;
+        await loadEnrollmentsFromServer();
+        await loadScheduleGrid();
         showToast('Saved ✓');
       } catch(err) {
+        el.textContent = original;
+        el.style.background = cellBg(original);
+        el.style.color = cellColor(original);
         showToast('⚠ Save failed: ' + err.message);
       }
     }
@@ -8905,8 +9018,11 @@
         const row = schedulesList.find(s => s.id == rowId);
         if (row) row.timeslot = cleanVal;
         el.dataset.originalValue = cleanVal;
+        await loadEnrollmentsFromServer();
+        await loadScheduleGrid();
         showToast('Timeslot updated ✓');
       } catch(err) {
+        el.textContent = original;
         showToast('⚠ Timeslot save failed: ' + err.message);
       }
     }
@@ -9549,7 +9665,7 @@
     }
 
     async function deleteAnnouncement(id, fallbackIdx) {
-      if (!confirm('Delete this announcement?')) return;
+      if (!await showAppConfirmation({ title: 'Delete Announcement', message: 'Delete this announcement?', confirmText: 'Delete' })) return;
       try {
         if (id) {
           const res = await fetch('api/api_announcements.php', {
@@ -9710,9 +9826,9 @@
       openModal('modal-assign-tutor');
     }
 
-    function openAssignTutorForChild(enrollmentId) {
+    async function openAssignTutorForChild(enrollmentId) {
       const rec = enrollments.find(x => Number(x.id) === Number(enrollmentId));
-      if (!rec) { alert('Enrollment record not found.'); return; }
+      if (!rec) { await showNoticeModal({title:'Student Not Found',message:'Enrollment record not found.',icon:false}); return; }
       _currentEnrollmentForAssign = rec;
       const label = `${rec.child_name || '—'} — ${rec.program || 'Program'}`;
       document.getElementById('assign-enrollment-id').value = rec.id;
@@ -9721,11 +9837,14 @@
       document.getElementById('assign-current-info').style.display = 'none';
       document.getElementById('btn-unassign').style.display = 'none';
 
-      if (!tutorsList.length) loadTutors();
+      document.getElementById('assign-tutor-select').value = '';
+      if (!tutorsList.length) await loadTutors();
+      if (Number(document.getElementById('assign-enrollment-id').value) !== Number(rec.id)) return;
 
-      // Check existing assignment
+      // Check existing assignment after the tutor options have loaded.
       fetch(`api/assign_tutor.php?enrollment_id=${rec.id}`, { credentials: 'include' })
         .then(r => r.json()).then(d => {
+          if (Number(document.getElementById('assign-enrollment-id').value) !== Number(rec.id)) return;
           if (d && d.assignment) {
             document.getElementById('assign-current-name').textContent = d.assignment.full_name;
             document.getElementById('assign-current-info').style.display = 'block';
@@ -9740,7 +9859,7 @@
     async function submitAssignTutor() {
       const eid = parseInt(document.getElementById('assign-enrollment-id').value);
       const tid = parseInt(document.getElementById('assign-tutor-select').value);
-      if (!eid || !tid) { alert('Please select a tutor.'); return; }
+      if (!eid || !tid) { await showNoticeModal({title:'Tutor Required',message:'Please select a tutor.',icon:false}); return; }
       try {
         const r = await fetch('api/assign_tutor.php', {
           method: 'POST', credentials: 'include',
@@ -9767,7 +9886,7 @@
 
     async function unassignTutor() {
       const eid = parseInt(document.getElementById('assign-enrollment-id').value);
-      if (!confirm('Remove the current tutor assignment?')) return;
+      if (!await showAppConfirmation({title:'Remove Tutor Assignment',message:'Remove the current tutor assignment?',confirmText:'Remove'})) return;
       try {
         const r = await fetch('api/assign_tutor.php', {
           method: 'POST', credentials: 'include',
@@ -9859,7 +9978,7 @@
   </div>
 
 
-  <script src="js/logout-modal.js?v=1"></script>
+  <script src="js/logout-modal.js?v=2"></script>
   <script src="js/security.js"></script>
   <script>
     // ═══════════════════════════════════════════════════════════════

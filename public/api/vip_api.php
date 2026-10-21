@@ -14,6 +14,26 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
         if ($admin) {
+            if (($data['action'] ?? '') === 'reactivate') {
+                $id = filter_var($data['enrollment_id'] ?? null, FILTER_VALIDATE_INT);
+                if (!$id || $id < 1) throw new RuntimeException('Select a valid VIP membership.');
+                $db->beginTransaction();
+                $q = $db->prepare("SELECT id,user_id,status,payment_status FROM enrollments WHERE id=? AND LOWER(program) LIKE '%vip%' FOR UPDATE");
+                $q->execute([$id]);
+                $member = $q->fetch(PDO::FETCH_ASSOC);
+                if (!$member || $member['status'] === 'pending' || $member['payment_status'] === 'rejected') throw new RuntimeException('Only a previous VIP membership can be reactivated.');
+                $now = new DateTimeImmutable();
+                if ($member['user_id']) {
+                    $q = $db->prepare('SELECT unsubscribed_at FROM vip_unsubscriptions WHERE user_id=?');
+                    $q->execute([$member['user_id']]);
+                    $cutoff = $q->fetchColumn();
+                    if ($cutoff && $now <= new DateTimeImmutable($cutoff)) $now = (new DateTimeImmutable($cutoff))->modify('+1 second');
+                }
+                $db->prepare('INSERT INTO vip_reactivations (enrollment_id,reactivated_at) VALUES (?,?) ON DUPLICATE KEY UPDATE reactivated_at=VALUES(reactivated_at)')->execute([$id,$now->format('Y-m-d H:i:s')]);
+                $db->prepare("UPDATE enrollments SET status='confirmed',updated_at=NOW() WHERE id=?")->execute([$id]);
+                $db->commit();
+                echo json_encode(['success'=>true]); exit;
+            }
             $years = filter_var($data['years'] ?? null, FILTER_VALIDATE_INT);
             if (!$years || $years < 1 || $years > 10) throw new RuntimeException('Enter 1 to 10 years.');
             $db->prepare('UPDATE vip_settings SET duration_years=? WHERE id=1')->execute([$years]);
@@ -73,6 +93,7 @@ try {
     usort($events, fn($a, $b) => strcmp($b['at'], $a['at']));
     echo json_encode(['success' => true, 'years' => (int) $db->query('SELECT duration_years FROM vip_settings WHERE id=1')->fetchColumn(), 'events' => array_slice($events, 0, 30), 'members' => $members]);
 } catch (Throwable $e) {
+    if (isset($db) && $db->inTransaction()) $db->rollBack();
     if (http_response_code() < 400) http_response_code(422);
     echo json_encode(['success' => false, 'message' => $e instanceof PDOException ? 'Unable to load VIP membership.' : $e->getMessage()]);
 }

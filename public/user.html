@@ -1996,7 +1996,6 @@
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem; border-bottom:1px solid #f0e6d2; padding-bottom:0.85rem;">
                 <div>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.3rem;">💳</span>
                         <h2 id="client-payment-info-title" style="font-family:'Playfair Display',serif; color:#3d1f0a; font-size:1.35rem; margin:0;">Payment Information</h2>
                     </div>
                     <p style="font-size:0.8rem; color:#8b6f47; margin:3px 0 0;">Official payment record & receipt verification</p>
@@ -2039,7 +2038,7 @@
             <!-- Initial Payment Proof & Method Details -->
             <div style="margin-bottom:1.25rem;">
                 <div style="font-size:0.85rem; font-weight:700; color:#5e3a21; margin-bottom:0.5rem; display:flex; align-items:center; gap:6px;">
-                    <span>🧾</span> Initial / Enrollment Payment
+                    Initial / Enrollment Payment
                 </div>
                 <div id="cpi-initial-payment-box" style="background:#fff; border:1px solid #e7d8c6; border-radius:12px; padding:1rem;">
                     <!-- Filled dynamically -->
@@ -2049,7 +2048,7 @@
             <!-- Additional Balance Receipts / Ledger History -->
             <div id="cpi-additional-payments-section" style="display:none; margin-bottom:1.25rem;">
                 <div style="font-size:0.85rem; font-weight:700; color:#5e3a21; margin-bottom:0.5rem; display:flex; align-items:center; gap:6px;">
-                    <span>📑</span> Balance Payments & Additional Submissions
+                    Balance Payments & Additional Submissions
                 </div>
                 <div id="cpi-additional-payments-list" style="display:flex; flex-direction:column; gap:0.6rem;">
                     <!-- Filled dynamically -->
@@ -3610,13 +3609,13 @@
                     statusBadgeEl.style.border = '1px solid #fca5a5';
                 } else if (bal.isSettled || bal.balanceDue === 0) {
                     statusBadgeEl.className = 'status-badge';
-                    statusBadgeEl.textContent = '✓ Fully Settled';
+                    statusBadgeEl.textContent = 'Fully Settled';
                     statusBadgeEl.style.background = '#dcfce7';
                     statusBadgeEl.style.color = '#15803d';
                     statusBadgeEl.style.border = '1px solid #bbf7d0';
                 } else if (bal.status === 'pending') {
                     statusBadgeEl.className = 'status-badge';
-                    statusBadgeEl.textContent = '⏳ Pending Admin Approval';
+                    statusBadgeEl.textContent = 'Pending Admin Approval';
                     statusBadgeEl.style.background = '#fffbeb';
                     statusBadgeEl.style.color = '#b45309';
                     statusBadgeEl.style.border = '1px solid #fde68a';
@@ -3665,15 +3664,15 @@
                     const cleanShot = String(e.payment_screenshot).replace(/'/g, "\\'");
                     proofHtml = `
                         <div style="margin-top:0.75rem;padding:0.6rem 0.8rem;background:#faf6f0;border-radius:8px;border:1px dashed #decbb7;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                            <img src="${escapeHTML(e.payment_screenshot)}" alt="Payment Receipt" 
+                            <img src="${escapeHTML(receiptAssetUrl(e.payment_screenshot))}" alt="Payment Receipt"
                                 style="width:58px;height:58px;object-fit:cover;border-radius:6px;border:1px solid #decbb7;cursor:pointer;background:#fff;"
                                 onclick="viewReceiptImage('${cleanShot}', 'Initial Receipt - ${escapeHTML(e.reference_no)}')">
                             <div style="flex:1;min-width:160px;">
                                 <div style="font-size:0.8rem;font-weight:700;color:#3d1f0a;">Payment Proof Uploaded</div>
-                                <div style="font-size:0.72rem;color:#8b6f47;">Receipt verified by Einstein Center administration</div>
+                                <div style="font-size:0.72rem;color:#8b6f47;">${isConfirmedPmt ? 'Receipt verified by Einstein Center administration' : 'Receipt awaiting verification by Einstein Center administration'}</div>
                                 <button type="button" class="panel-btn panel-btn-secondary" style="margin-top:4px;padding:2px 8px;font-size:0.72rem;"
                                     onclick="viewReceiptImage('${cleanShot}', 'Initial Receipt - ${escapeHTML(e.reference_no)}')">
-                                    🔍 View Full Receipt
+                                    View Full Receipt
                                 </button>
                             </div>
                         </div>
@@ -3681,7 +3680,7 @@
                 } else {
                     proofHtml = `
                         <div style="margin-top:0.5rem;font-size:0.78rem;color:#8b6f47;display:flex;align-items:center;gap:6px;">
-                            <span>🏢</span> <em>Walk-in or Cash payment registered with the center.</em>
+                            <em>Walk-in or Cash payment registered with the center.</em>
                         </div>
                     `;
                 }
@@ -3698,7 +3697,7 @@
                             <div style="font-size:0.75rem;color:#8b6f47;text-transform:uppercase;font-weight:700;">Verification Status</div>
                             <div style="margin-top:2px;">
                                 <span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:0.75rem;font-weight:700;background:${isConfirmedPmt ? '#dcfce7' : '#fffbeb'};color:${isConfirmedPmt ? '#15803d' : '#b45309'};">
-                                    ${isConfirmedPmt ? '✓ Verified / Confirmed' : '⏳ Pending Confirmation'}
+                                    ${isConfirmedPmt ? 'Verified / Confirmed' : 'Pending Confirmation'}
                                 </span>
                             </div>
                         </div>
@@ -3734,7 +3733,7 @@
                                 <div style="font-size:0.82rem;font-weight:700;color:#3d1f0a;">
                                     Balance Payment #${idx + 1}
                                     <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:0.7rem;font-weight:700;background:${isAppr ? '#dcfce7' : isRej ? '#fee2e2' : '#fffbeb'};color:${isAppr ? '#15803d' : isRej ? '#991b1b' : '#b45309'};">
-                                        ${isAppr ? '✓ Approved' : isRej ? '✕ Rejected' : '⏳ Pending Review'}
+                                        ${isAppr ? 'Approved' : isRej ? 'Rejected' : 'Pending Review'}
                                     </span>
                                 </div>
                                 <div style="font-size:0.75rem;color:#8b6f47;margin-top:2px;">
@@ -3745,7 +3744,7 @@
                                 ${r.path ? `
                                     <button type="button" class="panel-btn panel-btn-secondary" style="padding:3px 8px;font-size:0.72rem;"
                                         onclick="viewReceiptImage('${cleanPath}', 'Balance Receipt #${idx + 1}')">
-                                        🔍 View Receipt
+                                        View Receipt
                                     </button>
                                 ` : ''}
                             </div>
@@ -3797,7 +3796,7 @@
                     };
                 }
             } else {
-                if (noteEl) noteEl.innerHTML = `<span style="color:#15803d;font-weight:600;">✓ Fully settled. No remaining balance.</span>`;
+                if (noteEl) noteEl.innerHTML = `<span style="color:#15803d;font-weight:600;">Fully settled. No remaining balance.</span>`;
                 if (payBtn) payBtn.style.display = 'none';
             }
 
