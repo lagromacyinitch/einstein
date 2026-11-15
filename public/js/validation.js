@@ -171,6 +171,10 @@
                 val = autoCapitalizeWords(val);
                 break;
 
+            case 'manual-timeslot':
+                val = val.replace(/[^0-9:;.\- aApPmM]/g, '');
+                break;
+
             case 'schedule':
                 // Schedules: Letters and numbers allowed
                 val = val.replace(/[^A-Za-z0-9\s:-]/g, '');

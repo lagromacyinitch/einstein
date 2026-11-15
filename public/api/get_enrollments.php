@@ -26,9 +26,11 @@ try {
 
     $userId = (int) $_SESSION['user_id'];
     $db = getDB();
+    require_once __DIR__ . '/../includes/enrollment_end_dates.php';
+    ensureEnrollmentEndDateHistory($db);
 
     // Query all enrollments for this user
-    $stmt = $db->prepare("SELECT * FROM enrollments WHERE user_id=? ORDER BY created_at DESC");
+    $stmt = $db->prepare("SELECT e.*, (SELECT h.new_override FROM enrollment_end_date_history h WHERE h.enrollment_id = e.id ORDER BY h.id DESC LIMIT 1) AS end_date_override FROM enrollments e WHERE e.user_id=? ORDER BY e.created_at DESC");
     $stmt->execute([$userId]);
     $rawEnrollments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -38,7 +40,7 @@ try {
     $completed = 0;
 
     foreach ($rawEnrollments as $e) {
-        $decrypted = decryptRow($e, ['child_name', 'child_age', 'child_grade', 'child_school', 'guardian_name', 'address', 'contact', 'facebook_name', 'notes']);
+        $decrypted = decryptRow($e, ['child_name', 'child_age', 'child_grade', 'child_school', 'guardian_name', 'guardian_age', 'address', 'contact', 'facebook_name', 'notes']);
         $decrypted['current_total_fee'] = balanceTotalFee($decrypted);
         $enrollments[] = $decrypted;
 

@@ -341,6 +341,14 @@ try {
     // Decrypt them before resolving the approval total for the balance ledger.
     $enroll['notes'] = decryptAES256($enroll['notes'] ?? '');
 
+    $reEnrollmentNotes = json_decode($enroll['notes'] ?? '', true);
+    $isReEnrollment = (is_array($reEnrollmentNotes) && isset($reEnrollmentNotes['re_enrollment']))
+        || str_starts_with((string) ($enroll['notes'] ?? ''), 'Re-enrollment for ');
+    if ($action === 'approve' && $isReEnrollment
+        && (!isset($post['verified_payment_amount']) || !is_numeric($post['verified_payment_amount']) || (float) $post['verified_payment_amount'] <= 0)) {
+        throw new Exception('Review the re-enrollment receipt and enter the verified payment amount before approving.');
+    }
+
     $adminNotesPayload = null;
     if ($action === 'approve') {
         try {

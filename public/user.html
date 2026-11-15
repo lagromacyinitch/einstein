@@ -655,6 +655,18 @@
             border-color: var(--maroon);
         }
 
+        .child-filter {
+            padding: 6px 14px;
+            border: 1px solid var(--light-brown);
+            border-radius: 6px;
+            background: #fff;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         .enrollment-list {
             display: flex;
             flex-direction: column;
@@ -1800,7 +1812,7 @@
             <!-- PROGRAMS SECTION -->
             <div class="programs-section" id="programsContainer">
                 <h2 class="section-title">Available Programs</h2>
-                <p class="section-subtitle">Click any program below to begin your enrollment.</p>
+                <p class="section-subtitle" style="font-size:1.15rem"><strong>Click</strong> any program below to begin your <strong>enrollment</strong>.</p>
                 <div class="programs-grid" id="programsGrid">
                     <!-- Programs will be loaded here -->
                 </div>
@@ -1820,9 +1832,11 @@
 
             <div class="enrollments-header">
                 <div class="filters">
-                    <button class="filter-btn active" onclick="filterEnrollments('all')">All</button>
-                    <button class="filter-btn" onclick="filterEnrollments('confirmed')">Active</button>
-                    <button class="filter-btn" onclick="filterEnrollments('pending')">Pending</button>
+                    <select id="enrollment-child-filter" class="child-filter" aria-label="Filter enrollments by child" onchange="filterEnrollments('all')">
+                        <option value="">All children</option>
+                    </select>
+                    <button class="filter-btn" data-status="confirmed" onclick="filterEnrollments('confirmed')">Active</button>
+                    <button class="filter-btn" data-status="pending" onclick="filterEnrollments('pending')">Pending</button>
                 </div>
                 <div class="enrollments-count-pill" id="enrollmentsCountPill">0 Total</div>
             </div>
@@ -1959,7 +1973,7 @@
         ">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;border-bottom:1px solid #f0e6d2;padding-bottom:0.75rem;">
                 <div>
-                    <h2 style="font-family:'Playfair Display',serif;color:var(--dark);font-size:1.3rem;margin:0">Pay Balance</h2>
+                    <h2 id="balance-payment-title" style="font-family:'Playfair Display',serif;color:var(--dark);font-size:1.3rem;margin:0">Pay Balance</h2>
                     <p style="font-size:0.8rem;color:var(--muted);margin:3px 0 0">Einstein Child Care & Learning Center Payment Channels</p>
                 </div>
                 <button onclick="closeBalancePaymentInfoModal()"
@@ -1969,7 +1983,7 @@
             <div id="modal-balance-ref-box" style="display:none;background:#fef6eb;border:1px dashed #dab55c;border-radius:10px;padding:0.9rem 1rem;margin-bottom:1.25rem;">
                 <div style="font-size:0.75rem;font-weight:700;color:#8B6914;text-transform:uppercase;">Enrolled Student & Reference</div>
                 <div style="font-size:1rem;font-weight:800;color:#5e3a21;margin-top:2px" id="modal-balance-ref-name">—</div>
-                <div style="font-size:0.85rem;color:#8B6914;margin-top:2px">Ref: <strong id="modal-balance-ref-num">—</strong> &bull; Balance Due: <strong style="color:#c62828" id="modal-balance-ref-due">₱0</strong></div>
+                <div style="font-size:0.85rem;color:#8B6914;margin-top:2px"><span id="balance-reference-label">Ref</span>: <strong id="modal-balance-ref-num">—</strong> &bull; <span id="balance-amount-label">Balance Due</span>: <strong style="color:#c62828" id="modal-balance-ref-due">₱0</strong></div>
             </div>
 
             <div id="balance-methods" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"></div>
@@ -2143,7 +2157,7 @@
 
             <!-- Helpful note -->
             <div style="background:#fef9ee;border:1px solid #f5deb3;border-radius:10px;padding:0.85rem 1rem;margin-bottom:1.2rem;flex-shrink:0;">
-                <p style="margin:0;font-size:0.82rem;color:#7c4a03;line-height:1.5;">
+                <p id="re-enroll-note" style="margin:0;font-size:0.82rem;color:#7c4a03;line-height:1.5;">
                     This will submit a re-enrollment request using these details. Your application will be sent directly to the administrator for review and approval.
                 </p>
             </div>
@@ -2156,7 +2170,7 @@
                 </button>
                 <button id="btn-proceed-re-enroll" onclick="proceedReEnrollment()"
                     style="padding:10px 24px;border-radius:8px;border:none;background:var(--maroon);color:#fff;font-size:0.92rem;cursor:pointer;font-weight:800;letter-spacing:0.02em;box-shadow:0 4px 12px rgba(94,58,33,0.25);">
-                    <strong>Submit Re-enrollment</strong>
+                    <strong>Pay &amp; Submit</strong>
                 </button>
             </div>
         </div>
@@ -2431,6 +2445,7 @@
         });
 
         let allEnrollments = [];
+        let enrollmentStatusFilter = 'all';
         let enrollmentPollTimer = null;
         let lastEnrollmentSnapshot = '';
         let lastVipStateSnapshot = '';
@@ -2461,6 +2476,7 @@
                 package_selected: e.package_selected,
                 updated_at: e.updated_at,
                 created_at: e.created_at,
+                end_date_override: e.end_date_override,
                 admin_notes: e.admin_notes
             })));
         }
@@ -2579,6 +2595,11 @@
                 // months
                 expDate.setMonth(expDate.getMonth() + spanVal);
             }
+            if (/^\d{4}-\d{2}-\d{2}$/.test(e.end_date_override || '')) {
+                const [year, month, day] = e.end_date_override.split('-').map(Number);
+                expDate.setFullYear(year, month - 1, day);
+            }
+            expDate.setHours(0, 0, 0, 0);
 
             const now = new Date();
             const isSpanElapsed = now >= expDate;
@@ -2659,15 +2680,8 @@
                         : 'No active enrollments yet. Choose a program below to enroll today!';
                 }
 
-                const activeFilter = document.querySelector('.filter-btn.active');
-                const filterLabel = activeFilter ? activeFilter.textContent.toLowerCase() : 'all';
-                if (filterLabel.includes('active')) {
-                    filterEnrollments('confirmed');
-                } else if (filterLabel.includes('pending')) {
-                    filterEnrollments('pending');
-                } else {
-                    renderEnrollments(allEnrollments);
-                }
+                updateEnrollmentChildFilter();
+                applyEnrollmentFilters();
 
                 renderVipMembership(allEnrollments);
                 renderMyBalance(allEnrollments);
@@ -2699,7 +2713,7 @@
             list = list.filter(e => !String(e.program || '').toLowerCase().includes('vip'));
             const listContainer = document.getElementById('enrollmentList');
             if (list.length === 0) {
-                listContainer.innerHTML = `<div style="text-align: center; padding: 2.5rem; background: #fff; border-radius: 10px; color: var(--muted); border: 1px dashed rgba(94, 58, 33, 0.2)">No enrollments found for this status.</div>`;
+                listContainer.innerHTML = `<div style="text-align: center; padding: 2.5rem; background: #fff; border-radius: 10px; color: var(--muted); border: 1px dashed rgba(94, 58, 33, 0.2)">No enrollments found for these filters.</div>`;
                 return;
             }
 
@@ -2747,6 +2761,10 @@
                                 const spanStatus = getEnrollmentSpanStatus(e);
 
                                 if (spanStatus.reason === 'pending_request') {
+                                    // Temporary demo preview for Tiya's existing enrollment.
+                                    if (e.reference_no === 'ECL-15BF31-26') {
+                                        return `<button class="panel-btn panel-btn-primary" style="margin-top:0.35rem;padding:7px 20px;font-size:0.88rem;border-radius:8px;font-weight:800;" onclick="openReEnrollModal(${e.id}, true)"><strong>Re-enroll</strong></button>`;
+                                    }
                                     return `
                                         <button class="panel-btn" 
                                             disabled 
@@ -2761,8 +2779,8 @@
                                     return `
                                         <span class="status-badge" 
                                             style="margin-top:0.35rem;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;font-weight:700;padding:5px 12px;border-radius:8px;font-size:0.8rem;text-align:center;"
-                                            title="Active enrollment duration: ${spanStatus.spanVal} ${spanStatus.spanUnit}. Re-enrollment will open on ${spanStatus.expDateStr}.">
-                                            Active (${spanStatus.spanVal} ${spanStatus.spanUnit === 'years' ? (spanStatus.spanVal > 1 ? 'yrs' : 'yr') : spanStatus.spanUnit} &bull; Ends ${spanStatus.expDateStr})
+                                            title="Re-enrollment will open on ${spanStatus.expDateStr}.">
+                                            Active (${e.end_date_override ? '' : spanStatus.spanVal + ' ' + (spanStatus.spanUnit === 'years' ? (spanStatus.spanVal > 1 ? 'yrs' : 'yr') : spanStatus.spanUnit) + ' • '}Ends ${spanStatus.expDateStr})
                                         </span>
                                     `;
                                 }
@@ -2911,7 +2929,7 @@
 
                 const descText = spanStatus.eligible
                     ? `Your ${escapeHTML(e.program)} span has completed. Re-enroll <strong>${escapeHTML(e.child_name || 'your child')}</strong> with one tap.`
-                    : `Active enrollment for <strong>${escapeHTML(e.child_name || 'your child')}</strong> (${spanStatus.spanVal} ${spanStatus.spanUnit === 'years' ? (spanStatus.spanVal > 1 ? 'years' : 'year') : spanStatus.spanUnit}). Valid until ${spanStatus.expDateStr}.`;
+                    : `Active enrollment for <strong>${escapeHTML(e.child_name || 'your child')}</strong>. Re-enrollment opens ${spanStatus.expDateStr}.`;
 
                 return `
                     <div class="re-enroll-card">
@@ -2941,8 +2959,10 @@
                 return (now - new Date(e.created_at).getTime()) <= ONE_WEEK_MS;
             });
             document.getElementById('client-vip-records').innerHTML = vipRecords.length ? vipRecords.map(e => {
-                const status = e.status === 'confirmed' ? 'Approved' : e.status === 'pending' ? 'Pending Review' : 'Not Approved';
-                const rows = [['Member',e.guardian_name || e.child_name || '—'],['Age',Number(e.child_age)>0 ? String(e.child_age) : '—'],['Package',e.package_selected || 'VIP Club Membership'],['Status',status],['Reference',e.reference_no || '—'],['Date Submitted',e.created_at ? new Date(e.created_at).toLocaleDateString('en-US') : '—']];
+                const status = e.status === 'confirmed' ? 'Approved' : e.status === 'pending' ? 'Pending Review'
+                    : e.status === 'cancelled' && e.payment_status !== 'rejected' && (e.payment_status === 'cancelled' || window.clientVipState?.unsubscribed) ? 'Unsubscribed' : 'Not Approved';
+                const age = Number(e.guardian_age) > 0 ? e.guardian_age : (Number(e.child_age) > 0 ? e.child_age : '—');
+                const rows = [['Member',e.guardian_name || e.child_name || '—'],['Age',age],['Package',e.package_selected || 'VIP Club Membership'],['Status',status],['Reference',e.reference_no || '—'],['Date Submitted',e.created_at ? new Date(e.created_at).toLocaleDateString('en-US') : '—']];
                 return '<div style="border:1px solid #dec6ac;border-radius:12px;padding:14px;margin-bottom:20px;background:white"><table aria-label="VIP membership application"><tbody>' + rows.map(([label,value])=>`<tr><th scope="row">${label}</th><td>${escapeHTML(String(value))}</td></tr>`).join('') + '</tbody></table></div>';
             }).join('') : '<p>No VIP membership applications yet.</p>';
 
@@ -3815,7 +3835,7 @@
             }
         }
 
-        let balancePaymentRef = '', balancePaymentMethod = '';
+        let balancePaymentRef = '', balancePaymentMethod = '', reEnrollmentPaymentMode = false, reEnrollmentDemoPreview = false;
         function selectBalanceMethod(method, src) {
             balancePaymentMethod=method;
             document.querySelectorAll('#balance-methods button').forEach(b=>b.style.border=b.dataset.method===method?'2px solid #4c2b16':'1px solid #decbb7');
@@ -3829,6 +3849,7 @@
         async function submitClientBalance() {
             const button=document.getElementById('balance-submit-button'),message=document.getElementById('balance-submit-message');
             if(button.disabled) return;
+            if (reEnrollmentPaymentMode) return submitReEnrollmentPayment();
             if(!balancePaymentRef || !balancePaymentMethod){message.style.color='#b91c1c';message.textContent='Choose a payment method.';return;}
             const fileInput=document.getElementById('balance-receipt-file');
             const file=fileInput.files[0];
@@ -3958,6 +3979,11 @@
         })();
 
         function openBalancePaymentInfoModal(refNo, name, due) {
+            reEnrollmentPaymentMode = false;
+            document.getElementById('balance-payment-title').textContent = 'Pay Balance';
+            document.getElementById('balance-submit-button').textContent = 'Submit';
+            document.getElementById('balance-reference-label').textContent = 'Ref';
+            document.getElementById('balance-amount-label').textContent = 'Balance Due';
             balancePaymentRef=refNo||'';balancePaymentMethod='';
             document.getElementById('balance-submit-message').textContent='';
             const receiptInput = document.getElementById('balance-receipt-file');
@@ -3999,20 +4025,33 @@
             }
         }
 
+        function updateEnrollmentChildFilter() {
+            const select = document.getElementById('enrollment-child-filter');
+            if (!select) return;
+            const selected = select.value;
+            const names = [...new Set(allEnrollments
+                .filter(e => !String(e.program || '').toLowerCase().includes('vip'))
+                .map(e => String(e.child_name || '').trim()).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b));
+            select.replaceChildren(new Option('All children', ''));
+            names.forEach(name => select.add(new Option(name, name)));
+            select.value = names.includes(selected) ? selected : '';
+        }
+
+        function applyEnrollmentFilters() {
+            const child = document.getElementById('enrollment-child-filter')?.value || '';
+            renderEnrollments(allEnrollments.filter(e =>
+                (enrollmentStatusFilter === 'all' || e.status === enrollmentStatusFilter) &&
+                (!child || String(e.child_name || '').trim() === child)
+            ));
+        }
+
         function filterEnrollments(status) {
-            const buttons = document.querySelectorAll('.filter-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-
-            const btnTextMap = { 'all': 'all', 'confirmed': 'active', 'pending': 'pending' };
-            const currentButton = Array.from(buttons).find(btn => btn.textContent.toLowerCase().includes(btnTextMap[status]));
-            if (currentButton) currentButton.classList.add('active');
-
-            if (status === 'all') {
-                renderEnrollments(allEnrollments);
-            } else {
-                const filtered = allEnrollments.filter(e => e.status === status);
-                renderEnrollments(filtered);
-            }
+            enrollmentStatusFilter = status !== 'all' && enrollmentStatusFilter === status ? 'all' : status;
+            document.querySelectorAll('#user-page-enrollments .filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.status === enrollmentStatusFilter);
+            });
+            applyEnrollmentFilters();
         }
 
         function escapeHTML(str) {
@@ -4069,7 +4108,7 @@
         /* ── RE-ENROLLMENT MODAL & PREFILL LOGIC ────────── */
         let selectedReEnrollId = null;
 
-        function openReEnrollModal(enrollmentId) {
+        function openReEnrollModal(enrollmentId, demoPreview = false) {
             const e = (allEnrollments || []).find(item => item.id == enrollmentId);
             if (!e) {
                 alert('Enrollment record not found.');
@@ -4080,18 +4119,26 @@
                 String(item.program || '').trim().toLowerCase() === String(e.program || '').trim().toLowerCase() && 
                 String(item.child_name || '').trim().toLowerCase() === String(e.child_name || '').trim().toLowerCase()
             );
-            if (isAlreadyPending) {
+            demoPreview = demoPreview && e.reference_no === 'ECL-15BF31-26' && isAlreadyPending;
+            if (isAlreadyPending && !demoPreview) {
                 alert('A re-enrollment request for this student is already pending administrator approval.');
                 return;
             }
 
             const spanStatus = getEnrollmentSpanStatus(e);
             if (!spanStatus.eligible && spanStatus.reason === 'active_span') {
-                alert(`This enrollment is currently within its active duration (${spanStatus.spanVal} ${spanStatus.spanUnit}) until ${spanStatus.expDateStr}. Re-enrollment will become available once this period has completed.`);
+                alert(`This enrollment is currently active. Re-enrollment will become available on ${spanStatus.expDateStr}.`);
                 return;
             }
 
             selectedReEnrollId = enrollmentId;
+            const submitButton = document.getElementById('btn-proceed-re-enroll');
+            const note = document.getElementById('re-enroll-note');
+            reEnrollmentDemoPreview = demoPreview;
+            if (submitButton) submitButton.disabled = false;
+            if (note) note.textContent = demoPreview
+                ? 'Demo preview only: a re-enrollment request is already pending for this student.'
+                : 'Choose a payment channel and upload your receipt before submitting for administrator review.';
 
             const body = document.getElementById('re-enroll-details-body');
             if (!body) return;
@@ -4191,11 +4238,40 @@
 
         let isSubmittingReEnroll = false;
 
-        async function proceedReEnrollment() {
+        function proceedReEnrollment() {
+            const enrollment = allEnrollments.find(item => item.id == selectedReEnrollId);
+            if (!enrollment) return;
+            openBalancePaymentInfoModal('', '', 0);
+            reEnrollmentPaymentMode = true;
+            document.getElementById('balance-payment-title').textContent = 'Pay for Re-enrollment';
+            document.getElementById('balance-submit-button').textContent = 'Pay & Submit';
+            document.getElementById('balance-reference-label').textContent = 'Previous Ref';
+            document.getElementById('balance-amount-label').textContent = 'Program Fee';
+            document.querySelector('#balance-methods [data-method="Walk-in"]')?.remove();
+            const box = document.getElementById('modal-balance-ref-box');
+            box.style.display = 'block';
+            document.getElementById('modal-balance-ref-name').textContent = `${displayUserProgramName(enrollment.program)} - ${enrollment.child_name || 'Student'}`;
+            document.getElementById('modal-balance-ref-num').textContent = enrollment.reference_no || '—';
+            const fee = Number(enrollment.current_total_fee);
+            document.getElementById('modal-balance-ref-due').textContent = Number.isFinite(fee) && fee > 0
+                ? '₱' + fee.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : 'See enrollment details';
+            if (reEnrollmentDemoPreview) document.getElementById('balance-submit-message').textContent = 'Demo preview only: this student already has a pending request.';
+            document.getElementById('modal-re-enroll').style.display = 'none';
+        }
+
+        async function submitReEnrollmentPayment() {
             if (isSubmittingReEnroll) return;
             if (!selectedReEnrollId) return;
-
-            const btn = document.getElementById('btn-proceed-re-enroll');
+            const btn = document.getElementById('balance-submit-button');
+            const message = document.getElementById('balance-submit-message');
+            const input = document.getElementById('balance-receipt-file');
+            if (reEnrollmentDemoPreview) { message.textContent = 'Demo preview only: this student already has a pending request.'; return; }
+            if (!balancePaymentMethod) { message.textContent = 'Choose a payment method.'; return; }
+            if (!input.files[0] || input.dataset.receiptValidationState !== 'valid') {
+                message.textContent = input.dataset.receiptValidationState === 'pending' ? 'Please wait while the receipt is verified.' : 'Upload a valid payment receipt before submitting.';
+                return;
+            }
             if (btn) {
                 btn.disabled = true;
                 btn.style.opacity = '0.65';
@@ -4205,16 +4281,20 @@
             isSubmittingReEnroll = true;
 
             try {
+                const body = new FormData();
+                body.append('enrollment_id', selectedReEnrollId);
+                body.append('payment_method', balancePaymentMethod);
+                body.append('receipt', input.files[0]);
                 const res = await fetch('api/api_re_enroll.php', {
                     method: 'POST',
                     credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ enrollment_id: selectedReEnrollId })
+                    body
                 });
                 const data = await res.json();
 
                 if (data.success) {
                     closeReEnrollModal();
+                    closeBalancePaymentInfoModal();
 
                     // Show clean styled success notice
                     const notice = document.createElement('div');
@@ -4232,14 +4312,15 @@
                 }
             } catch (err) {
                 console.error('Re-enrollment error:', err);
-                alert(err.message || 'Could not submit re-enrollment. Please try again.');
+                message.style.color = '#b91c1c';
+                message.textContent = err.message || 'Could not submit re-enrollment. Please try again.';
             } finally {
                 isSubmittingReEnroll = false;
                 if (btn) {
                     btn.disabled = false;
                     btn.style.opacity = '1';
                     btn.style.cursor = 'pointer';
-                    btn.innerHTML = '<strong>Submit Re-enrollment</strong>';
+                    btn.textContent = 'Pay & Submit';
                 }
             }
         }

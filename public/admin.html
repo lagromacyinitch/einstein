@@ -19,6 +19,22 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="css/admin.css" />
+  <style>
+    .export-csv-btn {
+      padding: 8px 16px;
+      background: #3d1f0a;
+      color: #dab55c;
+      border: 1px solid #3d1f0a;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .export-csv-btn:hover { background: #5c3317; border-color: #5c3317; }
+    .export-csv-btn:focus-visible { outline: 3px solid #dab55c; outline-offset: 2px; }
+  </style>
 <script src="js/vip-price.js" defer></script>
 <script src="js/receipt-validation.js?v=2"></script>
 </head>
@@ -56,7 +72,7 @@
         style="display:none;">My Profile</button>
 
       <div class="nav-section-label" data-nav-section-label="students">Students</div>
-      <button class="nav-item" data-nav-section="students" onclick="showPage('enrollment',this)">Enrollments <span class="nav-badge"
+      <button class="nav-item" data-nav-section="students" onclick="showPage('enrollment',this)">Registration <span class="nav-badge"
           id="enrollments-nav-badge" style="display:none"></span></button>
       <button class="nav-item" data-nav-section="students" onclick="showPage('students',this)">Students <span class="nav-badge"
           id="nb-students">—</span></button>
@@ -73,7 +89,7 @@
 
       <div class="nav-section-label" data-nav-section-label="finance">Finance</div>
       <button class="nav-item" data-nav-section="finance" id="nav-item-balance-monitoring" onclick="showPage('balancemonitoring',this)"
-        style="display:none;position:relative;">Balance Monitoring<span id="bm-nav-badge" style="display:none;position:absolute;top:6px;right:8px;background:#c62828;color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:99px;letter-spacing:.3px;"></span></button>
+        style="display:none;position:relative;">Payments<span id="bm-nav-badge" style="display:none;position:absolute;top:6px;right:8px;background:#c62828;color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:99px;letter-spacing:.3px;"></span></button>
 
       <div class="nav-section-label" data-nav-section-label="admin">Admin</div>
       <button class="nav-item" data-nav-section="admin" onclick="showPage('staff',this)">My Team</button>
@@ -128,12 +144,12 @@
       <div class="stats-grid">
         <div class="stat-card">
           <h3 id="dash-total-students">—</h3>
-          <p>Total Students</p>
+          <p>Student Enrollment Records</p>
           <div class="stat-change up" id="dash-students-change">Loading…</div>
         </div>
         <div class="stat-card">
           <h3 id="dash-revenue">—</h3>
-          <p>Monthly Revenue</p>
+          <p>Recorded Payments This Month</p>
           <div class="stat-change up" id="dash-pending-count">Loading…</div>
         </div>
         <div class="stat-card">
@@ -143,7 +159,7 @@
         </div>
         <div class="stat-card">
           <h3 id="dash-vip-count">—</h3>
-          <p>VIP Members</p>
+          <p>Subscribed VIP Members</p>
           <div class="stat-change up" id="dash-vip-change"></div>
         </div>
       </div>
@@ -151,7 +167,7 @@
         <div>
           <div class="card">
             <div class="card-header">
-              <h3>Revenue This Month</h3><span>May 2026</span>
+              <h3>Enrollment Overview</h3><span>All recorded dates</span>
             </div>
             <div class="card-body">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -210,9 +226,10 @@
         <div class="card-header">
           <h3 id="official-students-title">All Students </h3>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-left:auto">
+          <button type="button" class="export-csv-btn" onclick="exportStudentRecordsCSV()">⬇ Export CSV</button>
           <select id="student-archive-filter" class="form-control" style="width:180px;padding:6px 10px;font-size:12px" aria-label="Student list" onchange="renderStudentsTable()">
             <option value="active">Active Students</option>
-            <option value="archived">Archived Students</option>
+            <option value="inactive">Inactive Students</option>
           </select>
           <select id="student-program-filter" class="form-control" style="width:170px;padding:6px 10px;font-size:12px" aria-label="Filter students by program" onchange="renderStudentsTable()">
             <option value="">All Programs</option>
@@ -237,7 +254,6 @@
                 <th>Package</th>
                 <th>VIP</th>
                 <th>Status</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody id="official-students-body">
@@ -269,8 +285,7 @@
             <input type="text" id="enroll-search" placeholder="Search student, program, guardian…"
               oninput="filterEnrollmentTable(this.value)"
               style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #e5d9ce;border-radius:8px;font-size:13px;font-family:inherit;outline:none">
-            <button onclick="exportEnrollmentsCSV()"
-              style="padding:8px 16px;background:#3d1f0a;color:#DAB55C;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap">
+            <button type="button" class="export-csv-btn" onclick="exportEnrollmentsCSV()">
               ⬇ Export CSV
             </button>
           </div>
@@ -294,12 +309,11 @@
               <thead>
                 <tr>
                   <th style="width:32px"></th>
-                  <th>Parent</th>
-                  <th>Children &amp; Programs</th>
+                  <th>Student</th>
+                  <th>Programs</th>
                   <th>Total Payable</th>
-                  <th>Payment / Receipt</th>
+                  <th>Payment</th>
                   <th>Date</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="pending-approvals-body"></tbody>
@@ -316,8 +330,8 @@
                 <tr>
                   <th>Program</th>
                   <th>Capacity</th>
-                  <th>Filled</th>
-                  <th>Available</th><th style="text-align:right">Action</th>
+                  <th>Confirmed Students</th>
+                  <th title="Configured capacity minus distinct confirmed students per parent account">Slots Left</th><th style="text-align:right">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -415,15 +429,15 @@
       <div class="vip-section-columns">
         <section class="card">
           <div class="card-header"><h3>Pending VIP Registry</h3><span class="nav-badge" id="vip-pending-count">0</span></div>
-          <div class="card-body" style="padding:0;overflow-x:auto"><table><thead><tr><th>Parent</th><th>Submitted</th><th>Payment</th><th>Action</th></tr></thead><tbody id="pending-vip-body"></tbody></table></div>
+          <div class="card-body" style="padding:0;overflow-x:auto"><table><thead><tr><th>Parent</th><th>Submitted</th><th>Payment</th></tr></thead><tbody id="pending-vip-body"></tbody></table></div>
         </section>
         <section class="card">
           <div class="card-header" style="flex-wrap:wrap;gap:12px"><h3>VIP Members List</h3><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <select id="vip-member-filter" class="form-control" style="width:auto" aria-label="VIP membership status" onchange="renderVIPPage()"><option value="active">Active</option><option value="unsubscribed">Unsubscribed</option><option value="all">All</option></select>
-            <button type="button" class="btn btn-outline btn-sm" onclick="exportVisibleTableCSV(document.getElementById('vip-members-body').closest('table'),'vip-members')">Export CSV</button>
+            <select id="vip-member-filter" class="form-control" style="width:auto" aria-label="VIP membership status" onchange="renderVIPPage()"><option value="all">All</option><option value="active">Subscribed</option><option value="unsubscribed">Unsubscribed</option><option value="expired">Expired</option></select>
+            <button type="button" class="export-csv-btn" onclick="exportVisibleTableCSV(document.getElementById('vip-members-body').closest('table'),'vip-members')">⬇ Export CSV</button>
             <span class="nav-badge" id="vip-active-count" style="display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:28px;padding:3px 9px;background:#e3bf59;color:#3d210d;font-size:14px;font-weight:800;border:1px solid #8b6420" aria-label="Displayed VIP members">0</span>
           </div></div>
-          <div class="card-body" style="padding:0;overflow-x:auto"><table><thead><tr><th>Parent</th><th>Enrollment Date</th><th>Status</th><th>Action</th></tr></thead><tbody id="vip-members-body"></tbody></table></div>
+          <div class="card-body" style="padding:0;overflow-x:auto"><table><thead><tr><th>Parent</th><th>Date</th><th>Status</th></tr></thead><tbody id="vip-members-body"></tbody></table></div>
         </section>
       </div>
     </div>
@@ -432,24 +446,15 @@
     <div class="page" id="page-tutoring">
       <div class="stats-grid">
         <div class="stat-card">
-          <h3 id="tutoring-count">0</h3>
-          <p>Enrolled Students</p>
-          <div class="stat-change up">Live from enrollments</div>
+          <h3 id="tutoring-count">—</h3>
+          <p>Confirmed Students</p>
+          <div class="stat-change">Distinct students per parent account</div>
         </div>
         <div class="stat-card">
-          <h3>₱76,500</h3>
-          <p>Monthly Tuition</p>
-          <div class="stat-change up">▲ 15% growth</div>
+          <h3 id="program-capacity-tutoring">—</h3><p>Capacity Limit</p><div class="stat-change">Configured capacity</div>
         </div>
         <div class="stat-card">
-          <h3>4.8★</h3>
-          <p>Avg. Tutor Rating</p>
-          <div class="stat-change up">▲ 0.2 this quarter</div>
-        </div>
-        <div class="stat-card">
-          <h3>30</h3>
-          <p>Capacity Limit</p>
-          <div class="stat-change up">Slots available</div>
+          <h3 id="program-available-tutoring">—</h3><p>Slots Left</p><div class="stat-change">Capacity minus confirmed students</div>
         </div>
       </div>
       <div class="card">
@@ -474,15 +479,14 @@
                 <th>Package</th>
                 <th>Subject</th>
                 <th>Timeslot</th>
-                <th>Payment</th>
                 <th>Status</th>
-                <th>Enrolled</th>
-                <th>Action</th>
+                <th>Start Date</th>
+                <th>End Date</th>
               </tr>
             </thead>
             <tbody id="tutoring-body">
               <tr>
-                <td colspan="12" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No tutoring enrollments yet</strong><br>
                   <span style="font-size:12px">Students who fill the Academic Tutorial enrollment form will appear here
@@ -501,24 +505,15 @@
 
       <div class="stats-grid">
         <div class="stat-card">
-          <h3 id="workshop-count">0</h3>
-          <p>Enrolled Students</p>
-          <div class="stat-change up">Live from enrollments</div>
+          <h3 id="workshop-count">—</h3>
+          <p>Confirmed Students</p>
+          <div class="stat-change">Distinct students per parent account</div>
         </div>
         <div class="stat-card">
-          <h3>4</h3>
-          <p>Offered Classes</p>
-          <div class="stat-change">— Piano · Guitar · Art · Dance</div>
+          <h3 id="program-capacity-workshop">—</h3><p>Capacity Limit</p><div class="stat-change">Configured capacity</div>
         </div>
         <div class="stat-card">
-          <h3>₱32,000</h3>
-          <p>Workshop Revenue</p>
-          <div class="stat-change up">▲ 8% vs last month</div>
-        </div>
-        <div class="stat-card">
-          <h3>4.9★</h3>
-          <p>Parent Rating</p>
-          <div class="stat-change up">▲ 0.1 improvement</div>
+          <h3 id="program-available-workshop">—</h3><p>Slots Left</p><div class="stat-change">Capacity minus confirmed students</div>
         </div>
       </div>
       <div class="card">
@@ -543,15 +538,14 @@
                 <th>Workshop Class</th>
                 <th>Type</th>
                 <th>Timeslot</th>
-                <th>Payment</th>
                 <th>Status</th>
-                <th>Enrolled</th>
-                <th>Action</th>
+                <th>Start Date</th>
+                <th>End Date</th>
               </tr>
             </thead>
             <tbody id="workshop-body">
               <tr>
-                <td colspan="12" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No workshop enrollments yet</strong><br>
                   <span style="font-size:12px">Students who fill the Workshop enrollment form will appear here
@@ -571,24 +565,15 @@
       </div>
       <div class="stats-grid">
         <div class="stat-card">
-          <h3 id="playschool-count">0</h3>
-          <p>Enrolled Toddlers</p>
-          <div class="stat-change up">Live from enrollments</div>
+          <h3 id="playschool-count">—</h3>
+          <p>Confirmed Students</p>
+          <div class="stat-change">Distinct students per parent account</div>
         </div>
         <div class="stat-card">
-          <h3>2</h3>
-          <p>Class Sections</p>
-          <div class="stat-change">— Caterpillar · Butterfly</div>
+          <h3 id="program-capacity-playschool">—</h3><p>Capacity Limit</p><div class="stat-change">Configured capacity</div>
         </div>
         <div class="stat-card">
-          <h3>₱180,500</h3>
-          <p>Collected Fees</p>
-          <div class="stat-change up">▲ 15% vs last qtr</div>
-        </div>
-        <div class="stat-card">
-          <h3>94%</h3>
-          <p>Daily Attendance</p>
-          <div class="stat-change up">▲ 2% vs last month</div>
+          <h3 id="program-available-playschool">—</h3><p>Slots Left</p><div class="stat-change">Capacity minus confirmed students</div>
         </div>
       </div>
       <div class="card">
@@ -618,15 +603,14 @@
                 <th>Section</th>
                 <th>Timeslot</th>
                 <th>Address</th>
-                <th>Payment</th>
                 <th>Status</th>
-                <th>Enrolled</th>
-                <th>Action</th>
+                <th>Start Date</th>
+                <th>End Date</th>
               </tr>
             </thead>
             <tbody id="playschool-body">
               <tr>
-                <td colspan="12" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No PlaySchool enrollments yet</strong><br>
                   <span style="font-size:12px">Toddlers enrolled via the PlaySchool form will appear here
@@ -646,25 +630,16 @@
       </div>
       <div class="stats-grid">
         <div class="stat-card">
-          <h3 id="childcare-count">0</h3>
-          <p>Children Enrolled</p>
-          <div class="stat-change up">Live from enrollments</div>
+          <h3 id="childcare-count">—</h3>
+          <p>Confirmed Students</p>
+          <div class="stat-change">Distinct students per parent account</div>
         </div>
         <div class="stat-card">
-          <h3>11</h3>
-          <p>Available Slots</p>
-          <div class="stat-change">— High demand</div>
-        </div>
-        <div class="stat-card">
-          <h3>92%</h3>
-          <p>Attendance Rate</p>
-          <div class="stat-change up">▲ 1.5% this week</div>
-        </div>
-        <div class="stat-card">
-          <h3>35</h3>
+          <h3 id="program-capacity-childcare">—</h3>
           <p>Capacity Limit</p>
-          <div class="stat-change">— Safe ratio kept</div>
+          <div class="stat-change">Configured capacity</div>
         </div>
+        <div class="stat-card"><h3 id="program-available-childcare">—</h3><p>Slots Left</p><div class="stat-change">Capacity minus confirmed students</div></div>
       </div>
       <div class="card">
         <div class="card-header">
@@ -688,15 +663,14 @@
                 <th>Address</th>
                 <th>Package</th>
                 <th>Timeslot</th>
-                <th>Payment</th>
                 <th>Status</th>
-                <th>Enrolled</th>
-                <th>Action</th>
+                <th>Start Date</th>
+                <th>End Date</th>
               </tr>
             </thead>
             <tbody id="childcare-body">
               <tr>
-                <td colspan="12" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No Child Care enrollments yet</strong><br>
                   <span style="font-size:12px">Children enrolled via the Child Care form will appear here
@@ -715,28 +689,28 @@
       <div class="stats-grid">
         <div class="stat-card">
           <h3 id="pay-total-collected">—</h3>
-          <p>Total Collected</p>
+          <p>Payment Records</p>
           <div class="stat-change up" id="pay-collected-label"></div>
         </div>
         <div class="stat-card">
           <h3 id="pay-pending-count">—</h3>
-          <p>Pending Verifications</p>
+          <p>Pending Enrollments</p>
           <div class="stat-change down" id="pay-pending-label"></div>
         </div>
         <div class="stat-card">
           <h3 id="pay-pending-amount">—</h3>
-          <p>Pending Amount</p>
-          <div class="stat-change">Review needed</div>
+          <p>Pending Payment Amount</p>
+          <div class="stat-change">Not calculated</div>
         </div>
         <div class="stat-card">
-          <h3>100%</h3>
+          <h3>—</h3>
           <p>Secure GCash Portal</p>
-          <div class="stat-change up">▲ Verified track</div>
+          <div class="stat-change">Not measured</div>
         </div>
       </div>
       <div class="card">
         <div class="card-header">
-          <h3>Recent Transactions</h3><span>May 2026 logs</span>
+          <h3>Recent Transactions</h3><span>All available records</span>
         </div>
         <div class="card-body" style="padding:0">
           <table>
@@ -766,25 +740,14 @@
     <div class="page" id="page-madstudio">
       <div class="stats-grid">
         <div class="stat-card">
-          <h3 id="mad-count">5</h3>
-          <p>Enrolled Students</p>
-          <div class="stat-change up">Active enrollments</div>
+          <h3 id="madstudio-count">—</h3>
+          <p>Confirmed Students</p>
+          <div class="stat-change">Distinct students per parent account</div>
         </div>
         <div class="stat-card">
-          <h3>7</h3>
-          <p>Classes Offered</p>
-          <div class="stat-change">Fitness & After School</div>
+          <h3 id="program-capacity-madstudio">—</h3><p>Capacity Limit</p><div class="stat-change">Configured capacity</div>
         </div>
-        <div class="stat-card">
-          <h3>₱2,500</h3>
-          <p>Starting Rate</p>
-          <div class="stat-change">/month per class</div>
-        </div>
-        <div class="stat-card">
-          <h3>₱450</h3>
-          <p>Studio Rental</p>
-          <div class="stat-change">per hour</div>
-        </div>
+        <div class="stat-card"><h3 id="program-available-madstudio">—</h3><p>Slots Left</p><div class="stat-change">Capacity minus confirmed students</div></div>
       </div>
 
       <!-- ENROLLED STUDENTS -->
@@ -812,15 +775,14 @@
                 <th>Contact</th>
                 <th id="mad-col-primary">Package / Class</th>
                 <th id="mad-col-secondary">Timeslot</th>
-                <th>Payment</th>
                 <th>Status</th>
-                <th>Enrolled</th>
-                <th>Action</th>
+                <th>Start Date</th>
+                <th>End Date</th>
               </tr>
             </thead>
             <tbody id="madstudio-body">
               <tr>
-                <td colspan="11" style="padding:24px;text-align:center;color:#999">Loading…</td>
+                <td colspan="10" style="padding:24px;text-align:center;color:#999">Loading…</td>
               </tr>
             </tbody>
           </table>
@@ -834,24 +796,15 @@
     <div class="page" id="page-summerblast">
       <div class="stats-grid">
         <div class="stat-card">
-          <h3 id="summerblast-count">0</h3>
-          <p>Enrolled Students</p>
-          <div class="stat-change up">Active enrollments</div>
+          <h3 id="summerblast-count">—</h3>
+          <p>Confirmed Students</p>
+          <div class="stat-change">Distinct students per parent account</div>
         </div>
         <div class="stat-card">
-          <h3>—</h3>
-          <p>Activities Offered</p>
-          <div class="stat-change">Summer programs</div>
+          <h3 id="program-capacity-summerblast">—</h3><p>Capacity Limit</p><div class="stat-change">Configured capacity</div>
         </div>
         <div class="stat-card">
-          <h3>—</h3>
-          <p>Starting Rate</p>
-          <div class="stat-change">/session</div>
-        </div>
-        <div class="stat-card">
-          <h3>—</h3>
-          <p>Duration</p>
-          <div class="stat-change">weeks</div>
+          <h3 id="program-available-summerblast">—</h3><p>Slots Left</p><div class="stat-change">Capacity minus confirmed students</div>
         </div>
       </div>
 
@@ -881,15 +834,14 @@
                 <th>Contact</th>
                 <th>Package / Class</th>
                 <th>Timeslot</th>
-                <th>Payment</th>
                 <th>Status</th>
-                <th id="sb-date-column">Enrolled</th>
-                <th>Action</th>
+                <th>Start Date</th>
+                <th>End Date</th>
               </tr>
             </thead>
             <tbody id="summerblast-body">
               <tr>
-                <td colspan="11" style="padding:24px;text-align:center;color:#999">No students enrolled yet.</td>
+                <td colspan="10" style="padding:24px;text-align:center;color:#999">No students enrolled yet.</td>
               </tr>
             </tbody>
           </table>
@@ -1855,26 +1807,27 @@
       </div>
 
       <!-- Stats Grid -->
+      <p id="bm-summary-status" role="status" style="font-size:12px;color:#9a5d12;margin:0 0 10px"></p>
       <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:24px;">
         <div class="stat-card" style="border-left:4px solid #c62828;">
           <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Total Outstanding Balances</p>
-          <h3 style="font-size:26px;color:#c62828;margin:4px 0" id="bm-total-receivables">₱0</h3>
-          <small style="color:var(--brown-light)">Unpaid balances across active clients</small>
+          <h3 style="font-size:26px;color:#c62828;margin:4px 0" id="bm-total-receivables">—</h3>
+          <small style="color:var(--brown-light)">Confirmed enrollment records</small>
         </div>
         <div class="stat-card" style="border-left:4px solid #2e7d32;">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Total Collections to Date</p>
-          <h3 style="font-size:26px;color:#2e7d32;margin:4px 0" id="bm-total-collected">₱0</h3>
-          <small style="color:var(--brown-light)">Reservation deposits &amp; settled tuition</small>
+          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Recorded Payments</p>
+          <h3 style="font-size:26px;color:#2e7d32;margin:4px 0" id="bm-total-collected">—</h3>
+          <small style="color:var(--brown-light)">Confirmed enrollment records</small>
         </div>
         <div class="stat-card" style="border-left:4px solid #e65100;">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Clients With Balance</p>
-          <h3 style="font-size:26px;color:#e65100;margin:4px 0" id="bm-count-with-balance">0</h3>
-          <small style="color:var(--brown-light)">Accounts with pending balance due</small>
+          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Enrollments With Balance</p>
+          <h3 style="font-size:26px;color:#e65100;margin:4px 0" id="bm-count-with-balance">—</h3>
+          <small style="color:var(--brown-light)">Enrollment records with balance due</small>
         </div>
         <div class="stat-card" style="border-left:4px solid #DAB55C;">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Fully Settled Accounts</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="bm-count-settled">0</h3>
-          <small style="color:var(--brown-light)">Zero remaining balance accounts</small>
+          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Fully Settled Enrollments</p>
+          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="bm-count-settled">—</h3>
+          <small style="color:var(--brown-light)">Enrollment records with no balance</small>
         </div>
       </div>
 
@@ -2109,10 +2062,7 @@
                 style="width:8px;height:8px;background:#4caf50;border-radius:50%;display:inline-block;animation:alogPulse 1.5s ease-in-out infinite;"></span>
               LIVE
             </div>
-            <button onclick="exportActivityLog()"
-              style="background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:#e0c47a;padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s;"
-              onmouseover="this.style.background='rgba(201,168,76,.3)'"
-              onmouseout="this.style.background='rgba(201,168,76,.15)'">Export CSV</button>
+            <button type="button" class="export-csv-btn" onclick="exportActivityLog()">⬇ Export CSV</button>
             <button id="alog-refresh-btn" onclick="loadActivityLog(true, this)"
               style="background:rgba(126,212,160,.15);border:1px solid rgba(126,212,160,.4);color:#7ed4a0;padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s;"
               onmouseover="this.style.background='rgba(126,212,160,.3)'"
@@ -2284,15 +2234,10 @@
             </div>
             <span id="modal-submitted-relative" aria-live="polite" style="font-size:11px;color:#2e7d32;font-weight:700;white-space:nowrap">Live · —</span>
           </div>
-          <!-- 1. Parent/Guardian Information (First) -->
-          <div class="enrollment-detail-section" id="modal-parent-section">
-            <h4>Parent/Guardian Information</h4>
-            <div class="detail-grid">
-              <div class="detail-item"><label>Parent Name</label><strong id="modal-parent-name"></strong></div>
-              <div class="detail-item"><label>Age</label><strong id="modal-parent-age"></strong></div>
-              <div class="detail-item"><label>Contact Number</label><strong id="modal-parent-contact"></strong></div>
-              <div class="detail-item full-width"><label>Address</label><strong id="modal-parent-address"></strong></div>
-            </div>
+          <!-- Student Information -->
+          <div class="enrollment-detail-section" id="modal-children-section">
+            <h4>Student Information</h4>
+            <div id="modal-children-list" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
 
           <!-- 2. VIP Membership Information (Highlighted Section) -->
@@ -2326,12 +2271,6 @@
             </div>
           </div>
 
-          <!-- 3. Children Enrolled (After Parent & VIP Info) -->
-          <div class="enrollment-detail-section" id="modal-children-section">
-            <h4>Children Enrolled</h4>
-            <div id="modal-children-list" style="display:flex;flex-direction:column;gap:8px"></div>
-          </div>
-
           <!-- 4. Payment Summary (VIP + Enrollment Fees combined) -->
           <div class="enrollment-detail-section" id="modal-payment-summary-section" style="display:none;background:linear-gradient(135deg,#f0faf4 0%,#e8f5e9 100%);border:1.5px solid #66bb6a;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
             <h4 style="margin:0 0 10px;color:#1b5e20;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase">💰 Payment Summary</h4>
@@ -2362,6 +2301,16 @@
               <div class="detail-item"><label>Program(s)</label><strong id="modal-program"></strong></div>
               <div class="detail-item"><label id="modal-status-label">Enrollment Status</label><strong id="modal-payment-type"></strong></div>
               <div class="detail-item"><label>Payment Method</label><strong id="modal-payment-mode"></strong></div>
+            </div>
+          </div>
+          <!-- Parent/Guardian Information -->
+          <div class="enrollment-detail-section" id="modal-parent-section">
+            <h4>Parent/Guardian Information</h4>
+            <div class="detail-grid">
+              <div class="detail-item"><label>Parent Name</label><strong id="modal-parent-name"></strong></div>
+              <div class="detail-item"><label>Age</label><strong id="modal-parent-age"></strong></div>
+              <div class="detail-item"><label>Contact Number</label><strong id="modal-parent-contact"></strong></div>
+              <div class="detail-item full-width"><label>Address</label><strong id="modal-parent-address"></strong></div>
             </div>
           </div>
           <div class="enrollment-detail-section">
@@ -2414,6 +2363,7 @@
           </div>
 
           <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn btn-primary" id="modal-btn-reactivate-vip" type="button" style="display:none" onclick="reactivateVipFromModal(this)">Reactivate VIP</button>
             <button class="btn btn-outline" id="modal-btn-unsubscribe-vip" style="display:none;color:#c62828;border-color:#c62828;font-weight:600;" onclick="adminUnsubscribeVip()">
               Unsubscribe VIP
             </button>
@@ -2426,6 +2376,14 @@
               Approve Enrollment</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- VIP membership overview -->
+    <div class="modal-overlay" id="modal-vip-overview">
+      <div class="modal" style="width:560px;max-height:90vh;overflow-y:auto">
+        <div class="modal-header"><h3>VIP Member</h3><button class="modal-close" type="button" aria-label="Close VIP member details" onclick="closeModal('modal-vip-overview')">✕</button></div>
+        <div class="modal-body" id="vip-overview-body"></div>
       </div>
     </div>
 
@@ -2544,8 +2502,8 @@
         <div class="modal-header">
           <h3>Add Student</h3><button class="modal-close" onclick="closeModal('modal-add-student')">✕</button>
         </div>
-        <div class="modal-body">
-          <div class="manual-family-details" style="border:1.5px solid #d8b58d;border-radius:10px;background:#fffaf3;padding:14px 14px 16px;margin-bottom:18px">
+        <div class="modal-body" style="display:flex;flex-direction:column">
+          <div class="manual-family-details" style="order:3;border:1.5px solid #d8b58d;border-radius:10px;background:#fffaf3;padding:14px 14px 16px;margin-bottom:18px">
             <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown-primary);padding-bottom:9px;margin-bottom:12px;border-bottom:1px solid #e6cfb4">Parent / Guardian Information</div>
             <div class="form-row">
               <div class="form-group"><label for="student-guardian">Parent/Guardian</label><input class="form-control" id="student-guardian"
@@ -2559,6 +2517,10 @@
               <div class="form-group"><label for="student-address">Address</label>
                 <input class="form-control" id="student-address" placeholder="Complete address" required>
               </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="student-parent-email">Parent Email</label><input class="form-control" id="student-parent-email" type="email" autocomplete="off" maxlength="255" required></div>
+              <div class="form-group"><label for="student-parent-password">Parent Password</label><div style="position:relative"><input class="form-control" id="student-parent-password" type="password" autocomplete="new-password" minlength="8" maxlength="72" style="padding-right:44px" required><button type="button" id="student-password-toggle" onclick="toggleManualParentPassword(this)" aria-label="Show password" aria-pressed="false" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#8b6f47;cursor:pointer;padding:7px;line-height:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><small>At least 8 characters. For an existing account, enter its current password.</small></div>
             </div>
             <div class="form-group" style="background:#fdf8f3;border:1.5px solid #dec6ac;border-radius:10px;padding:12px 14px;margin-top:10px;margin-bottom:0;">
               <label style="font-weight:700;color:var(--brown-primary);display:block;margin-bottom:6px;font-size:13px;">
@@ -2579,7 +2541,7 @@
               </small>
             </div>
           </div>
-<div id="enrollment-children"><section class="enrollment-child" style="border:1.5px solid #dec6ac;border-radius:10px;padding:14px 14px 16px;background:#fff">
+<div id="enrollment-children" style="order:1"><section class="enrollment-child" style="border:1.5px solid #dec6ac;border-radius:10px;padding:14px 14px 16px;background:#fff">
           <div data-child-section-heading style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown-primary);padding-bottom:9px;margin-bottom:14px;border-bottom:1px solid #e6cfb4">Student / Child Information</div>
           <div class="form-row">
             <div class="form-group"><label>Student Name</label><input class="form-control" id="student-name" data-child-field="name"
@@ -2631,15 +2593,15 @@
               <input class="form-control" id="student-start-date" data-child-field="start-date" type="date">
             </div>
             <div class="form-group"><label for="student-timeslot">Preferred Timeslot</label>
-              <input class="form-control" id="student-timeslot" data-child-field="timeslot" placeholder="e.g. 11:00-12:00" inputmode="numeric" pattern="[0-9:.\-]*" maxlength="30"
-                oninput="this.value=this.value.replace(/[^0-9:.\-]/g,'')" required>
+              <input class="form-control" id="student-timeslot" data-child-field="timeslot" data-validate="manual-timeslot" placeholder="e.g. 11:00 AM - 12:00 PM" maxlength="100"
+                oninput="this.value=this.value.replace(/[^0-9:;.\- aApPmM]/g,'')" required>
             </div>
           </div>
           <div class="manual-program-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed #e6cfb4">
             <button type="button" class="btn btn-outline" onclick="addEnrollmentProgram(this)">+ Add a Program</button>
           </div>
           </section></div>
-        <div class="manual-payment-section" style="border:1.5px solid #d8b58d;border-radius:10px;background:#fffaf3;padding:14px;margin-top:16px">
+        <div class="manual-payment-section" style="order:4;border:1.5px solid #d8b58d;border-radius:10px;background:#fffaf3;padding:14px;margin-top:16px">
           <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown-primary);padding-bottom:9px;margin-bottom:12px;border-bottom:1px solid #e6cfb4">Payment Information</div>
           <div class="form-group"><label for="manual-payment-method">Payment Method</label>
             <select class="form-control" id="manual-payment-method" data-manual-global-field="payment-method" onchange="updateStudentPaymentFields()" required>
@@ -2658,7 +2620,7 @@
             <input class="form-control" id="manual-amount" data-manual-global-field="amount" type="number" min="0.01" step="0.01" placeholder="Enter amount paid" disabled>
           </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <div style="order:2;display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px">
           <button type="button" class="btn btn-outline" onclick="addEnrollmentChild()">+ Add Child</button>
         </div>
         </div>
@@ -2748,24 +2710,24 @@
     <div class="page" id="page-my_schedule">
       <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px">
         <div class="stat-card">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Today's Classes</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-today">0</h3>
-          <small style="color:var(--brown-light)">Scheduled sessions today</small>
+          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Today's Assigned Slots</p>
+          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-today">—</h3>
+          <small style="color:var(--brown-light)">Occupied schedule slots today</small>
         </div>
         <div class="stat-card">
           <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Hours Logged (Month)</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-hours">0.0</h3>
+          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-hours">—</h3>
           <small style="color:var(--brown-light)">Verified tutoring hours</small>
         </div>
         <div class="stat-card">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Active Students</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-students">0</h3>
-          <small style="color:var(--brown-light)">Assigned to you</small>
+          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Assigned Enrollments</p>
+          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-students">—</h3>
+          <small style="color:var(--brown-light)">Assigned enrollment records</small>
         </div>
         <div class="stat-card">
           <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Tutor Status</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0">Active</h3>
-          <small style="color:var(--brown-light)">Center Verified Tutor</small>
+          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0">—</h3>
+          <small style="color:var(--brown-light)">Status not tracked here</small>
         </div>
       </div>
 
@@ -2807,10 +2769,9 @@
     <div class="page" id="page-my_students">
       <div class="card">
         <div class="card-header" style="display:flex;justify-content:flex-end;align-items:center">
-          <button type="button" class="btn btn-outline btn-sm" onclick="exportSubadminStudentsCsv()"
-            aria-label="Export my students as CSV" title="Export my students as CSV"
-            style="padding:7px 12px;border-radius:7px;font-size:12px;font-weight:700;white-space:nowrap">
-            Export CSV
+          <button type="button" class="export-csv-btn" onclick="exportSubadminStudentsCsv()"
+            aria-label="Export my students as CSV" title="Export my students as CSV">
+            ⬇ Export CSV
           </button>
         </div>
         <div class="card-body" style="padding:0;overflow-x:auto">
@@ -5125,12 +5086,41 @@
     // ══════════════════════════════════════════════════════════════════════
     // REAL DATA BOOTSTRAP — loads everything from PHP APIs
     // ══════════════════════════════════════════════════════════════════════
+    const programCapacityCache = {};
+    function confirmedProgramStudentCount(key) {
+      const unique = new Set();
+      enrollments.forEach(e => {
+        if (programKey(e.program) !== key || e.status !== 'confirmed' || e.student_archived_at || isStandaloneStudioRentalRecord(e) || isStandaloneSummerBlastRegistrationRecord(e)) return;
+        const name = String(e.child_name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        const parent = e.user_id ? 'user:' + e.user_id : 'guardian:' + String(e.guardian_name || '').trim().toLowerCase() + '|' + String(e.contact || '').trim();
+        unique.add(name ? parent + '|' + name : 'record:' + e.id);
+      });
+      return unique.size;
+    }
+    function renderProgramSummaryCards() {
+      ['tutoring', 'workshop', 'playschool', 'childcare', 'madstudio', 'summerblast'].forEach(key => {
+        const count = dashboardEnrollmentsLive ? confirmedProgramStudentCount(key) : null;
+        const capacity = Object.prototype.hasOwnProperty.call(programCapacityCache, key) ? programCapacityCache[key] : null;
+        const countEl = document.getElementById(key + '-count');
+        const capacityEl = document.getElementById('program-capacity-' + key);
+        const availableEl = document.getElementById('program-available-' + key);
+        if (countEl) countEl.textContent = count === null ? '—' : count;
+        if (capacityEl) capacityEl.textContent = capacity === null ? '—' : capacity;
+        if (availableEl) availableEl.textContent = capacity === null || count === null ? '—' : Math.max(0, capacity - count);
+        const row = document.querySelector('[data-slot="' + key + '"]');
+        const filledEl = row?.querySelector('.slot-filled');
+        const slotEl = document.getElementById('slot-available-' + key);
+        if (filledEl) filledEl.textContent = count === null ? '—' : count;
+        if (slotEl) slotEl.textContent = capacity === null || count === null ? '—' : Math.max(0, capacity - count);
+      });
+    }
     function applySlotCapacities(data, savedKey = null) {
       document.querySelectorAll('[data-slot]').forEach(row => {
         const key = row.dataset.slot;
         if (savedKey && key !== savedKey) return;
         const capacity = Number(data.capacities[key]);
         if (!Number.isFinite(capacity)) return;
+        programCapacityCache[key] = capacity;
         row.dataset.filled = String(Number(data.filled?.[key]) || 0);
         row.querySelector('.slot-filled').textContent = row.dataset.filled;
         const input = document.getElementById('slot-' + key);
@@ -5141,6 +5131,7 @@
         updateSlotSaveState(key);
         document.getElementById('slot-available-' + key).textContent = Math.max(0, capacity - Number(row.dataset.filled));
       });
+      renderProgramSummaryCards();
     }
     function updateSlotSaveState(key) {
       const input = document.getElementById('slot-' + key);
@@ -5156,7 +5147,11 @@
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error(data.message || 'Unable to load slot capacities.');
         applySlotCapacities(data);
-      } catch(error) { showToast(error.message, 'error'); }
+      } catch(error) {
+        Object.keys(programCapacityCache).forEach(key => delete programCapacityCache[key]);
+        renderProgramSummaryCards();
+        showToast(error.message, 'error');
+      }
     }
     async function saveSlotCapacity(key) {
       const input = document.getElementById('slot-' + key);
@@ -5230,6 +5225,7 @@
       }
     }
 
+    let dashboardEnrollmentsLive = false;
     async function loadEnrollmentsFromServer() {
       await loadVipAdminData();
       try {
@@ -5237,8 +5233,11 @@
         const res = await r.json();
         if (res.success) {
           enrollments = res.enrollments;
+          dashboardEnrollmentsLive = true;
+          document.getElementById('db-error-banner')?.remove();
           saveAllEnrollments(enrollments);
         } else {
+          dashboardEnrollmentsLive = false;
           const authBlocked = r.status === 403 || /admin( or staff)? access required\./i.test(res.message || '');
           if (authBlocked) {
             alert('Your administrator session has expired or was overwritten by a parent user login in another tab. Redirecting to login page...');
@@ -5248,11 +5247,13 @@
           enrollments = getAllStoredEnrollments();
           if (res.hint) {
             showDbError(res.message + ' - ' + res.hint);
-          }
+          } else showDbError('Live enrollment data could not be loaded. Other lists may show cached data.');
         }
       } catch (e) {
+        dashboardEnrollmentsLive = false;
         console.error('Failed to load enrollments:', e);
         enrollments = getAllStoredEnrollments();
+        showDbError('Live enrollment data could not be loaded. Other lists may show cached data.');
       }
       refreshProgramCounters();
       updateDashboardStats();
@@ -5305,20 +5306,40 @@
     }
 
     function updateDashboardStats() {
-      const enrollmentRecords = enrollments.filter(e => !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e));
+      const enrollmentRecords = enrollments.filter(e => !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) && !String(e.program || '').toLowerCase().includes('vip'));
       const total = enrollmentRecords.length;
       const confirmed = enrollmentRecords.filter(e => e.status === 'confirmed').length;
       const pending = enrollmentRecords.filter(e => e.status === 'pending').length;
       const rejected = enrollmentRecords.filter(e => e.status === 'cancelled' || e.status === 'rejected').length;
-      const vip = enrollmentRecords.filter(e => (e.program || '').toLowerCase().includes('vip')).length;
+      const activeVipKeys = new Set(enrollments.filter(e => String(e.program || '').toLowerCase().includes('vip') && e.user_id && vipAdminData.members[e.user_id]?.active).map(e => String(e.user_id)));
+      const hasUnlinkedVip = enrollments.some(e => String(e.program || '').toLowerCase().includes('vip') && !e.user_id && e.status === 'confirmed');
+      const monthFormatter = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Manila',year:'numeric',month:'2-digit'});
+      const monthKey = monthFormatter.format(new Date());
+      let recordedPayments = 0, paymentHistoryIncomplete = false;
+      enrollments.forEach(e => {
+        let notes;
+        try { notes = typeof e.admin_notes === 'string' ? JSON.parse(e.admin_notes || '{}') : (e.admin_notes || {}); }
+        catch (_) { paymentHistoryIncomplete = true; return; }
+        const payments = Array.isArray(notes.payments) ? notes.payments : [];
+        if ((!payments.length && (Number(notes.paid_amount) > 0 || e.payment_status === 'confirmed')) || payments.length >= 50) paymentHistoryIncomplete = true;
+        payments.forEach(payment => {
+          const timestamp = new Date(String(payment.recorded_at || '').replace(' ', 'T'));
+          const amount = Number(payment.amount);
+          if (Number.isNaN(timestamp.getTime()) || !Number.isFinite(amount) || amount <= 0) { paymentHistoryIncomplete = true; return; }
+          if (monthFormatter.format(timestamp) === monthKey) recordedPayments += amount;
+        });
+      });
 
       const el = id => document.getElementById(id);
-      if (el('dash-total-students')) el('dash-total-students').textContent = total;
-      if (el('dash-confirmed')) el('dash-confirmed').textContent = confirmed;
-      if (el('dash-vip-count')) el('dash-vip-count').textContent = vip;
-      if (el('dash-revenue')) el('dash-revenue').textContent = '₱—';
-      if (el('dash-pending-count')) el('dash-pending-count').textContent = pending + ' pending';
-      if (el('dash-rejected-badge')) el('dash-rejected-badge').textContent = rejected + ' rejected';
+      if (el('dash-total-students')) el('dash-total-students').textContent = dashboardEnrollmentsLive ? total : '—';
+      if (el('dash-students-change')) el('dash-students-change').textContent = dashboardEnrollmentsLive ? 'All statuses; records, not unique students' : 'Live data unavailable';
+      if (el('dash-confirmed')) el('dash-confirmed').textContent = dashboardEnrollmentsLive ? confirmed : '—';
+      if (el('dash-confirmed-change')) el('dash-confirmed-change').textContent = 'Student enrollment records';
+      if (el('dash-vip-count')) el('dash-vip-count').textContent = dashboardEnrollmentsLive && dashboardVipLive && !hasUnlinkedVip ? activeVipKeys.size : '—';
+      if (el('dash-vip-change')) el('dash-vip-change').textContent = !dashboardVipLive ? 'VIP data unavailable' : hasUnlinkedVip ? 'Some VIP records are not linked to accounts' : 'Currently subscribed accounts';
+      if (el('dash-revenue')) el('dash-revenue').textContent = dashboardEnrollmentsLive && !paymentHistoryIncomplete ? recordedPayments.toLocaleString('en-PH',{style:'currency',currency:'PHP',minimumFractionDigits:2}) : '—';
+      if (el('dash-pending-count')) el('dash-pending-count').textContent = !dashboardEnrollmentsLive ? 'Live data unavailable' : paymentHistoryIncomplete ? 'Payment history incomplete' : 'Dated ledger entries only';
+      if (el('dash-rejected-badge')) el('dash-rejected-badge').textContent = dashboardEnrollmentsLive ? rejected + ' rejected or cancelled' : '— rejected or cancelled';
 
       // Sidebar badges — all dynamic now
       const badge = document.getElementById('enrollments-nav-badge');
@@ -5328,13 +5349,17 @@
         badge.style.display = programPending > 0 ? '' : 'none';
       }
       const nbVip = document.getElementById('nb-vip');
-      if (nbVip) nbVip.textContent = confirmed || '0';
+      if (nbVip) nbVip.textContent = dashboardVipLive && !hasUnlinkedVip ? activeVipKeys.size : '—';
       const nbPay = document.getElementById('nb-pay');
       if (nbPay) nbPay.textContent = pending || '0';
       const nbStudents = document.getElementById('nb-students');
       if (nbStudents) {
-        const studentCount = enrollmentRecords.filter(e => e.status === 'confirmed' && !e.student_archived_at && !String(e.program || '').toLowerCase().includes('vip')).length;
-        nbStudents.textContent = studentCount || '0';
+        const studentCount = enrollmentRecords.filter(e => {
+          if (e.status !== 'confirmed' || e.student_archived_at) return false;
+          const end = getProgramEndDate(e, programKey(e.program));
+          return !end || new Date() < end;
+        }).length;
+        nbStudents.textContent = dashboardEnrollmentsLive && programSpansData.length ? studentCount : '—';
       }
 
       // Balance Monitoring red badge update
@@ -5360,13 +5385,15 @@
 
     // ─── LIVE NOTIFICATIONS ──────────────────────────────────────────────────────
     let vipAdminData = { events: [], members: {} };
+    let dashboardVipLive = false;
     async function loadVipAdminData() {
       try {
         const response = await fetch('api/vip_api.php?scope=admin', {credentials:'same-origin', cache:'no-store'});
         const data = await response.json();
-        if (!data.success) return;
+        if (!data.success) { dashboardVipLive = false; return; }
         vipAdminData = data;
-      } catch (_) { }
+        dashboardVipLive = true;
+      } catch (_) { dashboardVipLive = false; }
     }
     function getEnrollmentsWithPendingBalanceReceipts() {
       const results = [];
@@ -5618,7 +5645,7 @@
       const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       setEl('pay-total-collected', total + ' transactions');
       setEl('pay-pending-count', pending.length);
-      setEl('pay-pending-amount', pending.length + ' need review');
+      setEl('pay-pending-amount', '—');
       setEl('pay-collected-label', total + ' total records');
       setEl('pay-pending-label', pending.length + ' unresolved');
 
@@ -5690,6 +5717,32 @@
       const recs = (Array.isArray(ids) ? ids : [ids]).map(id => enrollments.find(x => Number(x.id) === Number(id))).filter(Boolean);
       if (!recs.length) return;
       const first = recs[0];
+      if (membershipStatus) {
+        const state = first.user_id ? vipAdminData.members[first.user_id] : null;
+        const statusText = membershipStatus === 'active' ? 'Subscribed' : membershipStatus === 'expired' ? 'Expired' : 'Unsubscribed';
+        const feeMatch = String(first.package_selected || '').match(/[₱P]\s*([0-9][0-9,]*(?:\.\d{1,2})?)/u);
+        const fee = feeMatch ? Number(feeMatch[1].replace(/,/g, '')) : null;
+        const paymentLabels = { confirmed: 'Confirmed', pending: 'Pending', unpaid: 'Unpaid', rejected: 'Rejected', cancelled: 'Cancelled' };
+        const paymentStatus = paymentLabels[String(first.payment_status || '').toLowerCase()] || 'Not available';
+        const joined = state?.joined_at || (membershipStatus === 'active' && !first.user_id ? first.created_at : null);
+        const expiry = state?.expires_at || null;
+        document.getElementById('vip-overview-body').innerHTML = `
+          <div class="enrollment-detail-section"><h4>Member Information</h4><div class="detail-grid">
+            <div class="detail-item"><label>Member Name</label><strong>${escHtml(first.guardian_name || first.child_name || '—')}</strong></div>
+            <div class="detail-item"><label>Contact</label><strong>${escHtml(first.contact || first.guardian_contact || '—')}</strong></div>
+          </div></div>
+          <div class="enrollment-detail-section"><h4>VIP Membership</h4><div class="detail-grid">
+            <div class="detail-item"><label>Status</label><strong>${escHtml(statusText)}</strong></div>
+            <div class="detail-item"><label>Date Joined</label><strong>${joined ? escHtml(fmtDate(joined)) : '—'}</strong></div>
+            <div class="detail-item"><label>Expiry Date</label><strong>${expiry ? escHtml(fmtDate(expiry)) : '—'}</strong></div>
+          </div></div>
+          <div class="enrollment-detail-section"><h4>Membership Payment</h4><div class="detail-grid">
+            <div class="detail-item"><label>Membership Fee</label><strong>${fee !== null ? escHtml(fee.toLocaleString('en-PH', {style:'currency',currency:'PHP',minimumFractionDigits:2})) : '—'}</strong></div>
+            <div class="detail-item"><label>Payment Status</label><strong>${escHtml(paymentStatus)}</strong></div>
+          </div></div>`;
+        openModal('modal-vip-overview');
+        return;
+      }
       const key = getEnrollmentGroupKeyAdmin(first);
       const allParentRecs = enrollments.filter(e => getEnrollmentGroupKeyAdmin(e) === key);
       // Use explicit VIP context so modal title always shows the right label,
@@ -5713,8 +5766,8 @@
         if (e.status === 'confirmed' && state?.expires_at) return 'expired';
         return null;
       };
-      const filter = document.getElementById('vip-member-filter')?.value || 'active';
-      const active = vipList.filter(e => memberStatus(e) && (filter === 'all' || (filter === 'unsubscribed' ? memberStatus(e) !== 'active' : memberStatus(e) === filter)));
+      const filter = document.getElementById('vip-member-filter')?.value || 'all';
+      const active = vipList.filter(e => memberStatus(e) && (filter === 'all' || memberStatus(e) === filter));
 
       const vipParentKey = e => getEnrollmentGroupKeyAdmin(e);
 
@@ -5773,30 +5826,29 @@
 
       document.getElementById('vip-active-count').textContent = activeParents.length;
       document.getElementById('vip-pending-count').textContent = pendingParents.length;
-      const nav = document.getElementById('nb-vip'); if (nav) nav.textContent = new Set(vipList.filter(e => memberStatus(e) === 'active').map(e => e.user_id || [e.guardian_name || e.child_name, e.contact].join('|').toLowerCase())).size;
+      const nav = document.getElementById('nb-vip');
+      const hasUnlinkedActiveVip = vipList.some(e => !e.user_id && e.status === 'confirmed');
+      if (nav) nav.textContent = dashboardVipLive && !hasUnlinkedActiveVip ? new Set(vipList.filter(e => e.user_id && memberStatus(e) === 'active').map(e => String(e.user_id))).size : '—';
 
       document.getElementById('vip-members-body').innerHTML = activeParents.length ? activeParents.map(grp => {
         const idsJson = JSON.stringify(grp.records.map(r => Number(r.id))).replace(/"/g, '&quot;');
         const refs = [...new Set(grp.records.map(r => r.reference_no).filter(Boolean))].join(', ');
-        return `<tr>
+        return `<tr tabindex="0" role="button" aria-label="View VIP member ${escHtml(grp.parentName)}" style="cursor:pointer" onclick="openVipEnrollmentApproval(${idsJson}, '${grp.membershipStatus}')" onkeydown="if(event.target===this &amp;&amp; (event.key==='Enter'||event.key===' ')){event.preventDefault();openVipEnrollmentApproval(${idsJson}, '${grp.membershipStatus}')}">
           <td><strong>${escHtml(grp.parentName)}</strong><br><small>${escHtml(refs || '')}</small></td>
           <td>${fmtDate(grp.created_at)}</td>
-          <td><span class="badge ${grp.membershipStatus === 'active' ? 'badge-green' : 'badge-gold'}">${grp.membershipStatus === 'active' ? 'Active' : grp.membershipStatus === 'expired' ? 'Expired' : 'Unsubscribed'}</span></td>
-          <td><button type="button" class="btn btn-outline btn-sm" onclick="openVipEnrollmentApproval(${idsJson}, '${grp.membershipStatus}')">View</button>
-          ${grp.membershipStatus !== 'active' ? `<button type="button" class="btn btn-primary btn-sm" onclick="reactivateVip(${Number(grp.records[0].id)},this)">Reactivate VIP</button>` : ''}</td>
+          <td><span class="badge ${grp.membershipStatus === 'active' ? 'badge-green' : 'badge-gold'}">${grp.membershipStatus === 'active' ? 'Subscribed' : grp.membershipStatus === 'expired' ? 'Expired' : 'Unsubscribed'}</span></td>
         </tr>`;
-      }).join('') : '<tr><td colspan="4" style="padding:24px;text-align:center">No VIP members match this filter.</td></tr>';
+      }).join('') : '<tr><td colspan="3" style="padding:24px;text-align:center">No VIP members match this filter.</td></tr>';
 
       document.getElementById('pending-vip-body').innerHTML = pendingParents.length ? pendingParents.map(grp => {
         const idsJson = JSON.stringify(grp.records.map(r => Number(r.id))).replace(/"/g, '&quot;');
         const refs = [...new Set(grp.records.map(r => r.reference_no).filter(Boolean))].join(', ');
-        return `<tr>
+        return `<tr tabindex="0" role="button" aria-label="Review VIP application for ${escHtml(grp.parentName)}" style="cursor:pointer" onclick="openVipEnrollmentApproval(${idsJson})" onkeydown="if(event.target===this &amp;&amp; (event.key==='Enter'||event.key===' ')){event.preventDefault();openVipEnrollmentApproval(${idsJson})}">
           <td><strong>${escHtml(grp.parentName)}</strong><br><small>${escHtml(refs || '')}</small></td>
           <td>${fmtDate(grp.created_at)}</td>
           <td>${escHtml(grp.payment_method || '—')}</td>
-          <td><button type="button" class="btn btn-outline btn-sm" onclick="openVipEnrollmentApproval(${idsJson})">Review</button></td>
         </tr>`;
-      }).join('') : '<tr><td colspan="4" style="padding:24px;text-align:center">No pending VIP applications.</td></tr>';
+      }).join('') : '<tr><td colspan="3" style="padding:24px;text-align:center">No pending VIP applications.</td></tr>';
     }
 
     async function renderStaffPage() {
@@ -5952,28 +6004,27 @@
     function renderStudentsTable() {
       const tbody = document.getElementById('official-students-body');
       if (!tbody) return;
-      const archived = document.getElementById('student-archive-filter')?.value === 'archived';
+      const inactive = document.getElementById('student-archive-filter')?.value === 'inactive';
       const selectedProgram = document.getElementById('student-program-filter')?.value || '';
       const isVipStudent = e => (e.package_selected || '').toLowerCase().includes('(vip)') || isParentConfirmedVip(e);
+      const studentEndDate = e => getProgramEndDate(e, programKey(e.program));
+      const isInactive = e => { const end = studentEndDate(e); return !!end && new Date() >= end; };
       // Exclude VIP Club Membership (which is for parents), only show real students
-      const students = enrollments.filter(e => e.status === 'confirmed' && Boolean(e.student_archived_at) === archived
+      const students = enrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && isInactive(e) === inactive
         && !isStandaloneStudioRentalRecord(e)
         && !isStandaloneSummerBlastRegistrationRecord(e)
         && !String(e.program || '').toLowerCase().includes('vip')
         && (!selectedProgram || (selectedProgram === 'vip' ? isVipStudent(e) : programKey(e.program) === selectedProgram)));
-      document.getElementById('official-students-title').textContent = archived ? 'Archived Students' : 'All Students';
+      document.getElementById('official-students-title').textContent = inactive ? 'Inactive Students' : 'Active Students';
       const nb = document.getElementById('nb-students');
-      if (nb) nb.textContent = enrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) && !String(e.program || '').toLowerCase().includes('vip')).length || '0';
+      if (nb) nb.textContent = dashboardEnrollmentsLive && programSpansData.length ? enrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && !isInactive(e) && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) && !String(e.program || '').toLowerCase().includes('vip')).length : '—';
       if (!students.length) {
-        tbody.innerHTML = `<tr><td colspan="8" style="padding:24px;text-align:center;color:#999">${archived ? 'No archived students.' : 'No active students yet.'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:#999">${inactive ? 'No inactive students.' : 'No active students yet.'}</td></tr>`;
         return;
       }
       tbody.innerHTML = students.map((e, i) => {
         const isVip = (e.package_selected || '').toLowerCase().includes('vip') || (e.program || '').toLowerCase().includes('vip') || isParentConfirmedVip(e);
-        const archiveLabel = archived ? 'Restore student' : 'Archive student';
-        const archiveIcon = archived
-          ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7"></path><path d="M4 4v5h5"></path><path d="M12 8v4l2.5 1.5"></path></svg>`
-          : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16v12H4z"></path><path d="M3 4h18v4H3z"></path><path d="M9 12h6"></path></svg>`;
+        const endDate = studentEndDate(e);
         return `<tr tabindex="0" style="cursor:pointer" onclick="if (!event.target.closest('button')) viewEnrollmentDetail(${Number(e.id)})" onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); viewEnrollmentDetail(${Number(e.id)}); }" aria-label="View ${escHtml(e.child_name)} enrollment details">
           <td>${String(i + 1).padStart(3, '0')}</td>
           <td><b>${escHtml(e.child_name)}</b></td>
@@ -5981,9 +6032,7 @@
           <td>${escHtml(e.program)}</td>
           <td>${escHtml(e.package_selected || '—')}</td>
           <td>${isVip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
-          <td><span class="badge ${archived ? 'badge-gold' : 'badge-green'}">${archived ? 'Archived' : 'Active'}</span></td>
-          <td>
-          ${isHeadAdminUser ? `<button type="button" class="btn btn-outline btn-sm" title="${archiveLabel}" aria-label="${archiveLabel}" style="margin:4px;width:34px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center" onclick="setStudentArchived(${Number(e.id)}, ${!archived}, this)">${archiveIcon}</button>` : ''}</td>
+          <td><span class="badge ${!endDate ? 'badge-gold' : inactive ? 'badge-brown' : 'badge-green'}">${!endDate ? 'Date unavailable' : inactive ? 'Inactive' : 'Active'}</span></td>
         </tr>`;
       }).join('');
     }
@@ -6413,7 +6462,7 @@
       payments: 'Payments Ledger', staff: 'My Team', reports: 'Reports & Analytics', settings: 'Settings',
       pricemanagement: 'Price Management', announcements: 'Announcements',
       schedule: 'Schedule',
-      balancemonitoring: 'Balance Monitoring',
+      balancemonitoring: 'Payments',
       activitylogs: 'Activity Logs', madstudio: 'M.A.D Studio', mad: 'M.A.D Studio', tutors: 'Tutor', sessions: 'Session Logs', payroll: 'Payroll',
       my_schedule: 'My Schedule & Classes', my_students: 'My Students', my_hours: 'My Session Logs & Verified Hours', my_profile: 'My Profile'
     };
@@ -6459,9 +6508,30 @@
         const sbFilter = document.getElementById('sb-view-filter');
         changeSummerBlastView(sbFilter?.value || 'students');
       }
-      if (pageId === 'students') renderStudentsTable();
+      if (PROGRAM_PAGES.has(pageId)) {
+        loadProgramSpans().then(() => {
+          if (!document.getElementById('page-' + pageId)?.classList.contains('active')) return;
+          if (pageId === 'madstudio') changeMadStudioView(document.getElementById('mad-view-filter')?.value || 'madstudio');
+          else if (pageId === 'summerblast') changeSummerBlastView(document.getElementById('sb-view-filter')?.value || 'students');
+          else renderProgramPage(pageId);
+          const table = document.querySelector('#page-' + pageId + ' table[id$="-table"]');
+          const search = document.querySelector('#page-' + pageId + ' input[oninput*="filterProgramTable"]');
+          if (table && search?.value) filterProgramTable(table.id, search.value);
+        });
+      }
+      if (pageId === 'students') {
+        renderStudentsTable();
+        loadProgramSpans().then(() => {
+          if (document.getElementById('page-students')?.classList.contains('active')) renderStudentsTable();
+        });
+      }
       if (pageId === 'payments') renderPaymentsPage();
-      if (pageId === 'vipmembers') renderVIPPage();
+      if (pageId === 'vipmembers') {
+        renderVIPPage();
+        Promise.all([loadEnrollmentsFromServer(), loadVipAdminData()]).then(() => {
+          if (document.getElementById('page-vipmembers')?.classList.contains('active')) renderVIPPage();
+        });
+      }
       if (pageId === 'tutors') loadTutors();
       if (pageId === 'sessions') loadSessionsPage();
       if (pageId === 'payroll') loadPayrollPage();
@@ -6532,10 +6602,24 @@
     }
     function closeModal(id) {
       document.getElementById(id)?.classList.remove('open');
+      if (id === 'modal-add-student') {
+        const password = document.getElementById('student-parent-password');
+        const toggle = document.getElementById('student-password-toggle');
+        if (password) password.type = 'password';
+        if (toggle) { toggle.setAttribute('aria-label', 'Show password'); toggle.setAttribute('aria-pressed', 'false'); }
+      }
       if (id === 'modal-enrollment-approval' && _modalSubmissionTicker) {
         clearInterval(_modalSubmissionTicker);
         _modalSubmissionTicker = null;
       }
+    }
+    function toggleManualParentPassword(button) {
+      const input = document.getElementById('student-parent-password');
+      if (!input) return;
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      button.setAttribute('aria-pressed', String(show));
     }
     function toggleNotif() {
       const panel = document.getElementById('notif-panel');
@@ -6593,6 +6677,14 @@
     }
 
     // ── CSV EXPORT ───────────────────────────────────────────────────────
+    function exportStudentRecordsCSV() {
+      const table = document.getElementById('official-students-body')?.closest('table');
+      if (!table) return;
+      const status = document.getElementById('student-archive-filter')?.value || 'active';
+      const program = document.getElementById('student-program-filter')?.value || 'all-programs';
+      exportVisibleTableCSV(table, `students-${status}-${program}`);
+    }
+
     function exportVisibleTableCSV(table, filename) {
       const columns = [...table.querySelectorAll('thead th')].filter(th => !/^actions?$/i.test(th.textContent.trim()));
       const rows = [...table.querySelectorAll('tbody tr')].filter(row => row.style.display !== 'none' && !row.querySelector('[colspan]'));
@@ -6617,7 +6709,7 @@
         const table = document.getElementById(id);
         const controls = table.closest('.card').querySelector('.card-header').lastElementChild;
         const button = document.createElement('button');
-        button.type = 'button'; button.className = 'btn btn-outline btn-sm'; button.textContent = 'Export CSV';
+        button.type = 'button'; button.className = 'export-csv-btn'; button.textContent = '⬇ Export CSV';
         button.onclick = () => exportVisibleTableCSV(table, id.replace('-table',''));
         controls.prepend(button); controls.style.flexWrap = 'wrap';
       }
@@ -6632,10 +6724,16 @@
         const response = await fetch('api/vip_api.php?scope=admin', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reactivate',enrollment_id:id})});
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.message || 'Unable to reactivate VIP.');
-        await loadEnrollmentsFromServer(); renderVIPPage();
+        await Promise.all([loadEnrollmentsFromServer(), loadVipAdminData()]); renderVIPPage();
+        closeModal('modal-enrollment-approval');
         showToast('VIP membership reactivated.');
       } catch (error) { showToast(error.message,'error'); }
       finally { button.disabled = false; }
+    }
+
+    function reactivateVipFromModal(button) {
+      const vipRecord = _currentApprovalRecords.find(r => String(r.program || '').toLowerCase().includes('vip'));
+      if (vipRecord) reactivateVip(Number(vipRecord.id), button);
     }
 
     function exportEnrollmentsCSV() {
@@ -6693,7 +6791,7 @@
         && (e.status === 'pending' || combinedVipGroupKeys.has(getEnrollmentGroupKeyAdmin(e))));
 
       if (!childEnrollments.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:#8D6A4E">No pending enrollment applications.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:#8D6A4E">No pending enrollment applications.</td></tr>';
         if (countEl) countEl.textContent = '0 New';
         return;
       }
@@ -6710,7 +6808,6 @@
             records: [],
             children: [],
             vipRecord: null,
-            paymentLabel: buildPaymentLabel(e),
             date: e.created_at
           };
         }
@@ -6740,20 +6837,22 @@
         const allIds = [...new Set(grp.records.map(r => Number(r.id)))];
         const idsJson = JSON.stringify(allIds).replace(/"/g, '&quot;');
         
-        let childrenHtml = grp.children.map((c, ci) => {
+        const studentNames = [...new Set(grp.children.map(c => String(c.child_name || '').trim()).filter(Boolean))];
+        let childrenHtml = grp.children.map(c => {
           const summerLabel = formatSummerBlastAdmin(c);
-          return '<div style="font-size:12px;padding:2px 0;color:#5c3317"><b>Child ' + (ci + 1) + ':</b> ' +
-          escHtml(c.child_name) + ' — ' + escHtml(displayEnrollmentProgramAdmin(c.program)) +
-          (c.package_selected ? ' &middot; ' + escHtml(c.package_selected) : '') +
+          return '<div style="font-size:12px;padding:2px 0;color:#5c3317">' +
+          escHtml(displayEnrollmentProgramAdmin(c.program)) +
+          (isReEnrollmentAdmin(c) ? ' <span style="font-size:10px;font-weight:700;color:#855800;background:#fef3c7;border-radius:4px;padding:2px 5px">Re-enrollment</span>' : '') +
           (c.timeslot ? ' &middot; ' + escHtml(c.timeslot) : '') +
-          (summerLabel ? '<div style="font-size:11px;color:#8b6f47;margin:1px 0 3px 52px">' + escHtml(summerLabel) + '</div>' : '') +
+          (c.start_date ? ' &middot; Start: ' + escHtml(c.start_date) : '') +
+          (summerLabel ? '<div style="font-size:11px;color:#8b6f47;margin:1px 0 3px">' + escHtml(summerLabel) + '</div>' : '') +
           '</div>';
         }).join('');
 
         grp.children.forEach(c => {
           const rentalLabel = formatStudioRentalAdmin(c);
           if (rentalLabel) {
-            childrenHtml += '<div style="font-size:11px;color:#8b6f47;margin:1px 0 3px 52px">' + escHtml(rentalLabel) + '</div>';
+            childrenHtml += '<div style="font-size:11px;color:#8b6f47;margin:1px 0 3px">' + escHtml(rentalLabel) + '</div>';
           }
         });
 
@@ -6779,17 +6878,11 @@
           '<tr class="pending-enrollment-row" data-ids="' + idsJson + '" style="cursor:pointer"' +
           ' onmouseover="this.style.backgroundColor=\'#f0e8d8\'" onmouseout="this.style.backgroundColor=\'transparent\'">' +
           '<td onclick="event.stopPropagation()" style="padding:8px;text-align:center">' + checkboxes + '</td>' +
-          '<td style="color:#5c3317;font-weight:bold">' + escHtml(grp.parentName || '—') + '</td>' +
+          '<td style="color:#5c3317;font-weight:bold">' + (studentNames.map(escHtml).join('<br>') || '—') + '</td>' +
           '<td>' + childrenHtml + '</td>' +
           '<td style="font-weight:700;color:#2e7d32;white-space:nowrap">' + escHtml(totalStr) + '</td>' +
-          '<td>' + escHtml(grp.paymentLabel) + '</td>' +
+          '<td>' + ([...new Set(grp.records.map(paymentMethodLabelAdmin))].map(escHtml).join('<br>') || '—') + '</td>' +
           '<td>' + escHtml(fmtDate(grp.date)) + '</td>' +
-          '<td onclick="event.stopPropagation()">' +
-            '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
-              '<button class="btn btn-success btn-sm" onclick="approveParentGroup(' + JSON.stringify(actionIds) + ')" style="padding:4px 8px;font-size:11px;cursor:pointer">Approve</button>' +
-              '<button class="btn btn-danger btn-sm" onclick="rejectParentGroup(' + JSON.stringify(actionIds) + ')" style="padding:4px 8px;font-size:11px;cursor:pointer">Reject</button>' +
-            '</div>' +
-          '</td>' +
           '</tr>';
       });
 
@@ -6806,6 +6899,18 @@
         };
       });
       if (countEl) countEl.textContent = groupArr.length + ' New';
+    }
+
+    function isReEnrollmentAdmin(record) {
+      const notes = String(record?.notes || '');
+      if (notes.startsWith('Re-enrollment for ')) return true;
+      try { return !!JSON.parse(notes).re_enrollment; } catch (_) { return false; }
+    }
+
+    function paymentMethodLabelAdmin(record) {
+      const method = String(record?.payment_method || '').trim();
+      if (!method || /^re-enrollment\s*\(pending admin\)$/i.test(method)) return 'Not provided';
+      return method;
     }
 
     // Helper: parse a numeric fee from a single enrollment record for admin display
@@ -7306,6 +7411,8 @@
             : context === 'rejected'
               ? 'Rejected Registration Fee'
               : 'Pending Registration Fee';
+        } else if (records.some(isReEnrollmentAdmin) && !context) {
+          titleEl.textContent = 'Re-enrollment Application Review';
         } else if (context === 'approved') {
           titleEl.textContent = 'Approved Client';
         } else if (context === 'rejected') {
@@ -7347,7 +7454,7 @@
           document.getElementById('modal-vip-fee').textContent = vipFee.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0 });
           const ageEl = document.getElementById('modal-vip-applicant-age');
           if (ageEl) {
-            const rawAge = vipRec.child_age || vipRec.user_calculated_age || '';
+            const rawAge = Number(vipRec.guardian_age) > 0 ? vipRec.guardian_age : (Number(vipRec.child_age) > 0 ? vipRec.child_age : vipRec.user_calculated_age || '');
             const validAge = (rawAge && String(rawAge).trim() !== '0') ? String(rawAge).trim() : '';
             ageEl.textContent = validAge ? `${validAge} years old` : '—';
           }
@@ -7468,7 +7575,7 @@
         statusEl.textContent = membershipStatus === 'active' ? 'Active' : membershipStatus === 'expired' ? 'Expired' : 'Unsubscribed';
         statusEl.style.color = membershipStatus === 'active' ? '#2e7d32' : '#8b6f47';
       }
-      document.getElementById('modal-payment-mode').textContent = first.payment_method || (first.payment_screenshot ? 'Online (QR)' : 'Walk-in');
+      document.getElementById('modal-payment-mode').textContent = paymentMethodLabelAdmin(first);
       const refNos = records.map(r => r.reference_no).filter(Boolean).join(', ');
       document.getElementById('modal-reference-no').textContent = 'Reference(s): ' + (refNos || '—');
 
@@ -7521,6 +7628,8 @@
       if (unsubBtn) {
         unsubBtn.style.display = (context === 'vip-member' && options.membershipStatus === 'active') ? 'inline-block' : 'none';
       }
+      const reactivateBtn = document.getElementById('modal-btn-reactivate-vip');
+      if (reactivateBtn) reactivateBtn.style.display = (context === 'vip-member' && options.membershipStatus && options.membershipStatus !== 'active') ? 'inline-block' : 'none';
 
       const banner = document.getElementById('modal-pending-banner');
       if (isActionable) {
@@ -7650,7 +7759,7 @@
         : progEnrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && !isStandaloneSummerBlastRegistrationRecord(e));
       const pageKey = programKey_ === 'studio_rental' ? 'madstudio' : programKey_;
       const countEl = programKey_ === 'studio_rental' ? null : document.getElementById(pageKey + '-count');
-      if (countEl) countEl.textContent = confirmed.length;
+      if (countEl) countEl.textContent = dashboardEnrollmentsLive ? confirmedProgramStudentCount(pageKey) : '—';
 
       const bodyId = pageKey + '-body';
       const tbody = document.getElementById(bodyId);
@@ -7690,10 +7799,52 @@
       if (search && search.value) filterProgramTable('mad-table', search.value);
     }
 
+    function programRowAttributes(e, reviewFunction) {
+      const id = Number(e.id);
+      return `tabindex="0" role="button" aria-label="View ${escHtml(e.child_name || 'student')} details" style="cursor:pointer" onclick="${reviewFunction}(${id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${reviewFunction}(${id})}"`;
+    }
+
+    function getProgramEndDate(e, key, useSpan = true) {
+      const raw = e.start_date || e.created_at;
+      const start = raw ? new Date(raw) : null;
+      if (!start || Number.isNaN(start.getTime())) return null;
+      if (useSpan && /^\d{4}-\d{2}-\d{2}$/.test(e.end_date_override || '')) {
+        const [year, month, day] = e.end_date_override.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      }
+      const span = useSpan ? programSpansData.find(item => item.program_key === key) : null;
+      if (!span) return null;
+      const end = new Date(start.getTime());
+      const value = Math.max(1, Number(span.duration_value) || 1);
+      if (span.duration_unit === 'years') end.setFullYear(end.getFullYear() + value);
+      else if (span.duration_unit === 'weeks') end.setDate(end.getDate() + value * 7);
+      else if (span.duration_unit === 'days') end.setDate(end.getDate() + value);
+      else if (span.duration_unit === 'months') end.setMonth(end.getMonth() + value);
+      else return null;
+      end.setHours(0, 0, 0, 0);
+      return end;
+    }
+
+    function programDateCells(e, key, useSpan = true) {
+      const raw = e.start_date || e.created_at;
+      const start = raw ? new Date(raw) : null;
+      if (!start || Number.isNaN(start.getTime())) return '<td>—</td><td>—</td>';
+      const startLabel = e.start_date ? 'Start date' : 'Enrollment date used because no start date was provided';
+      const end = getProgramEndDate(e, key, useSpan);
+      const endLabel = e.end_date_override && useSpan ? 'End date set by admin' : 'Calculated using the current program span';
+      return `<td title="${startLabel}">${fmtDate(raw)}</td><td title="${endLabel}">${end ? fmtDate(end) : '—'}</td>`;
+    }
+
+    function programEnrollmentBadge(e, prog) {
+      if (e.status !== 'confirmed' || prog === 'studio_rental' || isStandaloneSummerBlastRegistrationRecord(e)) return statusBadge(e.status);
+      const end = getProgramEndDate(e, prog);
+      if (!end) return '<span class="badge badge-gold">Date unavailable</span>';
+      return new Date() >= end ? '<span class="badge badge-brown">Inactive</span>' : '<span class="badge badge-green">Active</span>';
+    }
+
     function buildProgramRow(prog, e, idx) {
-      const viewBtn = prog === 'studio_rental'
-        ? `<button class="btn btn-sm btn-outline" onclick="openStudioRentalReview(${e.id})">View</button>`
-        : `<button class="btn btn-sm btn-outline" onclick="viewEnrollmentDetail(${e.id})">View</button>`;
+      const rowAttrs = programRowAttributes(e, prog === 'studio_rental' ? 'openStudioRentalReview' : 'viewEnrollmentDetail');
+      const dateCells = programDateCells(e, prog, prog !== 'studio_rental');
       const baseInfo = `
     <td>${idx}</td>
     <td><strong style="color:#5c3317">${escHtml(e.child_name)}</strong></td>
@@ -7702,51 +7853,43 @@
     <td>${escHtml(e.contact)}</td>
   `;
       if (prog === 'tutoring') {
-        return `<tr>
+        return `<tr ${rowAttrs}>
       ${baseInfo}
       <td>${escHtml(e.package_selected || '—')}</td>
       <td>${escHtml(e.subject || '—')}</td>
       <td>${escHtml(e.timeslot || '—')}</td>
-      <td>${escHtml(e.payment_method || '—')}</td>
-      <td>${statusBadge(e.status)}</td>
-      <td>${fmtDate(e.created_at)}</td>
-      <td>${viewBtn}</td>
+      <td>${programEnrollmentBadge(e, prog)}</td>
+      ${dateCells}
     </tr>`;
       }
       if (prog === 'workshop') {
-        return `<tr>
+        return `<tr ${rowAttrs}>
       ${baseInfo}
       <td>${escHtml(e.workshop_class || e.package_selected || '—')}</td>
       <td>${escHtml(e.session_type || 'Group')}</td>
       <td>${escHtml(e.timeslot || '—')}</td>
-      <td>${escHtml(e.payment_method || '—')}</td>
-      <td>${statusBadge(e.status)}</td>
-      <td>${fmtDate(e.created_at)}</td>
-      <td>${viewBtn}</td>
+      <td>${programEnrollmentBadge(e, prog)}</td>
+      ${dateCells}
     </tr>`;
       }
       if (prog === 'playschool') {
-        return `<tr>
+        return `<tr ${rowAttrs}>
       ${baseInfo}
       <td>${escHtml(e.section || e.package_selected || '—')}</td>
       <td>${escHtml(e.timeslot || '—')}</td>
       <td>${escHtml(e.address || '—')}</td>
-      <td>${escHtml(e.payment_method || '—')}</td>
-      <td>${statusBadge(e.status)}</td>
-      <td>${fmtDate(e.created_at)}</td>
-      <td>${viewBtn}</td>
+      <td>${programEnrollmentBadge(e, prog)}</td>
+      ${dateCells}
     </tr>`;
       }
       if (prog === 'childcare') {
-        return `<tr>
+        return `<tr ${rowAttrs}>
       ${baseInfo}
       <td>${escHtml(e.address || '—')}</td>
       <td>${escHtml(e.package_selected || '—')}</td>
       <td>${escHtml(e.timeslot || '—')}</td>
-      <td>${escHtml(e.payment_method || '—')}</td>
-      <td>${statusBadge(e.status)}</td>
-      <td>${fmtDate(e.created_at)}</td>
-      <td>${viewBtn}</td>
+      <td>${programEnrollmentBadge(e, prog)}</td>
+      ${dateCells}
     </tr>`;
       }
       if (prog === 'madstudio' || prog === 'studio_rental' || prog === 'summerblast') {
@@ -7756,14 +7899,12 @@
           : '—';
         const firstRentalColumn = prog === 'studio_rental' ? formatStudioRentalDatesAdmin(e) : (e.package_selected || e.workshop_class || '—');
         const secondRentalColumn = prog === 'studio_rental' ? `${e.timeslot || '—'} / ${amount}` : (e.timeslot || '—');
-        return `<tr>
+        return `<tr ${rowAttrs}>
       ${baseInfo}
       <td>${escHtml(firstRentalColumn)}</td>
       <td>${escHtml(secondRentalColumn)}</td>
-      <td>${escHtml(e.payment_method || '—')}</td>
-      <td>${statusBadge(e.status)}</td>
-      <td>${fmtDate(e.created_at)}</td>
-      <td>${viewBtn}</td>
+      <td>${programEnrollmentBadge(e, prog)}</td>
+      ${dateCells}
     </tr>`;
       }
       return '';
@@ -7813,6 +7954,25 @@
         <div class="detail-item"><label>Timeslot</label><strong>${escHtml(e.timeslot || '—')}</strong></div>
       </div>
     </div>
+    ${e.status === 'confirmed' && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) ? `
+    <div class="enrollment-detail-section">
+      <h4>Enrollment End Date</h4>
+      <p style="font-size:12px;color:#8b6f47">Current end date: <strong>${fmtDate(getProgramEndDate(e, programKey(e.program)))}</strong>. ${e.end_date_override ? 'Set by admin.' : 'Calculated from the current program span.'} Re-enrollment opens on the end date.</p>
+      ${isHeadAdminUser ? `<label for="detail-end-date" style="display:block;font-size:12px">Override end date (leave blank to use the program span)</label>
+      <input type="date" id="detail-end-date" class="form-control" value="${escHtml(e.end_date_override || '')}">
+      <label for="detail-end-date-reason" style="display:block;font-size:12px;margin-top:10px">Reason for change (optional)</label>
+      <textarea id="detail-end-date-reason" class="form-control" rows="2" maxlength="500" placeholder="Add a reason (optional)"></textarea>
+      <button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" onclick="saveEnrollmentEndDate(${Number(e.id)}, this)">Save End Date</button>
+      <div id="detail-end-date-message" role="status" style="margin-top:8px;font-size:12px"></div>` : ''}
+      <details style="margin-top:16px;border:1px solid #dfc8ac;border-radius:10px;background:#fffaf4;overflow:hidden">
+        <summary style="cursor:pointer;padding:13px 15px;color:#5c3317;font-size:13px;font-weight:800;line-height:1.4">
+          <span aria-hidden="true" style="margin-right:6px;color:#ae8047">&#9201;</span> End Date Change History
+          <span id="detail-end-date-count" style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:99px;background:#ead9bf;color:#79552c;font-size:11px;font-weight:700">Loading…</span>
+          <span style="display:block;margin:3px 0 0 22px;color:#8b6f47;font-size:11px;font-weight:400">View previous changes and reasons</span>
+        </summary>
+        <div id="detail-end-date-history" aria-live="polite" style="padding:0 12px 12px;font-size:12px">Loading history…</div>
+      </details>
+    </div>` : ''}
     <div class="enrollment-detail-section">
       <h4>Payment Information</h4>
       <div class="detail-grid">
@@ -7826,12 +7986,17 @@
   `;
 
       openModal('modal-enrollment-view');
+      if (document.getElementById('detail-end-date-history')) loadEndDateHistory(e.id);
       fetch(`api/assign_tutor.php?enrollment_id=${Number(e.id)}`, {credentials:'same-origin'})
         .then(response => response.json()).then(data => {
           if (Number(_currentViewEnrollmentId) !== Number(e.id)) return;
           const label = document.getElementById('detail-assigned-tutor-name');
           const button = document.getElementById('btn-view-assign-tutor');
-          if (label) label.textContent = data.success ? (data.assignment?.full_name || 'No tutor assigned. Assign a tutor to show this child in the schedule.') : 'Unable to load tutor assignment.';
+          if (label) {
+            label.textContent = data.success ? (data.assignment?.full_name ? '✓ Tutor assigned: ' + data.assignment.full_name : 'No tutor assigned.') : 'Unable to load tutor assignment.';
+            label.style.color = data.success && !data.assignment?.full_name ? '#c62828' : data.assignment?.full_name ? '#2e7d32' : '#8b6f47';
+            label.style.fontWeight = '700';
+          }
           if (button) button.textContent = data.assignment ? 'Change Tutor' : 'Assign Tutor';
         }).catch(() => {
           if (Number(_currentViewEnrollmentId) === Number(e.id)) {
@@ -7842,6 +8007,69 @@
     }
 
     // ─── SUMMER BLAST RESERVED STUDENTS ──────────────────────────────────────────
+    async function loadEndDateHistory(id) {
+      const target = document.getElementById('detail-end-date-history');
+      if (!target) return;
+      try {
+        const response = await fetch('api/admin_enrollment_end_date.php?enrollment_id=' + encodeURIComponent(id), { credentials: 'same-origin', cache: 'no-store' });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Could not load history.');
+        if (Number(_currentViewEnrollmentId) !== Number(id)) return;
+        const count = document.getElementById('detail-end-date-count');
+        if (count) count.textContent = `${result.history.length} ${result.history.length === 1 ? 'change' : 'changes'}`;
+        const displayDate = value => {
+          if (!value) return 'Program span';
+          const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+          return match ? fmtDate(new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))) : value;
+        };
+        target.innerHTML = result.history.length ? result.history.map(item =>
+          `<article style="background:#fff;border:1px solid #eadbca;border-left:3px solid #b99059;border-radius:8px;padding:12px;margin-top:8px;overflow-wrap:anywhere">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9a7854;font-weight:700;margin-bottom:5px">End date updated</div>
+            <div style="color:#5c3317;font-size:13px;font-weight:800">${escHtml(displayDate(item.previous_override))} <span aria-label="changed to" style="color:#b48750;padding:0 5px">→</span> ${escHtml(displayDate(item.new_override))}</div>
+            ${item.reason ? `<div style="margin-top:9px;color:#68442c;line-height:1.5"><strong>Reason:</strong> ${escHtml(item.reason)}</div>` : ''}
+            <div style="margin-top:8px;color:#8b6f47;font-size:11px">${escHtml(item.changed_by)} · ${escHtml(item.changed_at)}</div>
+          </article>`
+        ).join('') : '<div style="padding:12px;color:#8b6f47;background:#fff;border:1px dashed #dfc8ac;border-radius:8px">No end date changes yet.</div>';
+      } catch (error) {
+        if (Number(_currentViewEnrollmentId) === Number(id)) {
+          target.textContent = error.message || 'Could not load history.';
+          const count = document.getElementById('detail-end-date-count');
+          if (count) count.textContent = 'Unavailable';
+        }
+      }
+    }
+
+    async function saveEnrollmentEndDate(id, button) {
+      const date = document.getElementById('detail-end-date')?.value || '';
+      const reason = document.getElementById('detail-end-date-reason')?.value.trim() || '';
+      const message = document.getElementById('detail-end-date-message');
+      button.disabled = true;
+      message.textContent = 'Saving…';
+      try {
+        const response = await fetch('api/admin_enrollment_end_date.php', {
+          method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enrollment_id: id, end_date: date, reason })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Could not save end date.');
+        const record = enrollments.find(item => Number(item.id) === Number(id));
+        if (record) record.end_date_override = result.end_date_override;
+        const page = document.querySelector('.page.active')?.id.replace('page-', '');
+        if (page === 'madstudio') changeMadStudioView(document.getElementById('mad-view-filter')?.value || 'madstudio');
+        else if (page === 'summerblast') changeSummerBlastView(document.getElementById('sb-view-filter')?.value || 'students');
+        else if (PROGRAM_PAGES.has(page)) renderProgramPage(page);
+        else if (page === 'students') renderStudentsTable();
+        if (Number(_currentViewEnrollmentId) === Number(id)) {
+          viewEnrollmentDetail(id);
+          const updatedMessage = document.getElementById('detail-end-date-message');
+          if (updatedMessage) { updatedMessage.textContent = 'End date saved.'; updatedMessage.style.color = '#2e7d32'; }
+        }
+      } catch (error) {
+        message.textContent = error.message || 'Could not save end date.';
+        message.style.color = '#c62828';
+      } finally { button.disabled = false; }
+    }
+
     function isSummerBlastReserved(e) {
       if (programKey(e.program) !== 'summerblast') return false;
       const pkg = (e.package_selected || '').toLowerCase();
@@ -7872,13 +8100,11 @@
       const tbody = document.getElementById('summerblast-body');
       if (!tbody) return;
       if (!records.length) {
-        tbody.innerHTML = '<tr><td colspan="11" style="padding:32px;text-align:center;color:var(--brown-light)">No standalone Registration Fee submissions yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="padding:32px;text-align:center;color:var(--brown-light)">No standalone Registration Fee submissions yet.</td></tr>';
         return;
       }
       tbody.innerHTML = records.map((e, idx) => {
-        const fee = typeof parseEnrollmentFeeAdmin === 'function' ? parseEnrollmentFeeAdmin(e) : 0;
-        const feeDisplay = fee ? ('₱' + fee.toLocaleString()) : '₱0';
-        return `<tr>
+        return `<tr ${programRowAttributes(e, 'openSummerBlastRegistrationReview')}>
           <td>${idx + 1}</td>
           <td><strong style="color:#5c3317">${escHtml(e.child_name || '—')}</strong></td>
           <td>${escHtml(e.child_age || '—')}</td>
@@ -7886,17 +8112,10 @@
           <td>${escHtml(e.contact || '—')}</td>
           <td>—</td>
           <td>—</td>
-          <td>${escHtml(e.payment_method || '—')} (${feeDisplay})</td>
           <td>${statusBadge(e.status)}</td>
-          <td>${fmtDate(e.created_at)}</td>
-          <td><button class="btn btn-sm btn-outline" onclick="openSummerBlastRegistrationReview(${e.id})">Review</button></td>
+          ${programDateCells(e, 'summerblast', false)}
         </tr>`;
       }).join('');
-    }
-
-    function updateSummerBlastDateColumn(viewType) {
-      const dateColumn = document.getElementById('sb-date-column');
-      if (dateColumn) dateColumn.textContent = viewType === 'students' ? 'Enrolled' : 'Date';
     }
 
     // changeSummerBlastView — toggles the main summerblast table between
@@ -7905,7 +8124,6 @@
       const tbody = document.getElementById('summerblast-body');
       const titleEl = document.getElementById('sb-table-title');
       if (!tbody) return;
-      updateSummerBlastDateColumn(viewType);
 
       if (viewType === 'registration') {
         if (titleEl) titleEl.textContent = 'Registration Fee — Summer Blast';
@@ -7918,16 +8136,14 @@
         if (titleEl) titleEl.textContent = 'Reserved Students — Summer Blast';
         const reserved = getSummerBlastReservedStudents();
         if (!reserved.length) {
-          tbody.innerHTML = `<tr><td colspan="11" style="padding:32px;text-align:center;color:var(--brown-light)">
+          tbody.innerHTML = `<tr><td colspan="10" style="padding:32px;text-align:center;color:var(--brown-light)">
             <strong>No reserved students yet</strong><br>
             <span style="font-size:12px">Students who pay the ₱1,000 slot reservation / registration fee will appear here.</span>
           </td></tr>`;
           return;
         }
         tbody.innerHTML = reserved.map((e, idx) => {
-          const fee = typeof parseEnrollmentFeeAdmin === 'function' ? parseEnrollmentFeeAdmin(e) : 1000;
-          const feeDisplay = fee ? ('₱' + fee.toLocaleString()) : '₱1,000';
-          return `<tr>
+          return `<tr ${programRowAttributes(e, 'viewEnrollmentDetail')}>
             <td>${idx + 1}</td>
             <td><strong style="color:#5c3317">${escHtml(e.child_name || '—')}</strong></td>
             <td>${escHtml(e.child_age || '—')}</td>
@@ -7935,10 +8151,8 @@
             <td>${escHtml(e.contact || '—')}</td>
             <td>${escHtml(e.package_selected || '—')}</td>
             <td>${escHtml(e.timeslot || '—')}</td>
-            <td>${escHtml(e.payment_method || '—')} (${feeDisplay})</td>
-            <td>${statusBadge(e.status)}</td>
-            <td>${fmtDate(e.created_at)}</td>
-            <td><button class="btn btn-sm btn-outline" onclick="viewEnrollmentDetail(${e.id})">View</button></td>
+            <td>${programEnrollmentBadge(e, 'summerblast')}</td>
+            ${programDateCells(e, 'summerblast', !isStandaloneSummerBlastRegistrationRecord(e))}
           </tr>`;
         }).join('');
       } else {
@@ -7991,11 +8205,7 @@
     }
 
     function refreshProgramCounters() {
-      ['tutoring', 'workshop', 'playschool', 'childcare', 'madstudio', 'summerblast'].forEach(prog => {
-        const count = enrollments.filter(e => programKey(e.program) === prog && e.status === 'confirmed' && !e.student_archived_at).length;
-        const el = document.getElementById(prog + '-count');
-        if (el) el.textContent = count;
-      });
+      renderProgramSummaryCards();
       const sbRes = getSummerBlastReservedStudents();
       const sbResBadge = document.getElementById('sb-reserved-badge');
       if (sbResBadge) sbResBadge.textContent = sbRes.length;
@@ -8534,7 +8744,7 @@
         const pmtMethod = paymentMethod || 'Walk-in (Cash)';
         children.push({
           child_name: parentName,
-          child_age: '0',
+          child_age: parentAge,
           program: 'VIP Club Membership',
           package_selected: `VIP Club Membership - ₱${window.vipFee || 500}.00 (2 years)`,
           timeslot: '2 Years Validity',
@@ -8548,6 +8758,8 @@
       }
 
       payload.append('children', JSON.stringify(children));
+      payload.append('parent_email', document.getElementById('student-parent-email').value.trim());
+      payload.append('parent_password', document.getElementById('student-parent-password').value);
       const button = modal.querySelector('.modal-footer .btn-primary');
       manualEnrollmentSaving = true; button.disabled = true; button.textContent = 'Saving…';
       try {
@@ -9338,12 +9550,12 @@
     // ══════════════════════════════════════════════════════════════════════
     function renderDashboardCharts() {
       const programs = {};
-      enrollments.filter(e => e.status === 'confirmed' && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e)).forEach(e => {
+      enrollments.filter(e => e.status === 'confirmed' && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) && !String(e.program || '').toLowerCase().includes('vip')).forEach(e => {
         const p = (e.program || 'Other').split('–')[0].trim();
         programs[p] = (programs[p] || 0) + 1;
       });
 
-      const enrollmentRecords = enrollments.filter(e => !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e));
+      const enrollmentRecords = enrollments.filter(e => !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) && !String(e.program || '').toLowerCase().includes('vip'));
       const total = enrollmentRecords.length;
       const confirmed = enrollmentRecords.filter(e => e.status === 'confirmed').length;
       const pending = enrollmentRecords.filter(e => e.status === 'pending').length;
@@ -9351,10 +9563,10 @@
       const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
 
       const el = id => document.getElementById(id);
-      if (el('dash-total-enroll-count')) el('dash-total-enroll-count').textContent = total;
-      if (el('dash-this-month-label')) el('dash-this-month-label').textContent = 'As of ' + monthName;
-      if (el('dash-confirmed-badge')) el('dash-confirmed-badge').textContent = confirmed + ' confirmed';
-      if (el('dash-pending-badge')) el('dash-pending-badge').textContent = pending + ' pending';
+      if (el('dash-total-enroll-count')) el('dash-total-enroll-count').textContent = dashboardEnrollmentsLive ? total : '—';
+      if (el('dash-this-month-label')) el('dash-this-month-label').textContent = dashboardEnrollmentsLive ? 'As of ' + monthName : 'Live data unavailable';
+      if (el('dash-confirmed-badge')) el('dash-confirmed-badge').textContent = dashboardEnrollmentsLive ? confirmed + ' confirmed' : '— confirmed';
+      if (el('dash-pending-badge')) el('dash-pending-badge').textContent = dashboardEnrollmentsLive ? pending + ' pending' : '— pending';
       renderDashboardPendingReviews();
 
       // Program enrollment bars
@@ -9406,6 +9618,10 @@
     async function bulkApprove() {
       const ids = [...document.querySelectorAll('.pending-chk:checked')].map(cb => cb.dataset.id);
       if (!ids.length) return;
+      if (ids.some(id => isReEnrollmentAdmin(enrollments.find(e => String(e.id) === id)))) {
+        await showNoticeModal({ title: 'Review Re-enrollment Payment', message: 'Open each re-enrollment to review its receipt and enter the verified amount before approving.', icon: false });
+        return;
+      }
       if (!confirm(`Approve ${ids.length} enrollment(s)?`)) return;
 
       try {
@@ -9876,7 +10092,7 @@
         const nameEl = document.getElementById('modal-assigned-tutor-name');
         if (nameEl && tutor) nameEl.textContent = tutor.full_name;
         const detailEl = document.getElementById('detail-assigned-tutor-name');
-        if (detailEl && tutor) detailEl.innerHTML = `<span style="color:#2e7d32;font-weight:700">✓ ${escHtml(tutor.full_name)}</span>`;
+        if (detailEl && tutor) detailEl.innerHTML = `<span style="color:#2e7d32;font-weight:700">✓ Tutor assigned: ${escHtml(tutor.full_name)}</span>`;
         const btn = document.getElementById('btn-view-assign-tutor');
         if (btn) btn.textContent = 'Change Tutor';
         if (typeof loadScheduleGrid === 'function') loadScheduleGrid();
@@ -10576,6 +10792,7 @@
         if (d && d.success && Array.isArray(d.spans)) {
           programSpansData = d.spans;
           renderProgramSpansTable();
+          if (dashboardEnrollmentsLive) updateDashboardStats();
         } else {
           tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#c62828;padding:12px;">Failed to load program spans.</td></tr>';
         }
@@ -11163,6 +11380,7 @@
     // SUB-ADMIN / TUTOR MODULES (My Schedule, My Students, Hours, Profile)
     // ══════════════════════════════════════════════════════════════════════
     let subadminSessions = [];
+    let subadminSessionsLive = false;
     let subadminSchedules = [];
     let subadminAssignedStudents = [];
 
@@ -11185,10 +11403,12 @@
       const tbody = document.getElementById('subadmin-schedule-table-body');
       if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--brown-light)">Loading your schedule…</td></tr>`;
 
+      let scheduleLoaded = false;
       try {
         const r = await fetch('api/schedules.php?action=list_mine', { credentials: 'include' });
         const d = await r.json();
         if (d.success) {
+          scheduleLoaded = true;
           subadminSchedules = Array.isArray(d.schedules) ? d.schedules : [];
           subadminAssignedStudents = Array.isArray(d.assigned_students) ? d.assigned_students : [];
         } else {
@@ -11212,10 +11432,10 @@
       });
 
       const todayEl = document.getElementById('subadmin-stat-today');
-      if (todayEl) todayEl.textContent = todayClassesCount;
+      if (todayEl) todayEl.textContent = scheduleLoaded ? todayClassesCount : '—';
 
       const studEl = document.getElementById('subadmin-stat-students');
-      if (studEl) studEl.textContent = subadminAssignedStudents.length;
+      if (studEl) studEl.textContent = scheduleLoaded ? subadminAssignedStudents.length : '—';
 
       loadSubadminHours();
       renderSubadminSchedule();
@@ -11308,6 +11528,7 @@
     }
 
     async function loadSubadminHours() {
+      subadminSessionsLive = false;
       try {
         subadminSessions = JSON.parse(localStorage.getItem('tutor_logged_sessions') || '[]');
       } catch (e) { subadminSessions = []; }
@@ -11318,6 +11539,7 @@
         const data = await res.json();
         if (data && data.success && Array.isArray(data.sessions)) {
           subadminSessions = data.sessions;
+          subadminSessionsLive = true;
           try { localStorage.setItem('tutor_logged_sessions', JSON.stringify(subadminSessions)); } catch(e) {}
           renderSubadminHoursTable();
         }
@@ -11339,14 +11561,16 @@
             <td style="padding:12px 16px"><span class="badge badge-gold">Tutorial</span></td>
             <td style="padding:12px 16px;font-weight:600">${escHtml(s.hours)} hrs</td>
             <td style="padding:12px 16px;font-size:12px;color:var(--text-dark)">${escHtml(s.notes || '—')}</td>
-            <td style="padding:12px 16px"><span class="badge badge-green">Logged ✓</span></td>
+            <td style="padding:12px 16px"><span class="badge ${s.is_verified === true || Number(s.is_verified) === 1 ? 'badge-green' : 'badge-gold'}">${s.is_verified === true || Number(s.is_verified) === 1 ? 'Verified' : 'Pending verification'}</span></td>
           </tr>
         `).join('');
       }
 
-      const totalHrs = subadminSessions.reduce((acc, curr) => acc + parseFloat(curr.hours || 0), 0);
+      const monthKey = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Manila',year:'numeric',month:'2-digit'}).format(new Date());
+      const totalHrs = subadminSessions.filter(s => (s.is_verified === true || Number(s.is_verified) === 1) && String(s.date || '').slice(0, 7) === monthKey)
+        .reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
       const statEl = document.getElementById('subadmin-stat-hours');
-      if (statEl) statEl.textContent = totalHrs.toFixed(1);
+      if (statEl) statEl.textContent = subadminSessionsLive ? totalHrs.toFixed(1) : '—';
     }
 
     function openLogHoursModal() {
@@ -11548,6 +11772,7 @@
 
     // ── Internal dataset used for filtering ──────────────────
     let _bmData = []; // Array of { enrollment, totalFee, paidAmount, balanceDue, isSettled, status }
+    let balanceSummaryLive = false;
 
     function receiptAssetUrl(src) {
       const value = String(src || '').trim();
@@ -11945,15 +12170,22 @@
         const result = await response.json();
         if (!response.ok || !result.success || !Array.isArray(result.enrollments)) throw new Error(result.message || 'Unable to refresh balances.');
         enrollments = result.enrollments;
+        balanceSummaryLive = true;
         saveAllEnrollments(enrollments);
         _renderBalanceMonitoringFromCache();
         showToast('Balance data refreshed.');
-      } catch(error) { showToast(error.message || 'Unable to refresh balances. Please try again.', 'error'); }
+      } catch(error) {
+        balanceSummaryLive = false;
+        updateBalanceSummaryCards(_bmData);
+        showToast(error.message || 'Unable to refresh balances. Please try again.', 'error');
+      }
       finally { button.disabled = false; button.textContent = 'Refresh Data'; }
     }
 
     function renderBalanceMonitoringPage() {
       if (!isHeadAdminUser) return;
+      balanceSummaryLive = false;
+      updateBalanceSummaryCards([]);
 
       // Always fetch fresh data so admin sees new balance receipts immediately
       fetch('api/admin_get_enrollments.php', { credentials: 'same-origin', cache: 'no-store' })
@@ -11961,6 +12193,7 @@
         .then(data => {
           if (data.success && Array.isArray(data.enrollments)) {
             enrollments = data.enrollments;
+            balanceSummaryLive = true;
             saveAllEnrollments(enrollments);
           }
         })
@@ -11970,6 +12203,27 @@
         });
     }
 
+    function updateBalanceSummaryCards(data) {
+      const incomplete = data.some(d => {
+        const record = d.adminRec;
+        return !record || record.paid_amount === null || record.paid_amount === '' || !Object.prototype.hasOwnProperty.call(record, 'paid_amount') || !Number.isFinite(Number(record.paid_amount)) || !Number.isFinite(Number(record.total_fee)) || Number(record.total_fee) <= 0 || Math.abs(Number(record.total_fee) - d.totalFee) > 0.009;
+      });
+      const values = {
+        'bm-total-receivables': '₱' + data.reduce((sum, d) => sum + d.balanceDue, 0).toLocaleString(),
+        'bm-total-collected': '₱' + data.reduce((sum, d) => sum + d.paidAmount, 0).toLocaleString(),
+        'bm-count-with-balance': data.filter(d => d.balanceDue > 0).length,
+        'bm-count-settled': data.filter(d => d.isSettled && d.status !== 'cancelled').length
+      };
+      Object.entries(values).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        element.textContent = incomplete || !balanceSummaryLive ? '—' : value;
+        element.title = !balanceSummaryLive ? 'Live balance data unavailable.' : incomplete ? 'Unavailable: recorded fees or paid amounts are missing or inconsistent.' : 'Based on recorded fees and paid amounts for the displayed confirmed enrollment records.';
+      });
+      const status = document.getElementById('bm-summary-status');
+      if (status) status.textContent = !balanceSummaryLive ? 'Live balance summary unavailable; the list may show cached records.' : incomplete ? 'Summary unavailable: recorded fees or paid amounts are missing or inconsistent for at least one displayed enrollment. Review payment details before relying on the ledger.' : 'Summary uses recorded fees and paid amounts for the displayed confirmed enrollment records.';
+    }
+
     function _renderBalanceMonitoringFromCache() {
       const all = getAllStoredEnrollments();
       _bmData = all
@@ -11977,16 +12231,7 @@
         .map(e => ({ enrollment: e, ...bmCalcBalance(e) }));
 
       // Stats
-      const totalReceivable = _bmData.reduce((s, d) => s + d.balanceDue, 0);
-      const totalCollected  = _bmData.reduce((s, d) => s + d.paidAmount, 0);
-      const withBalance     = _bmData.filter(d => d.balanceDue > 0).length;
-      const settled         = _bmData.filter(d => d.isSettled).length;
-
-      const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-      setEl('bm-total-receivables', '₱' + totalReceivable.toLocaleString());
-      setEl('bm-total-collected',   '₱' + totalCollected.toLocaleString());
-      setEl('bm-count-with-balance', withBalance);
-      setEl('bm-count-settled',      settled);
+      updateBalanceSummaryCards(_bmData);
 
       // Update sidebar badge for pending balance receipts
       const pendingReceiptCount = _bmData.filter(d => {
@@ -12115,16 +12360,7 @@
       // Update top stat cards dynamically to reflect filtered rows
       const isFiltered = Boolean(search || prog || statFlt);
       const statDataset = isFiltered ? rows : _bmData;
-      const totalReceivable = statDataset.reduce((s, d) => s + d.balanceDue, 0);
-      const totalCollected  = statDataset.reduce((s, d) => s + d.paidAmount, 0);
-      const withBalance     = statDataset.filter(d => d.balanceDue > 0).length;
-      const settled         = statDataset.filter(d => d.isSettled && d.status !== 'cancelled').length;
-
-      const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-      setEl('bm-total-receivables', '₱' + totalReceivable.toLocaleString());
-      setEl('bm-total-collected',   '₱' + totalCollected.toLocaleString());
-      setEl('bm-count-with-balance', withBalance);
-      setEl('bm-count-settled',      settled);
+      updateBalanceSummaryCards(statDataset);
 
       const clearBtn = document.getElementById('bm-clear-filters-btn');
       if (clearBtn) clearBtn.style.display = isFiltered ? 'inline-block' : 'none';
@@ -12593,7 +12829,7 @@
     }
 
   </script>
-  <script src="js/validation.js?v=14"></script>
+  <script src="js/validation.js?v=15"></script>
 
 </body>
 
