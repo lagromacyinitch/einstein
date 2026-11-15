@@ -47,8 +47,11 @@ require_once __DIR__ . '/../includes/balance_helpers.php';
     $db   = getDB();
     require_once __DIR__ . '/../includes/student_archive_schema.php';
     ensureStudentArchiveTable($db);
+    require_once __DIR__ . '/../includes/enrollment_end_dates.php';
+    ensureEnrollmentEndDateHistory($db);
     $stmt = $db->query("
-        SELECT e.*, u.email AS user_email, u.email_encrypted AS u_email_enc, u.birthdate AS u_birthdate_enc, sa.archived_at AS student_archived_at
+        SELECT e.*, u.email AS user_email, u.email_encrypted AS u_email_enc, u.birthdate AS u_birthdate_enc, sa.archived_at AS student_archived_at,
+            (SELECT h.new_override FROM enrollment_end_date_history h WHERE h.enrollment_id = e.id ORDER BY h.id DESC LIMIT 1) AS end_date_override
         FROM enrollments e
         LEFT JOIN users u ON e.user_id = u.id
         LEFT JOIN student_archives sa ON sa.enrollment_id = e.id

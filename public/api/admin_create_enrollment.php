@@ -75,8 +75,41 @@ try {
     if (!is_array($data)) throw new InvalidArgumentException('Invalid enrollment data.');
     $children = isset($data['children']) ? (is_string($data['children']) ? json_decode($data['children'], true) : $data['children']) : [$data];
     if (!is_array($children) || !array_is_list($children) || count($children) < 1 || count($children) > 50) throw new InvalidArgumentException('Please submit between 1 and 50 children.');
+    $parentEmail = strtolower(trim((string) ($data['parent_email'] ?? '')));
+    $parentPassword = (string) ($data['parent_password'] ?? '');
+    if (!filter_var($parentEmail, FILTER_VALIDATE_EMAIL) || strlen($parentEmail) > 255) throw new InvalidArgumentException('Enter a valid parent email.');
+    if (strlen($parentPassword) < 8 || strlen($parentPassword) > 72) throw new InvalidArgumentException('Parent password must be 8 to 72 characters.');
+    $guardianName = trim((string) ($children[0]['guardian_name'] ?? ''));
+    if ($guardianName === '') throw new InvalidArgumentException('Parent/Guardian is required.');
     $db = getDB();
+    $accountLockName = 'parent_' . substr(hash('sha256', $parentEmail), 0, 48);
+    $lockStmt = $db->prepare('SELECT GET_LOCK(?, 10)');
+    $lockStmt->execute([$accountLockName]);
+    if ((int) $lockStmt->fetchColumn() !== 1) throw new RuntimeException('Could not create the parent account. Please try again.');
+    $accountLockHeld = true;
     $db->beginTransaction();
+    $adminEmailCheck = $db->prepare("SELECT id FROM admin_accounts WHERE LOWER(username) = ? OR LOWER(COALESCE(email, '')) = ? LIMIT 1");
+    $adminEmailCheck->execute([$parentEmail, $parentEmail]);
+    if ($adminEmailCheck->fetch()) throw new InvalidArgumentException('This email is used by an admin account. Please use a different parent email.');
+    $emailHash = hashLookup($parentEmail);
+    $existing = $db->prepare('SELECT id, password_hash, is_verified FROM users WHERE email_hash = ? OR email = ? LIMIT 1 FOR UPDATE');
+    $existing->execute([$emailHash, $parentEmail]);
+    $existingAccount = $existing->fetch(PDO::FETCH_ASSOC);
+    if ($existingAccount) {
+        if (empty($existingAccount['is_verified']) || !password_verify($parentPassword, $existingAccount['password_hash'])) {
+            throw new InvalidArgumentException('This email already has an account. Enter its existing password; unverified accounts must complete email verification first.');
+        }
+        $parentUserId = (int) $existingAccount['id'];
+    } else {
+        $account = $db->prepare('INSERT INTO users (email, email_encrypted, email_hash, password_hash, firstname, address, contact_number, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, 1)');
+        $account->execute([
+            $parentEmail, encryptAES256($parentEmail), $emailHash,
+            password_hash($parentPassword, PASSWORD_DEFAULT), encryptAES256($guardianName),
+            encryptAES256((string) ($children[0]['address'] ?? '')),
+            encryptAES256((string) ($children[0]['contact'] ?? ''))
+        ]);
+        $parentUserId = (int) $db->lastInsertId();
+    }
     $records = [];
     foreach ($children as $index => $data) {
     if (!is_array($data)) throw new InvalidArgumentException('Invalid child details.');
@@ -121,8 +154,8 @@ try {
         throw new InvalidArgumentException('Timeslot is required.');
     }
     if (strlen($record['timeslot']) > 100) throw new InvalidArgumentException('Timeslot must be at most 100 characters.');
-    if ($record['timeslot'] !== '' && !preg_match('/^[0-9:.\-]+$/', $record['timeslot'])) {
-        throw new InvalidArgumentException('Preferred Timeslot may contain numbers, dashes, colons, and periods only.');
+    if ($record['program'] !== 'VIP Club Membership' && $record['timeslot'] !== '' && !preg_match('/^[0-9:;.\- aApPmM]+$/', $record['timeslot'])) {
+        throw new InvalidArgumentException('Preferred Timeslot may contain numbers, colons, semicolons, dashes, spaces, and AM/PM.');
     }
     if ($record['start_date'] !== '') {
         $startDate = DateTime::createFromFormat('!Y-m-d', $record['start_date']);
@@ -206,9 +239,10 @@ try {
         $stored[$field] = encryptAES256($record[$field]);
     }
     $db->prepare("INSERT INTO enrollments
-        (program, package_selected, child_name, child_age, child_grade, child_school, start_date, guardian_name, guardian_age, contact, address, timeslot, payment_method, reference_no, notes, admin_notes, payment_screenshot, status, payment_status)
-        VALUES (:program, :package_selected, :child_name, :child_age, :child_grade, :child_school, :start_date, :guardian_name, :guardian_age, :contact, :address, :timeslot, :payment_method, :reference_no, :notes, :admin_notes, :payment_screenshot, 'confirmed', 'confirmed')")
+        (user_id, program, package_selected, child_name, child_age, child_grade, child_school, start_date, guardian_name, guardian_age, contact, address, timeslot, payment_method, reference_no, notes, admin_notes, payment_screenshot, status, payment_status)
+        VALUES (:user_id, :program, :package_selected, :child_name, :child_age, :child_grade, :child_school, :start_date, :guardian_name, :guardian_age, :contact, :address, :timeslot, :payment_method, :reference_no, :notes, :admin_notes, :payment_screenshot, 'confirmed', 'confirmed')")
         ->execute([
+            'user_id' => $parentUserId,
             'program' => $storedProgram,
             'package_selected' => $storedPackageSelected,
             'child_name' => $stored['child_name'],
@@ -231,6 +265,7 @@ try {
     $record['package_selected'] = $storedPackageSelected;
     $record['timeslot'] = $registrationOnly ? '' : $record['timeslot'];
     $record['id'] = (int) $db->lastInsertId();
+    $record['user_id'] = $parentUserId;
     $record['status'] = 'confirmed';
     $record['payment_status'] = 'confirmed';
     $record['created_at'] = date('Y-m-d H:i:s');
@@ -238,15 +273,19 @@ try {
     $records[] = $record;
     }
     $db->commit();
+    $db->prepare('SELECT RELEASE_LOCK(?)')->execute([$accountLockName]);
+    $accountLockHeld = false;
     ob_clean();
     echo json_encode(['success' => true, 'enrollment' => $records[0], 'enrollments' => $records]);
 } catch (InvalidArgumentException $e) {
     if (isset($db) && $db->inTransaction()) $db->rollBack();
+    if (!empty($accountLockHeld)) $db->prepare('SELECT RELEASE_LOCK(?)')->execute([$accountLockName]);
     http_response_code(422);
     ob_clean();
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 } catch (Throwable $e) {
     if (isset($db) && $db->inTransaction()) $db->rollBack();
+    if (!empty($accountLockHeld)) $db->prepare('SELECT RELEASE_LOCK(?)')->execute([$accountLockName]);
     error_log('Manual enrollment save failed: ' . $e->getMessage());
     http_response_code(500);
     ob_clean();
