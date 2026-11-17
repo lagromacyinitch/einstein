@@ -94,6 +94,14 @@ function saveScheduleAndEnrollmentTimeslots(PDO $db, $rowId, array $changes) {
         }
         if ($index === null) throw new Exception('Schedule changed. Refresh and try again.');
         $before = $rows[$index];
+        $previousStudentSlots = [];
+        foreach ($students as $student) {
+            // Read the timetable before editing: older manual rows can have a
+            // schedule even when the enrollment's cached timeslot is empty.
+            $slot = scheduleTimeslotForStudent($rows, $student['child_name']);
+            $previousStudentSlots[(int)$student['enrollment_id']] = $slot !== 'Unscheduled'
+                ? $slot : ($student['timeslot'] ?? '');
+        }
         foreach (['mon','tue','wed','thu','fri','sat','sun'] as $day) {
             if (array_key_exists($day, $changes) && trim($changes[$day]) === '' && strcasecmp(trim($before[$day] ?? ''), 'Available') === 0) {
                 $changes[$day] = 'Available';
@@ -168,7 +176,7 @@ function saveScheduleAndEnrollmentTimeslots(PDO $db, $rowId, array $changes) {
         foreach ($updates as $id => $timeslot) {
             foreach ($students as $student) {
                 if ((int)$student['enrollment_id'] !== (int)$id) continue;
-                recordScheduleChange($db, (int)$id, $student['program'] ?? '', $student['timeslot'] ?? '', $timeslot);
+                recordScheduleChange($db, (int)$id, $student['program'] ?? '', $previousStudentSlots[(int)$id], $timeslot);
                 break;
             }
             $update->execute([$timeslot, $id]);

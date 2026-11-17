@@ -23,6 +23,13 @@ function source(name) {
         vm.runInContext(source(name),ctx);
         await ctx[name](name.includes('Group') ? [1,2] : 1);
     }
+    ctx.document={querySelectorAll:()=>[{dataset:{id:'1'}}]};
+    ctx.enrollments=[{id:1}];
+    ctx.isReEnrollmentAdmin=()=>false;
+    for (const name of ['bulkApprove','bulkReject']) {
+        vm.runInContext(source(name),ctx);
+        await ctx[name]();
+    }
     assert.equal(requests,0,'Cancel must not send mutations');
     vm.runInContext(source('setStudentArchived'),ctx);
     ctx.enrollments=[{id:1,child_name:'Sherl',program:'Academic Tutorial'}];
