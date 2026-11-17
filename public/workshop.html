@@ -576,7 +576,7 @@
                     </svg>
                 </a>
                 <div class="card-header-logo">
-                    <span class="logo-mark">Weekend Workshop</span>
+                    <span class="logo-mark" data-homepage-text="programs.workshop.title">Weekend Workshop</span>
                     <div class="logo-text">
                         <span class="eyebrow">Einstein Center</span>
                         <span class="name">Enrichment</span>
@@ -590,7 +590,7 @@
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    Saturdays only • August to January
+                    <span data-homepage-text="workshop.title">Saturdays only • August to January</span>
                 </div>
             </div>
 
@@ -605,42 +605,15 @@
                 <div class="card-body">
                     <div class="services-grid">
 
-                        <!-- Music -->
-                        <div class="service-block">
-                            <h4>Music</h4>
-                            <div class="program-tags">
-                                <span class="program-tag">Drum</span>
-                                <span class="program-tag">Guitar</span>
-                                <span class="program-tag">Piano</span>
-                                <span class="program-tag">Voice</span>
-                                <span class="program-tag">Violin</span>
-                            </div>
-                        </div>
-
-                        <!-- Sports -->
-                        <div class="service-block">
-                            <h4>Sports</h4>
-                            <div class="program-tags">
-                                <span class="program-tag">Basketball</span>
-                                <span class="program-tag">Gymnastics</span>
-                                <span class="program-tag">Taekwondo</span>
-                                <span class="program-tag">Swimming</span>
-                            </div>
-                        </div>
-
-                        <!-- Arts & Performance -->
                         <div class="service-block full">
-                            <h4>Arts &amp; Performance</h4>
-                            <div class="program-tags">
-                                <span class="program-tag">Ballet</span>
-                                <span class="program-tag">Drawing &amp; Painting</span>
-                            </div>
+                            <h4 data-homepage-text="workshop.activities_label">Available Activities</h4>
+                            <div class="program-tags" data-homepage-list="workshop.activities" data-homepage-list-template="program-tag"><span class="program-tag">Drum</span><span class="program-tag">Guitar</span><span class="program-tag">Piano</span><span class="program-tag">Voice</span><span class="program-tag">Violin</span><span class="program-tag">Basketball</span><span class="program-tag">Gymnastics</span><span class="program-tag">Taekwondo</span><span class="program-tag">Ballet</span><span class="program-tag">Drawing &amp; Painting</span><span class="program-tag">Swimming</span></div>
                         </div>
 
                         <!-- What's included -->
                         <div class="service-block full">
-                            <h4>What's Included</h4>
-                            <ul>
+                            <h4 data-homepage-text="workshop.group.includes_label">What's Included</h4>
+                            <ul data-homepage-list="workshop.group.includes">
                                 <li>Expert coaches per discipline</li>
                                 <li>One-hour sessions every Saturday</li>
                                 <li>Small group classes (max 10 students)</li>
@@ -659,8 +632,8 @@
 
                         <!-- Group Subscription -->
                         <div class="service-block full">
-                            <h4>Group Subscription</h4>
-                            <ul>
+                            <h4 data-homepage-text="workshop.group.label">Group Subscription</h4>
+                            <ul data-homepage-list="workshop.group.includes">
                                 <li>Limited to 10 students per class</li>
                                 <li>One hour per session, every Saturday</li>
                                 <li>Must bring your own instrument</li>
@@ -674,8 +647,8 @@
 
                         <!-- Center Based One-on-One -->
                         <div class="service-block">
-                            <h4>One-on-One • Center Based</h4>
-                            <ul>
+                            <h4 data-homepage-text="workshop.center.title">One-on-One • Center Based</h4>
+                            <ul data-homepage-list="workshop.center.features">
                                 <li>1 instructor to 1 student</li>
                                 <li>10 sessions total</li>
                                 <li>1 hour per session</li>
@@ -690,8 +663,8 @@
 
                         <!-- Home Based One-on-One -->
                         <div class="service-block">
-                            <h4>One-on-One • Home Based</h4>
-                            <ul>
+                            <h4 data-homepage-text="workshop.home.title">One-on-One • Home Based</h4>
+                            <ul data-homepage-list="workshop.home.features">
                                 <li>1 instructor to 1 student</li>
                                 <li>10 sessions total</li>
                                 <li>1 hour per session</li>
@@ -700,7 +673,7 @@
                             </ul>
                             <div class="pkg-price">
                                 <span class="rate-price" data-workshop="Home Based">₱4,500</span>
-                                <span class="rate-period">+ transpo</span>
+                                <span class="rate-period" data-homepage-text="workshop.home.price_suffix">+ transpo</span>
                             </div>
                         </div>
 
@@ -714,13 +687,6 @@
                         <p>All packages include expert coaches every Saturday. Group and private options available for
                             every budget.</p>
                     </div>
-                    <button class="enroll-btn" onclick="openEnrollmentFlow('Weekend Workshop')">
-                        Enroll Now
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                            <polyline points="12 5 19 12 12 19" />
-                        </svg>
-                    </button>
                 </div>
 
             </div>
@@ -728,6 +694,7 @@
     </div><!-- end page-wrap -->
 
     <script src="js/program-page.js"></script>
+    <script src="js/program-content.js?v=1"></script>
 
     <script>
         window.ENROLL_PACKAGES = [

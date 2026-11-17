@@ -619,7 +619,7 @@
                     </svg>
                 </a>
                 <div class="card-header-logo">
-                    <span class="logo-mark">Play School</span>
+                    <span class="logo-mark" data-homepage-text="programs.playschool.title">Play School</span>
                     <div class="logo-text">
                         <span class="eyebrow">Einstein Center</span>
                         <span class="name">Early Childhood Program</span>
@@ -644,9 +644,9 @@
 
                         <!-- Caterpillar -->
                         <div class="service-block">
-                            <h4>Caterpillar Class</h4>
-                            <span class="age-tag">Ages 2.6 to 3.5 years old</span>
-                            <ul>
+                            <h4 data-homepage-text="playschool.caterpillar.title">Caterpillar Class</h4>
+                            <span class="age-tag" data-homepage-text="playschool.caterpillar.age">Ages 2.6 to 3.5 years old</span>
+                            <ul data-homepage-list="playschool.caterpillar.learn">
                                 <li>Arts &amp; Crafts</li>
                                 <li>Potty Training</li>
                                 <li>Shapes &amp; Colors</li>
@@ -660,9 +660,9 @@
 
                         <!-- Butterfly -->
                         <div class="service-block">
-                            <h4>Butterfly Class</h4>
-                            <span class="age-tag">Ages 3.6 to 4.5 years old</span>
-                            <ul>
+                            <h4 data-homepage-text="playschool.butterfly.title">Butterfly Class</h4>
+                            <span class="age-tag" data-homepage-text="playschool.butterfly.age">Ages 3.6 to 4.5 years old</span>
+                            <ul data-homepage-list="playschool.butterfly.learn">
                                 <li>Drawing &amp; Painting</li>
                                 <li>Read &amp; Write</li>
                                 <li>Arithmetic</li>
@@ -685,8 +685,8 @@
 
                         <!-- Caterpillar Pricing -->
                         <div class="service-block">
-                            <h4>Caterpillar Class</h4>
-                            <span class="age-tag">Ages 2.6 to 3.5 years old</span>
+                            <h4 data-homepage-text="playschool.caterpillar.title">Caterpillar Class</h4>
+                            <span class="age-tag" data-homepage-text="playschool.caterpillar.age">Ages 2.6 to 3.5 years old</span>
                             <ul>
                                 <li>One full month of classes</li>
                                 <li>Mon • Fri • AM or PM session</li>
@@ -702,8 +702,8 @@
 
                         <!-- Butterfly Pricing -->
                         <div class="service-block">
-                            <h4>Butterfly Class</h4>
-                            <span class="age-tag">Ages 3.6 to 4.5 years old</span>
+                            <h4 data-homepage-text="playschool.butterfly.title">Butterfly Class</h4>
+                            <span class="age-tag" data-homepage-text="playschool.butterfly.age">Ages 3.6 to 4.5 years old</span>
                             <ul>
                                 <li>One full month of classes</li>
                                 <li>Mon • Fri • AM or PM session</li>
@@ -717,21 +717,7 @@
                             <p class="pkg-vip-note">VIP Member rate: <span data-playschool="Butterfly-vip">₱4,200</span>/mo (20% off)</p>
                         </div>
 
-                        <!-- Class Schedule -->
-                        <div class="service-block full">
-                            <h4>Class Schedule</h4>
-                            <p class="sched-day">Monday to Friday</p>
-                            <div class="sched-grid">
-                                <div class="sched-item">
-                                    <div class="sched-label">Morning Session</div>
-                                    <div class="sched-time">9:00 AM • 11:30 AM</div>
-                                </div>
-                                <div class="sched-item">
-                                    <div class="sched-label">Afternoon Session</div>
-                                    <div class="sched-time">1:00 PM • 3:30 PM</div>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="service-block full" data-program-school-schedules><h4>Class Schedule</h4><p>Monday to Friday</p><p>Morning: 9:00 AM - 11:30 AM</p><p>Afternoon: 1:00 PM - 3:30 PM</p></div>
 
                     </div>
                 </div>
@@ -742,13 +728,6 @@
                         <h3>Start your child's learning journey!</h3>
                         <p>Limited slots per class. VIP Members save 20% every month.</p>
                     </div>
-                    <button class="enroll-btn" onclick="openEnrollmentFlow('PlaySchool')">
-                        Enroll Now
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                            <polyline points="12 5 19 12 12 19" />
-                        </svg>
-                    </button>
                 </div>
 
             </div>
@@ -757,6 +736,7 @@
     </div><!-- end .page-wrap -->
 
     <script src="js/program-page.js"></script>
+    <script src="js/program-content.js?v=1"></script>
 
     <script>
         window.ENROLL_PACKAGES = [

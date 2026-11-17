@@ -525,13 +525,13 @@
           </svg>
         </a>
         <div class="card-header-logo">
-          <span class="logo-mark">Summer Blast</span>
+          <span class="logo-mark" data-homepage-text="programs.summerblast.title">Summer Blast</span>
           <div class="logo-text">
             <span class="eyebrow">Einstein Center</span>
             <span class="name">Year 14 • Summer Program</span>
           </div>
         </div>
-        <p class="card-header-location">Learning starts April 15, 2026 • Grand Recital at Island City Mall</p>
+        <p class="card-header-location" data-homepage-text="summer.description">Learning starts April 15, 2026 • Grand Recital at Island City Mall</p>
       </div>
 
       <!-- TABS -->
@@ -546,8 +546,8 @@
           <div class="services-grid">
 
             <div class="service-block">
-              <h4>Academics</h4>
-              <ul>
+              <h4 data-homepage-text="summer.offering.academics.title">Academics</h4>
+              <ul data-homepage-list="summer.offering.academics.items">
                 <li>Basic Read &amp; Write</li>
                 <li>Reading w/ Comprehension</li>
                 <li>Math for Elementary</li>
@@ -558,8 +558,8 @@
             </div>
 
             <div class="service-block">
-              <h4>Music</h4>
-              <ul>
+              <h4 data-homepage-text="summer.offering.music.title">Music</h4>
+              <ul data-homepage-list="summer.offering.music.items">
                 <li>Drum Lessons</li>
                 <li>Guitar Lessons</li>
                 <li>Piano Lessons</li>
@@ -569,8 +569,8 @@
             </div>
 
             <div class="service-block">
-              <h4>Arts &amp; Dance</h4>
-              <ul>
+              <h4 data-homepage-text="summer.offering.arts.title">Arts &amp; Dance</h4>
+              <ul data-homepage-list="summer.offering.arts.items">
                 <li>Ballet Lessons</li>
                 <li>Drawing &amp; Painting</li>
                 <li>Pop Dancing &amp; Afro Dance</li>
@@ -581,16 +581,16 @@
             </div>
 
             <div class="service-block">
-              <h4>Sports</h4>
-              <ul>
+              <h4 data-homepage-text="summer.offering.sports.title">Sports</h4>
+              <ul data-homepage-list="summer.offering.sports.items">
                 <li>Basketball Clinic</li>
                 <li>Chess Clinic</li>
               </ul>
             </div>
 
             <div class="service-block full">
-              <h4>Special Courses</h4>
-              <ul>
+              <h4 data-homepage-text="summer.offering.special.title">Special Courses</h4>
+              <ul data-homepage-list="summer.offering.special.items">
                 <li>Baking Class</li>
                 <li>Swimming Lessons</li>
                 <li>Taekwondo Class</li>
@@ -608,7 +608,7 @@
           <!-- Registration Fee Banner -->
           <div class="reg-banner">
             <div>
-              <h4>Reserve Your Slot</h4>
+              <h4 data-homepage-text="summer.reserve_label">Reserve Your Slot</h4>
               <p>Includes free t-shirt, photo &amp; video coverage, recital fee, certificates &amp; more</p>
             </div>
             <div style="text-align:right">
@@ -621,8 +621,8 @@
 
             <!-- Single Course -->
             <div class="service-block">
-              <h4>Single Course</h4>
-              <ul>
+              <h4 data-homepage-text="summer.single.label">Single Course</h4>
+              <ul data-homepage-list="summer.single.features">
                 <li>Choose ONE course</li>
                 <li>Plus 1 Academics subject FREE</li>
               </ul>
@@ -634,8 +634,8 @@
 
             <!-- Two Courses -->
             <div class="service-block">
-              <h4>Two Courses</h4>
-              <ul>
+              <h4 data-homepage-text="summer.two.label">Two Courses</h4>
+              <ul data-homepage-list="summer.two.features">
                 <li>Choose TWO courses</li>
                 <li>Plus 1 Academics subject FREE</li>
               </ul>
@@ -647,8 +647,8 @@
 
             <!-- Special Course -->
             <div class="service-block full">
-              <h4>Special Course</h4>
-              <ul>
+              <h4 data-homepage-text="summer.special.label">Special Course</h4>
+              <ul data-homepage-list="summer.special.features">
                 <li>Choose ONE Special Course (Baking, Swimming, or Taekwondo)</li>
                 <li>Plus 1 Any Course FREE</li>
               </ul>
@@ -661,7 +661,7 @@
           </div>
 
           <!-- Important Dates -->
-          <div class="dates-box">
+          <div class="dates-box" data-program-summer-dates>
             <h5>Important Dates</h5>
             <p>
               <strong>Classes start:</strong> April 15 &bull;
@@ -679,13 +679,6 @@
             <h3>Reserve your slot for Summer Blast Year 14!</h3>
             <p>Slots are limited to only 15 students per class. Reserve early to secure your preferred schedule.</p>
           </div>
-          <button class="enroll-btn" onclick="openEnrollmentFlow('Summer Blast')">
-            Enroll Now
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </button>
         </div>
 
       </div>
@@ -693,6 +686,7 @@
     </div><!-- end mad-card -->
 
     <script src="js/program-page.js"></script>
+    <script src="js/program-content.js?v=1"></script>
 
     <script>
       window.ENROLL_PACKAGES = [

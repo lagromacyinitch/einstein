@@ -254,11 +254,12 @@
                 <th>Package</th>
                 <th>VIP</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="official-students-body">
               <tr>
-                <td colspan="7" style="padding:24px;text-align:center;color:#999">Loading students…</td>
+                <td colspan="8" style="padding:24px;text-align:center;color:#999">Loading students…</td>
               </tr>
             </tbody>
           </table>
@@ -474,19 +475,18 @@
                 <th>#</th>
                 <th>Student Name</th>
                 <th>Age</th>
-                <th>Parent/Guardian</th>
-                <th>Contact</th>
                 <th>Package</th>
-                <th>Subject</th>
-                <th>Timeslot</th>
+                <th>VIP</th>
                 <th>Status</th>
+                <th>Timeslot</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="tutoring-body">
               <tr>
-                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="10" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No tutoring enrollments yet</strong><br>
                   <span style="font-size:12px">Students who fill the Academic Tutorial enrollment form will appear here
@@ -1801,7 +1801,7 @@
     <div class="page" id="page-balancemonitoring">
       <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <div style="display:flex;gap:8px;align-items:center;margin-left:auto;">
-          <button class="btn btn-outline btn-sm" onclick="exportBalancesCSV()">Export Balances CSV</button>
+          <button class="export-csv-btn" onclick="exportBalancesCSV()">&#11015; Export CSV</button>
           <button class="btn btn-gold btn-sm" id="bm-refresh-button" onclick="refreshBalanceData(this)">Refresh Data</button>
         </div>
       </div>
@@ -2047,6 +2047,7 @@
         <p>Monitor all admin and staff activities</p>
       </div>
       <!-- == ACTIVITY LOG (Head Admin only) == -->
+      <div class="activity-log-columns">
       <div id="card-activity-log" class="card" style="margin-top:0;">
         <div class="card-header"
           style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -2078,12 +2079,6 @@
             <input type="date" id="alog-filter-date" class="form-control" style="font-size:12px;padding:6px 10px;"
               onchange="loadActivityLog(true)">
           </div>
-          <div>
-            <button type="button" onclick="clearAlogFilters(this)"
-              style="background:none;border:1px solid var(--cream-dark);color:var(--brown-mid);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;"
-              onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--brown-primary)'"
-              onmouseout="this.style.borderColor='var(--cream-dark)';this.style.color='var(--brown-mid)'">Clear</button>
-          </div>
           <div style="margin-left:auto;display:flex;align-items:flex-end;">
             <span id="alog-total-count"
               style="font-size:12px;color:var(--brown-mid);white-space:nowrap;padding-bottom:2px;"></span>
@@ -2102,7 +2097,7 @@
                     DATE &amp; TIME</th>
                   <th
                     style="color:#e0c47a;font-size:10px;letter-spacing:1px;padding:10px 12px;white-space:nowrap;font-weight:700;width:120px;">
-                    ROLE</th>
+                    NAME</th>
                   <th style="color:#e0c47a;font-size:10px;letter-spacing:1px;padding:10px 12px;font-weight:700;">
                     ACTIVITY</th>
                 </tr>
@@ -2118,6 +2113,28 @@
             style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;border-top:1px solid var(--cream-dark);background:#faf6f0;min-height:54px;">
           </div>
         </div>
+      </div>
+      <div class="card" id="card-session-log">
+        <div class="card-header session-log-header">
+          <div><h3>Session Logs &amp; Hours</h3><span>TUTOR CLASS SESSIONS</span></div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="loadSessionActivity(true)">Refresh</button>
+        </div>
+        <div class="session-log-filters">
+          <label for="session-activity-date">SESSION DATE<input type="date" class="form-control" id="session-activity-date" onchange="loadSessionActivity(true)"></label>
+          <span id="session-activity-count"></span>
+        </div>
+        <div class="session-log-scroll">
+          <table class="data-table session-activity-table">
+            <thead><tr><th>Date</th><th>Tutor</th><th>Student / Program</th><th>Hours</th><th>Notes</th><th>Status</th></tr></thead>
+            <tbody id="session-activity-body"><tr><td colspan="6">Loading session logs...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="session-log-pagination">
+          <button id="session-activity-prev" class="btn btn-outline btn-sm" onclick="sessionActivityPage--;loadSessionActivity()">Previous</button>
+          <span id="session-activity-page"></span>
+          <button id="session-activity-next" class="btn btn-outline btn-sm" onclick="sessionActivityPage++;loadSessionActivity()">Next</button>
+        </div>
+      </div>
       </div>
     </div>
 
@@ -2227,7 +2244,7 @@
             onclick="closeModal('modal-enrollment-approval')">✕</button>
         </div>
         <div class="modal-body">
-          <div id="modal-submission-meta" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fffaf4;border:1px solid #e4d4c3;border-radius:9px;padding:10px 14px;margin-bottom:16px">
+          <div id="modal-submission-meta" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
             <div>
               <div style="font-size:10px;color:#8b6f47;text-transform:uppercase;letter-spacing:.08em;font-weight:800">Submitted Date &amp; Time</div>
               <strong id="modal-submitted-at" style="display:block;margin-top:3px;color:#5c3317;font-size:14px">—</strong>
@@ -2271,6 +2288,25 @@
             </div>
           </div>
 
+          <!-- 5. Details -->
+          <div class="enrollment-detail-section">
+            <h4 id="modal-details-title">Enrollment Details</h4>
+            <div class="detail-grid">
+              <div class="detail-item"><label>Program(s)</label><strong id="modal-program"></strong></div>
+              <div class="detail-item"><label id="modal-status-label">Enrollment Status</label><strong id="modal-payment-type"></strong></div>
+              <div class="detail-item"><label>Payment Method</label><strong id="modal-payment-mode"></strong></div>
+            </div>
+          </div>
+          <!-- Parent/Guardian Information -->
+          <div class="enrollment-detail-section" id="modal-parent-section">
+            <h4>Parent/Guardian Information</h4>
+            <div class="detail-grid">
+              <div class="detail-item"><label>Parent Name</label><strong id="modal-parent-name"></strong></div>
+              <div class="detail-item"><label>Age</label><strong id="modal-parent-age"></strong></div>
+              <div class="detail-item"><label>Contact Number</label><strong id="modal-parent-contact"></strong></div>
+              <div class="detail-item full-width"><label>Address</label><strong id="modal-parent-address"></strong></div>
+            </div>
+          </div>
           <!-- 4. Payment Summary (VIP + Enrollment Fees combined) -->
           <div class="enrollment-detail-section" id="modal-payment-summary-section" style="display:none;background:linear-gradient(135deg,#f0faf4 0%,#e8f5e9 100%);border:1.5px solid #66bb6a;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
             <h4 style="margin:0 0 10px;color:#1b5e20;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase">💰 Payment Summary</h4>
@@ -2294,25 +2330,6 @@
             </div>
           </div>
 
-          <!-- 5. Details -->
-          <div class="enrollment-detail-section">
-            <h4 id="modal-details-title">Enrollment Details</h4>
-            <div class="detail-grid">
-              <div class="detail-item"><label>Program(s)</label><strong id="modal-program"></strong></div>
-              <div class="detail-item"><label id="modal-status-label">Enrollment Status</label><strong id="modal-payment-type"></strong></div>
-              <div class="detail-item"><label>Payment Method</label><strong id="modal-payment-mode"></strong></div>
-            </div>
-          </div>
-          <!-- Parent/Guardian Information -->
-          <div class="enrollment-detail-section" id="modal-parent-section">
-            <h4>Parent/Guardian Information</h4>
-            <div class="detail-grid">
-              <div class="detail-item"><label>Parent Name</label><strong id="modal-parent-name"></strong></div>
-              <div class="detail-item"><label>Age</label><strong id="modal-parent-age"></strong></div>
-              <div class="detail-item"><label>Contact Number</label><strong id="modal-parent-contact"></strong></div>
-              <div class="detail-item full-width"><label>Address</label><strong id="modal-parent-address"></strong></div>
-            </div>
-          </div>
           <div class="enrollment-detail-section">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
               <h4 style="margin:0">Payment Proof</h4>
@@ -2541,7 +2558,7 @@
               </small>
             </div>
           </div>
-<div id="enrollment-children" style="order:1"><section class="enrollment-child" style="border:1.5px solid #dec6ac;border-radius:10px;padding:14px 14px 16px;background:#fff">
+<div id="enrollment-children" style="order:1" oninput="updateManualEnrollmentTotal()"><section class="enrollment-child" style="border:1.5px solid #dec6ac;border-radius:10px;padding:14px 14px 16px;background:#fff">
           <div data-child-section-heading style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown-primary);padding-bottom:9px;margin-bottom:14px;border-bottom:1px solid #e6cfb4">Student / Child Information</div>
           <div class="form-row">
             <div class="form-group"><label>Student Name</label><input class="form-control" id="student-name" data-child-field="name"
@@ -2601,6 +2618,10 @@
             <button type="button" class="btn btn-outline" onclick="addEnrollmentProgram(this)">+ Add a Program</button>
           </div>
           </section></div>
+        <div aria-live="polite" aria-atomic="true" style="order:4;border:1.5px solid #d8b58d;border-radius:10px;background:#fffaf3;padding:16px;color:var(--brown-primary)">
+          <div style="display:flex;justify-content:space-between;gap:12px;font-size:18px;font-weight:800"><span>Total Amount</span><span id="manual-enrollment-total">₱0.00</span></div>
+          <div id="manual-enrollment-breakdown" style="font-size:12px;margin-top:8px">Select a package to see the total amount.</div>
+        </div>
         <div class="manual-payment-section" style="order:4;border:1.5px solid #d8b58d;border-radius:10px;background:#fffaf3;padding:14px;margin-top:16px">
           <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brown-primary);padding-bottom:9px;margin-bottom:12px;border-bottom:1px solid #e6cfb4">Payment Information</div>
           <div class="form-group"><label for="manual-payment-method">Payment Method</label>
@@ -2717,7 +2738,7 @@
         <div class="stat-card">
           <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Hours Logged (Month)</p>
           <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-hours">—</h3>
-          <small style="color:var(--brown-light)">Verified tutoring hours</small>
+          <small style="color:var(--brown-light)">Logged tutoring hours</small>
         </div>
         <div class="stat-card">
           <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Assigned Enrollments</p>
@@ -2756,11 +2777,10 @@
             </tbody>
           </table>
         </div>
-        <div style="display:flex;gap:16px;padding:12px 18px;font-size:11px;color:#5c3317;border-top:1px solid var(--cream-dark);flex-wrap:wrap">
-          <span><span style="display:inline-block;width:12px;height:12px;background:#D4EDDA;border:1px solid #A8D5B5;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Available</span>
-          <span><span style="display:inline-block;width:12px;height:12px;background:#F5E6D0;border:1px solid #D4A76A;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Student Assigned</span>
-          <span><span style="display:inline-block;width:12px;height:12px;background:#F0E0E0;border:1px solid #C9A0A0;border-radius:2px;vertical-align:middle;margin-right:4px"></span>N/A</span>
-          <span><span style="display:inline-block;width:12px;height:12px;background:#EEF2FF;border:1px solid #B0BCEE;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Empty Slot</span>
+        <div class="tutor-schedule-legend">
+          <span><i style="background:#DCEEFF;border-color:#A9CDEB"></i>Normal Schedule</span>
+          <span><i style="background:#D4EDDA;border-color:#A8D5B5"></i>Updated Schedule</span>
+          <span>Click an empty slot to mark Available. Click Available to unmark it.</span>
         </div>
       </div>
     </div>
@@ -2779,15 +2799,13 @@
             <thead>
               <tr style="background:#f5ede0;color:#5c3317">
                 <th style="padding:12px 16px;text-align:left">Student Name</th>
-                <th style="padding:12px 16px;text-align:left">Role / Type</th>
+                <th style="padding:12px 16px;text-align:left">Status</th>
                 <th style="padding:12px 16px;text-align:left">Program</th>
-                <th style="padding:12px 16px;text-align:left">Parent/Guardian</th>
-                <th style="padding:12px 16px;text-align:left">Contact</th>
                 <th style="padding:12px 16px;text-align:left">Schedule</th>
               </tr>
             </thead>
             <tbody id="subadmin-students-table-body">
-              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--brown-light)">Loading students…</td></tr>
+              <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--brown-light)">Loading students…</td></tr>
             </tbody>
           </table>
         </div>
@@ -2892,13 +2910,13 @@
           <div class="modal-body">
             <div class="form-group" style="margin-bottom:14px">
               <label style="font-size:11px;font-weight:700;color:#5c3317;text-transform:uppercase;display:block;margin-bottom:6px">Student Name</label>
-              <select id="log-student" class="form-control" style="width:100%;padding:9px 12px;border:1px solid var(--cream-dark);border-radius:8px" required>
-                <option value="">Select assigned student…</option>
-              </select>
+              <input id="log-student" class="form-control" list="log-student-suggestions" placeholder="Type an assigned student's name..." autocomplete="off" oninput="this.setCustomValidity('')" style="width:100%;padding:9px 12px;border:1px solid var(--cream-dark);border-radius:8px" required>
+              <datalist id="log-student-suggestions"></datalist>
             </div>
             <div class="form-group" style="margin-bottom:14px">
               <label style="font-size:11px;font-weight:700;color:#5c3317;text-transform:uppercase;display:block;margin-bottom:6px">Session Date</label>
               <input type="date" id="log-date" class="form-control" style="width:100%;padding:9px 12px;border:1px solid var(--cream-dark);border-radius:8px" required>
+              <small style="color:#8D6A4E">Today only (Philippine time).</small>
             </div>
             <div class="form-group" style="margin-bottom:14px">
               <label style="font-size:11px;font-weight:700;color:#5c3317;text-transform:uppercase;display:block;margin-bottom:6px">Duration (Hours)</label>
@@ -5081,6 +5099,11 @@
       // Auto-poll every 30s — silently checks for new pending enrollments
       setInterval(pollPendingBadge, 30000);
       setInterval(async () => { await loadVipAdminData(); await loadAdminNotifications(); renderVIPPage(); }, 30000);
+      setInterval(() => {
+        if (document.hidden || tutorAvailabilityBusy || document.activeElement?.isContentEditable) return;
+        if (document.getElementById('page-my_schedule')?.classList.contains('active')) loadSubadminSchedule(true);
+        if (document.getElementById('page-schedule')?.classList.contains('active')) loadScheduleGrid();
+      }, 20000);
     });
 
     // ══════════════════════════════════════════════════════════════════════
@@ -5533,6 +5556,7 @@
         return `<div class="notif-item${isUnread ? ' unread' : ''}" onclick="openAdminNotification(${id})" style="cursor:pointer">
           <h4>${icon} ${escHtml(notification.title || 'Admin Notification')}</h4>
           <p>${escHtml(notification.message || '')}</p>
+          ${notification.type === 'schedule' ? `<p><strong>From:</strong> ${escHtml(notification.previous_schedule || 'No schedule assigned')}</p><p><strong>To:</strong> ${escHtml(notification.updated_schedule || 'No schedule assigned')}</p>` : ''}
           <time title="${escHtml(formatDateTime(notification.created_at))}">${timeAgo(notification.created_at)} · ${escHtml(formatDateTime(notification.created_at))}</time>
         </div>`;
       }).join('');
@@ -6019,7 +6043,7 @@
       const nb = document.getElementById('nb-students');
       if (nb) nb.textContent = dashboardEnrollmentsLive && programSpansData.length ? enrollments.filter(e => e.status === 'confirmed' && !e.student_archived_at && !isInactive(e) && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) && !String(e.program || '').toLowerCase().includes('vip')).length : '—';
       if (!students.length) {
-        tbody.innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:#999">${inactive ? 'No inactive students.' : 'No active students yet.'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="padding:24px;text-align:center;color:#999">${inactive ? 'No inactive students.' : 'No active students yet.'}</td></tr>`;
         return;
       }
       tbody.innerHTML = students.map((e, i) => {
@@ -6033,17 +6057,26 @@
           <td>${escHtml(e.package_selected || '—')}</td>
           <td>${isVip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
           <td><span class="badge ${!endDate ? 'badge-gold' : inactive ? 'badge-brown' : 'badge-green'}">${!endDate ? 'Date unavailable' : inactive ? 'Inactive' : 'Active'}</span></td>
+          <td>${studentRecordActions(e)}</td>
         </tr>`;
       }).join('');
+    }
+
+    function studentRecordActions(e) {
+      const id = Number(e.id);
+      return `<div style="display:flex;gap:6px;white-space:nowrap">
+        <button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();viewEnrollmentDetail(${id})">View</button>
+        ${isHeadAdminUser ? `<button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();setStudentArchived(${id},true,this)">Withdraw</button>` : ''}
+      </div>`;
     }
 
     async function setStudentArchived(id, archived, button) {
       const record = enrollments.find(e => String(e.id) === String(id));
       if (!record || !isHeadAdminUser || button.disabled) return;
       const message = archived
-        ? `Archive ${record.child_name} from ${record.program}? This removes this program record from active student lists. Payment history and balances are kept.`
+        ? `Withdraw ${record.child_name} from ${record.program}? This removes this program record from active student lists. Payment history and balances are kept.`
         : `Restore ${record.child_name} to active students for ${record.program}?`;
-      if (!await showAppConfirmation({title: archived ? 'Archive Student' : 'Restore Student', message, confirmText: archived ? 'Archive' : 'Restore'})) return;
+      if (!await showAppConfirmation({title: archived ? 'Withdraw Student' : 'Restore Student', message, confirmText: archived ? 'Withdraw' : 'Restore'})) return;
       button.disabled = true;
       try {
         const response = await fetch('api/archive_student.php', {
@@ -6054,7 +6087,10 @@
         if (!response.ok || !data.success) throw new Error(data.message || 'Unable to update student.');
         await loadEnrollmentsFromServer();
         renderStudentsTable();
-        showToast(archived ? 'Student archived. Records preserved.' : 'Student restored.');
+        renderProgramPage(programKey(record.program));
+        updateDashboardStats();
+        refreshProgramCounters();
+        showToast(archived ? 'Student withdrawn. Records preserved.' : 'Student restored.');
       } catch(error) { showToast(error.message, 'error'); }
       finally { button.disabled = false; }
     }
@@ -6464,7 +6500,7 @@
       schedule: 'Schedule',
       balancemonitoring: 'Payments',
       activitylogs: 'Activity Logs', madstudio: 'M.A.D Studio', mad: 'M.A.D Studio', tutors: 'Tutor', sessions: 'Session Logs', payroll: 'Payroll',
-      my_schedule: 'My Schedule & Classes', my_students: 'My Students', my_hours: 'My Session Logs & Verified Hours', my_profile: 'My Profile'
+      my_schedule: 'My Schedule & Classes', my_students: 'My Students', my_hours: 'My Session Logs & Hours', my_profile: 'My Profile'
     };
     // Pages that have their own search bar inside the card — hide the topbar one
     const PROGRAM_PAGES = new Set(['tutoring','workshop','playschool','childcare','madstudio','summerblast']);
@@ -7801,7 +7837,7 @@
 
     function programRowAttributes(e, reviewFunction) {
       const id = Number(e.id);
-      return `tabindex="0" role="button" aria-label="View ${escHtml(e.child_name || 'student')} details" style="cursor:pointer" onclick="${reviewFunction}(${id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${reviewFunction}(${id})}"`;
+      return `tabindex="0" role="button" aria-label="View ${escHtml(e.child_name || 'student')} details" style="cursor:pointer" onclick="if(!event.target.closest('button')) ${reviewFunction}(${id})" onkeydown="if(event.target===this && (event.key==='Enter'||event.key===' ')){event.preventDefault();${reviewFunction}(${id})}"`;
     }
 
     function getProgramEndDate(e, key, useSpan = true) {
@@ -7853,14 +7889,15 @@
     <td>${escHtml(e.contact)}</td>
   `;
       if (prog === 'tutoring') {
+        const vip = (e.package_selected || '').toLowerCase().includes('(vip)') || isParentConfirmedVip(e);
         return `<tr ${rowAttrs}>
-      ${baseInfo}
-      <td>${escHtml(e.package_selected || '—')}</td>
-      <td>${escHtml(e.subject || '—')}</td>
-      <td>${escHtml(e.timeslot || '—')}</td>
-      <td>${programEnrollmentBadge(e, prog)}</td>
-      ${dateCells}
-    </tr>`;
+          <td>${idx}</td><td><strong>${escHtml(e.child_name)}</strong></td><td>${escHtml(e.child_age)}</td>
+          <td>${escHtml(e.package_selected || '—')}</td>
+          <td>${vip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
+          <td>${programEnrollmentBadge(e, prog)}</td>
+          <td>${escHtml(e.timeslot || '—')}</td>
+          ${dateCells}<td>${studentRecordActions(e)}</td>
+        </tr>`;
       }
       if (prog === 'workshop') {
         return `<tr ${rowAttrs}>
@@ -8247,7 +8284,7 @@
     }
 
     function manualVipDiscount(program) {
-      const value = siteSettings.vipDiscounts?.[program];
+      const value = siteSettings.vipDiscounts?.[program === 'tutoring' ? 'tutorial' : program];
       const parsed = value === '' || value === undefined || value === null ? 0 : parseFloat(value);
       return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
     }
@@ -8365,69 +8402,51 @@
 
     function getStudentPackages(program, isVip = false) {
       ensureRatesDefaults();
-      if (program === 'summerblast' && Array.isArray(siteSettings.summerblast)) {
-        return [...new Set(siteSettings.summerblast
-          .filter(pkg => pkg && pkg.name && !/registration|reservation/i.test(`${pkg.name} ${pkg.category || ''}`))
-          .map(pkg => manualPackageLabel(pkg, program, isVip)))];
-      }
-      if (program === 'madstudio' && Array.isArray(siteSettings.madstudio) && siteSettings.madstudio.length) {
-        return [...new Set(siteSettings.madstudio
-          .filter(pkg => pkg && pkg.name && !/studio\s+rental/i.test(pkg.name))
-          .map(pkg => manualPackageLabel(pkg, program, isVip)))];
-      }
-      ensureRatesDefaults();
-      if (isVip) {
-        const vipPkgMap = {
-          tutoring: [
-            'Regular Package (VIP) - ₱3,135',
-            'Double Package (VIP) - ₱5,225',
-            'Daily Package (VIP) - ₱5,225',
-            'Daily Double Package (VIP) - ₱9,405'
-          ],
-          workshop: [
-            'Group Class (VIP) - ₱2,375',
-            'Center Based 1-on-1 (VIP) - ₱4,560',
-            'Home Based 1-on-1 (VIP) - ₱4,275'
-          ],
-          playschool: [
-            'Caterpillar Class (VIP) - ₱3,900',
-            'Butterfly Class (VIP) - ₱3,900'
-          ],
-          childcare: [
-            'Daycare Monthly - Toilet Trained (VIP) - ₱10,320',
-            'Daycare Monthly - Non-Toilet Trained (VIP) - ₱11,800',
-            'Daycare Weekly - Toilet Trained (VIP) - ₱3,000',
-            'Daycare Weekly - Non-Toilet Trained (VIP) - ₱3,800',
-            'Daycare Daily - Toilet Trained (VIP) - ₱560',
-            'Daycare Daily - Non-Toilet Trained (VIP) - ₱700'
-          ],
-          madstudio: [
-            'Dance Fitness (VIP) - ₱2,500',
-            'Studio Extension (VIP) - ₱3,500'
-          ],
-          summerblast: [
-            'Single Course (VIP) - ₱3,900',
-            'Two Courses (VIP) - ₱4,900',
-            'Special Course (VIP) - ₱5,100'
-          ]
-        };
-        if (vipPkgMap[program]) return vipPkgMap[program];
+      if (program === 'childcare') {
+        return ['monthly', 'weekly', 'daily'].flatMap(period => ['tt', 'ntt'].map(kind => {
+          const name = `Daycare ${period[0].toUpperCase() + period.slice(1)} - ${kind === 'tt' ? 'Toilet Trained' : 'Non-Toilet Trained'}`;
+          const rate = siteSettings.childcareRates[`${kind}-${isVip ? 'vip' : 'nonmember'}-${period}`];
+          return `${name}${isVip ? ' (VIP)' : ''} – ${manualRateText(rate, program)}`;
+        }));
       }
       const settingsKey = {
         tutoring: 'tutorials', workshop: 'workshops', playschool: 'playschool',
-        childcare: 'childcarePackages', madstudio: 'madstudio', summerblast: 'summerblast'
+        madstudio: 'madstudio', summerblast: 'summerblast'
       }[program];
-      let packages = siteSettings[settingsKey] || [];
-      if (program === 'madstudio' && !packages.length) {
-        packages = Array.from(document.querySelectorAll('#pm-mad-pricing-table tbody tr')).map(row => {
-          const index = row.querySelector('td[rowspan]') ? 1 : 0;
-          return { name: row.querySelectorAll('td')[index]?.textContent.trim() };
-        });
-      }
-      return [...new Set(packages
-        .filter(pkg => pkg && pkg.name && pkg.name !== 'Registration Fee' && !/studio\s+rental/i.test(pkg.name))
-        .map(pkg => program === 'workshop' && pkg.name.trim() === 'Group Subscription'
-          ? 'Group Class' : pkg.name.trim()))];
+      return [...new Set((siteSettings[settingsKey] || [])
+        .filter(pkg => pkg && pkg.name && !/registration|reservation|studio\s+rental/i.test(`${pkg.name} ${pkg.category || ''}`))
+        .map(pkg => manualPackageLabel({ ...pkg, name: program === 'workshop' && pkg.name.trim() === 'Group Subscription' ? 'Group Class' : pkg.name }, program, isVip)))];
+    }
+
+    // Match the service independently of its displayed membership and price.
+    function manualPackageIdentity(value) {
+      return String(value || '').replace(/\s*[–-]\s*₱.*$/, '').replace(/\s*\(VIP\)/gi, '').trim();
+    }
+
+    function updateManualEnrollmentTotal() {
+      const summary = document.getElementById('manual-enrollment-total');
+      if (!summary) return;
+      const amountOf = value => parseFloat(String(value || '').replace(/[^0-9.]/g, '')) || 0;
+      let subtotal = 0;
+      document.querySelectorAll('.enrollment-child').forEach(card => {
+        const program = card.querySelector('[data-child-field="program"]')?.value;
+        const selected = card.querySelector('[data-child-field="package"]')?.value || '';
+        subtotal += amountOf(selected.split('₱')[1]);
+        if (program === 'summerblast' && card.querySelector('[data-child-field="summer-registration"]')?.checked) {
+          subtotal += amountOf(getStudentSummerRegistrationPackage().rate);
+        }
+        if (program === 'madstudio') {
+          const rentalTotal = readManualRentalDays(card).reduce((sum, day) => sum + (parseInt(day.hours, 10) || 0) * manualRentalRate(), 0);
+          subtotal += rentalTotal;
+          const rentalLabel = card.querySelector('.student-rental-total');
+          if (rentalLabel) rentalLabel.textContent = rentalTotal ? `Rental total: ₱${rentalTotal.toLocaleString('en-PH')}` : '';
+        }
+      });
+      const isVip = document.querySelector('input[name="manual-join-vip"]:checked')?.value === 'yes';
+      const membership = isVip ? Number(window.vipFee || 500) : 0;
+      const money = value => '₱' + value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      summary.textContent = money(subtotal + membership);
+      document.getElementById('manual-enrollment-breakdown').textContent = `${isVip ? 'VIP' : 'Regular'} program rates and selected extras: ${money(subtotal)} • VIP membership: ${money(membership)}`;
     }
 
     function updateStudentPackages(card = document.querySelector('.enrollment-child')) {
@@ -8445,7 +8464,7 @@
       blank.hidden = true;
       select.replaceChildren(blank);
       packages.forEach(name => select.add(new Option(name, name)));
-      select.value = packages.includes(previous) ? previous : '';
+      select.value = packages.find(name => manualPackageIdentity(name) === manualPackageIdentity(previous)) || '';
 
       const summerOptions = card.querySelector('[data-child-field="summer-options"]');
       const summerCheckbox = card.querySelector('[data-child-field="summer-registration"]');
@@ -8465,6 +8484,7 @@
       select.required = !(isSummer && isRegistration) && !(program === 'madstudio' && rentalDays.length > 0);
       const timeslot = card.querySelector('[data-child-field="timeslot"]');
       if (timeslot) timeslot.required = program !== 'summerblast' && program !== 'madstudio';
+      updateManualEnrollmentTotal();
     }
 
     function updateStudentPaymentFields() {
@@ -8572,7 +8592,7 @@
       remove.type = 'button'; remove.className = 'manual-remove-child'; remove.textContent = '×';
       remove.title = label; remove.setAttribute('aria-label', label);
       remove.style.cssText = 'position:absolute;top:8px;right:0;border:0;background:transparent;color:#c0392b;cursor:pointer;font-size:24px;line-height:1;padding:0 4px;font-family:Arial,sans-serif';
-      remove.onclick = () => card.remove();
+      remove.onclick = () => { card.remove(); updateManualEnrollmentTotal(); };
       card.style.position = 'relative';
       card.append(remove);
       return remove;
@@ -8631,6 +8651,7 @@
       if (removeProgram) {
         removeProgram.onclick = () => {
           card.remove();
+          updateManualEnrollmentTotal();
           const hasAdditionalProgram = [...document.querySelectorAll('.enrollment-child')]
             .some(item => item.dataset.manualProgramCopy === 'true');
           if (triggerActions) {
@@ -9007,6 +9028,7 @@
     // SCHEDULES — Booking Grid
     // ══════════════════════════════════════════════════════════════════════
     let schedulesList = [];
+    let scheduleAssignedStudents = [];
     let schedSearchQuery = '';
     let schedTutorsList = [];
     let pendingDeletedSchedRows = {};
@@ -9085,6 +9107,7 @@
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
         schedulesList = d.schedules || [];
+        scheduleAssignedStudents = d.assigned_students || [];
         renderScheduleGrid();
       } catch(err) {
         tbody.innerHTML = `<tr><td colspan="11" style="padding:32px;text-align:center;color:#c62828">⚠ ${escHtml(err.message)}</td></tr>`;
@@ -9145,7 +9168,7 @@
             const editable = (isHeadAdminUser && !isPendingDelete) ? `contenteditable="true" spellcheck="false"` : '';
             const style = `background:${bg};color:${col};text-align:center;font-size:12px;padding:8px 6px;cursor:${isHeadAdminUser && !isPendingDelete ? 'text' : 'default'};border:1px solid #D4B69B;border-right:2px solid #A8815B;min-width:85px;box-sizing:border-box`;
             const handler = (isHeadAdminUser && !isPendingDelete)
-              ? `onblur="saveSchedCell('${s.id}','${day}',this)" onkeydown="schedCellKey(event,this)"`
+              ? `onfocus="showScheduleStudentSuggestions('${s.id}',this)" oninput="showScheduleStudentSuggestions('${s.id}',this,true)" onblur="closeScheduleStudentSuggestions();saveSchedCell('${s.id}','${day}',this)" onkeydown="schedCellKey(event,this)"`
               : '';
             return `<td ${editable} data-original-value="${escHtml(val)}" style="${style}" ${handler}>${escHtml(val)}</td>`;
           }).join('');
@@ -9176,10 +9199,67 @@
       tbody.innerHTML = html;
     }
 
+    let scheduleSuggestionMenu = null;
+    function closeScheduleStudentSuggestions(event) {
+      if (event?.type === 'scroll' && scheduleSuggestionMenu?.contains(event.target)) return;
+      scheduleSuggestionMenu?.remove();
+      scheduleSuggestionMenu = null;
+      window.removeEventListener('scroll', closeScheduleStudentSuggestions, true);
+      window.removeEventListener('resize', closeScheduleStudentSuggestions);
+    }
+
+    function showScheduleStudentSuggestions(rowId, cell, filtering = false) {
+      closeScheduleStudentSuggestions();
+      const row = schedulesList.find(item => String(item.id) === String(rowId));
+      if (!row || !isHeadAdminUser) return;
+      const parts = cell.textContent.split(',').map(value => value.trim());
+      const query = filtering ? parts[parts.length - 1].toLowerCase() : '';
+      const chosen = (filtering ? parts.slice(0, -1) : parts).map(value => value.toLowerCase());
+      const unique = new Map();
+      scheduleAssignedStudents.filter(student => String(student.tutor_id) === String(row.tutor_id)).forEach(student => {
+        const name = String(student.child_name || '').trim();
+        if (name && !unique.has(name.toLowerCase())) unique.set(name.toLowerCase(), student);
+      });
+      const candidates = [...unique.values()].filter(student => !chosen.includes(student.child_name.toLowerCase()) && student.child_name.toLowerCase().includes(query));
+      const menu = document.createElement('div');
+      menu.className = 'schedule-student-suggestions';
+      menu.dataset.selectedIndex = '-1';
+      const heading = document.createElement('div');
+      heading.className = 'schedule-suggestion-heading';
+      heading.textContent = candidates.length ? 'Assigned students' : 'No matching assigned students';
+      menu.append(heading);
+      candidates.forEach(student => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.tabIndex = -1;
+        button.textContent = `${student.child_name} — ${student.program || 'Program'}`;
+        button.onpointerdown = event => event.preventDefault();
+        button.onclick = () => {
+          const existing = (filtering ? parts.slice(0, -1) : parts).filter(value => value && !/^(available|n\/?a)$/i.test(value));
+          cell.textContent = [...existing, student.child_name].join(', ');
+          closeScheduleStudentSuggestions();
+          cell.blur();
+        };
+        menu.append(button);
+      });
+      document.body.append(menu);
+      scheduleSuggestionMenu = menu;
+      const box = cell.getBoundingClientRect();
+      const bounds = menu.getBoundingClientRect();
+      menu.style.left = Math.max(8, Math.min(box.left, innerWidth - bounds.width - 8)) + 'px';
+      menu.style.top = (box.bottom + bounds.height + 4 <= innerHeight ? box.bottom + 4 : Math.max(8, box.top - bounds.height - 4)) + 'px';
+      window.addEventListener('scroll', closeScheduleStudentSuggestions, true);
+      window.addEventListener('resize', closeScheduleStudentSuggestions);
+    }
+
     // Inline cell save on blur
     async function saveSchedCell(rowId, day, el) {
-      const val = el.textContent.trim();
+      let val = el.textContent.trim();
       const original = el.dataset.originalValue ?? '';
+      if (!val && original.trim().toLowerCase() === 'available') {
+        val = 'Available';
+        el.textContent = val;
+      }
       if (val === original) {
         el.style.background = cellBg(val);
         el.style.color = cellColor(val);
@@ -9240,6 +9320,20 @@
     }
 
     function schedCellKey(e, el) {
+      if (scheduleSuggestionMenu && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        const buttons = [...scheduleSuggestionMenu.querySelectorAll('button')];
+        if (!buttons.length) return;
+        const next = (Number(scheduleSuggestionMenu.dataset.selectedIndex) + (e.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+        scheduleSuggestionMenu.dataset.selectedIndex = next;
+        buttons.forEach((button, index) => button.classList.toggle('selected', index === next));
+        return;
+      }
+      if (scheduleSuggestionMenu && e.key === 'Enter' && Number(scheduleSuggestionMenu.dataset.selectedIndex) >= 0) {
+        e.preventDefault();
+        scheduleSuggestionMenu.querySelectorAll('button')[Number(scheduleSuggestionMenu.dataset.selectedIndex)]?.click();
+        return;
+      }
       if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
       if (e.key === 'Escape') { el.blur(); }
     }
@@ -11149,9 +11243,15 @@
     }
 
     // ── Pretty action labels ──────────────────────────────────────────────
+    function alogActivityText(log) {
+      if (log.action_type === 'VIEW_SUB_ADMINS') return 'Viewed the admin and tutor accounts list.';
+      return String(log.description || '').replace(/\s+/g, ' ').trim();
+    }
+
     function alogLabel(type) {
       const map = {
         'LOGIN': 'Login',
+        'LOG_SESSION': 'Session Logged',
         'ADD_SUB_ADMIN': 'Add Sub-Admin',
         'EDIT_SUB_ADMIN': 'Edit Sub-Admin',
         'DELETE_SUB_ADMIN': 'Delete Sub-Admin',
@@ -11172,8 +11272,43 @@
     }
 
     // ── Load logs from backend ────────────────────────────────────────────
+    let sessionActivityPage = 1;
+    let sessionActivityRequest = 0;
+    async function loadSessionActivity(resetPage = false) {
+      if (!isHeadAdminUser) return;
+      if (resetPage) sessionActivityPage = 1;
+      const request = ++sessionActivityRequest;
+      const date = document.getElementById('session-activity-date').value;
+      const body = document.getElementById('session-activity-body');
+      try {
+        const response = await fetch(`api/sessions.php?action=activity_sessions&limit=25&offset=${(sessionActivityPage - 1) * 25}&date=${encodeURIComponent(date)}`, {credentials:'same-origin', cache:'no-store'});
+        const data = await response.json();
+        if (request !== sessionActivityRequest) return;
+        if (!response.ok || !data.success) throw new Error(data.message || 'Unable to load session logs.');
+        const total = Number(data.total || 0);
+        const pages = Math.max(1, Math.ceil(total / 25));
+        if (sessionActivityPage > pages) { sessionActivityPage = pages; return loadSessionActivity(); }
+        body.innerHTML = (data.sessions || []).map(session => `<tr>
+          <td><strong>${escHtml(session.session_date)}</strong><small>Logged: ${escHtml(alogFormatDate(session.created_at))}</small></td>
+          <td>${escHtml(session.tutor_name || 'Tutor')}</td>
+          <td><strong>${escHtml(session.child_name || 'Student')}</strong><small>${escHtml(session.program || 'Program not recorded')}</small></td>
+          <td>${escHtml(Number(session.duration_hours))}</td>
+          <td>${escHtml(session.notes || '—')}</td>
+          <td><span class="badge badge-green">Logged</span></td>
+        </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;padding:32px">No session logs found.</td></tr>';
+        document.getElementById('session-activity-count').textContent = `${total} session${total === 1 ? '' : 's'}`;
+        document.getElementById('session-activity-page').textContent = `Page ${sessionActivityPage} of ${pages}`;
+        document.getElementById('session-activity-prev').disabled = sessionActivityPage <= 1;
+        document.getElementById('session-activity-next').disabled = sessionActivityPage >= pages;
+      } catch (error) {
+        if (request !== sessionActivityRequest) return;
+        body.innerHTML = `<tr><td colspan="6" style="padding:24px;color:#c62828">${escHtml(error.message)}</td></tr>`;
+      }
+    }
+
     async function loadActivityLog(resetPage = false, trigger = null) {
       if (!isHeadAdminUser) return;
+      loadSessionActivity(false);
 
       const refreshButton = trigger || document.getElementById('alog-refresh-btn');
       if (refreshButton) {
@@ -11194,7 +11329,7 @@
       const date = document.getElementById('alog-filter-date')?.value || '';
       const offset = (alogCurrentPage - 1) * ALOG_PAGE_SIZE;
 
-      let url = `api/activity_log.php?action=list&limit=${ALOG_PAGE_SIZE}&offset=${offset}`;
+      let url = `api/activity_log.php?action=list&scope=general&limit=${ALOG_PAGE_SIZE}&offset=${offset}`;
       if (actor) url += `&actor=${encodeURIComponent(actor)}`;
       if (type) url += `&type=${encodeURIComponent(type)}`;
       if (date) url += `&date=${encodeURIComponent(date)}`;
@@ -11240,9 +11375,10 @@
             <div style="font-size:11px;color:#8D6A4E;">${alogFormatDate(log.logged_at).split(' ').slice(3).join(' ')}</div>
           </td>
           <td style="padding:10px 12px;width:120px;">
-            <span style="font-size:11px;font-weight:700;color:${roleColor};letter-spacing:.5px;">${escHtml(log.actor_role)}</span>
+            <strong style="display:block;font-size:12px;color:var(--text-dark)">${escHtml(log.actor_name || 'Name not recorded')}</strong>
+            <span style="font-size:10px;color:${roleColor}">${escHtml(log.actor_role || '')}</span>
           </td>
-          <td style="padding:10px 12px;font-size:12px;color:var(--text-dark);line-height:1.4;">${escHtml(log.description)}</td>
+          <td style="padding:10px 12px;font-size:12px;color:var(--text-dark);line-height:1.5;">${escHtml(alogActivityText(log))}</td>
         </tr>`;
         });
         tbody.innerHTML = html;
@@ -11331,7 +11467,7 @@
       try {
         const actor = (document.getElementById('alog-filter-actor')?.value || '').trim();
         const date = document.getElementById('alog-filter-date')?.value || '';
-        let url = `api/activity_log.php?action=list&limit=500&offset=0`;
+        let url = `api/activity_log.php?action=list&scope=general&limit=500&offset=0`;
         if (actor) url += `&actor=${encodeURIComponent(actor)}`;
         if (date) url += `&date=${encodeURIComponent(date)}`;
 
@@ -11339,14 +11475,15 @@
         const data = await res.json();
         if (!data.success || !data.logs.length) { alert('No logs to export.'); return; }
 
-        const headers = ['#', 'Date & Time', 'Role', 'Activity'];
+        const headers = ['#', 'Date & Time', 'Name', 'Role', 'Activity'];
         const csvRows = [headers.join(',')];
         data.logs.forEach((log, i) => {
           csvRows.push([
             i + 1,
             `"${(log.logged_at || '').replace(/"/g, '""')}"`,
+            `"${(log.actor_name || 'Name not recorded').replace(/"/g, '""')}"`,
             `"${(log.actor_role || '').replace(/"/g, '""')}"`,
-            `"${(log.description || '').replace(/"/g, '""')}"`,
+            `"${alogActivityText(log).replace(/"/g, '""')}"`,
           ].join(','));
         });
         const blob = new Blob([csvRows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
@@ -11383,13 +11520,14 @@
     let subadminSessionsLive = false;
     let subadminSchedules = [];
     let subadminAssignedStudents = [];
+    let tutorAvailabilityBusy = false;
 
-    function subadminCellBg(val) {
+    function subadminCellBg(val, updated = false) {
       const v = (val || '').trim().toUpperCase();
-      if (!val || val.trim() === '') return '#EEF2FF'; // empty
-      if (v === 'AVAILABLE') return '#D4EDDA';
+      if (!val || val.trim() === '') return '#fff';
+      if (v === 'AVAILABLE') return '#FFF8E1';
       if (v === 'N/A') return '#F0E0E0';
-      return '#F5E6D0'; // student assigned
+      return updated ? '#D4EDDA' : '#DCEEFF';
     }
     function subadminCellColor(val) {
       const v = (val || '').trim().toUpperCase();
@@ -11399,9 +11537,9 @@
       return '#4A2C18';
     }
 
-    async function loadSubadminSchedule() {
+    async function loadSubadminSchedule(silent = false) {
       const tbody = document.getElementById('subadmin-schedule-table-body');
-      if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--brown-light)">Loading your schedule…</td></tr>`;
+      if (tbody && !silent) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--brown-light)">Loading your schedule…</td></tr>`;
 
       let scheduleLoaded = false;
       try {
@@ -11451,12 +11589,14 @@
       }
 
       const days = ['mon','tue','wed','thu','fri','sat','sun'];
-      tbody.innerHTML = subadminSchedules.map(s => {
+      tbody.innerHTML = subadminSchedules.map((s, rowIndex) => {
         const dayCells = days.map(day => {
           const val = s[day] || '';
-          const bg = subadminCellBg(val);
+          const bg = subadminCellBg(val, Boolean(s.updated_days?.[day]));
           const col = subadminCellColor(val);
-          return `<td style="background:${bg};color:${col};text-align:center;font-size:12px;padding:8px 4px;border:1px solid #D4B69B;border-right:2px solid #A8815B;font-weight:${(val && val!='N/A' && val!='Available')?'700':'400'}">${escHtml(val)}</td>`;
+          const canToggle = !val.trim() || val.trim().toLowerCase() === 'available';
+          const content = canToggle ? `<button type="button" class="tutor-availability-slot" onclick="toggleTutorAvailability(${rowIndex}, '${day}', this)" aria-haspopup="menu" aria-label="${val.trim() ? 'Unmark available' : 'Mark available'}: ${day}, ${escHtml(s.timeslot)}" ${tutorAvailabilityBusy ? 'disabled' : ''}>${val.trim() ? 'Available' : '<span aria-hidden="true">+</span>'}</button>` : escHtml(val);
+          return `<td style="background:${bg};color:${col};text-align:center;font-size:12px;padding:${canToggle ? '0' : '8px 4px'};border:1px solid #D4B69B;border-right:2px solid #A8815B;font-weight:${canToggle ? '400' : '700'}">${content}</td>`;
         }).join('');
 
         return `<tr>
@@ -11467,12 +11607,75 @@
       }).join('');
     }
 
-    async function loadSubadminStudents() {
-      if (!subadminAssignedStudents.length && !subadminSchedules.length) {
-        await loadSubadminSchedule();
-      } else {
-        renderSubadminStudents();
+    function showTutorAvailabilityMenu(anchor, available) {
+      if (!anchor?.isConnected) return Promise.resolve(false);
+      return new Promise(resolve => {
+        const menu = document.createElement('div');
+        menu.className = 'tutor-availability-menu';
+        menu.setAttribute('role', 'menu');
+        const action = document.createElement('button');
+        action.type = 'button';
+        action.setAttribute('role', 'menuitem');
+        action.textContent = available ? 'Mark Available' : 'Unmark Available';
+        menu.append(action);
+        document.body.append(menu);
+        anchor.setAttribute('aria-expanded', 'true');
+        const box = anchor.getBoundingClientRect();
+        const bounds = menu.getBoundingClientRect();
+        menu.style.left = Math.max(8, Math.min(box.left, window.innerWidth - bounds.width - 8)) + 'px';
+        menu.style.top = (box.bottom + bounds.height + 8 <= window.innerHeight ? box.bottom + 4 : Math.max(8, box.top - bounds.height - 4)) + 'px';
+        const finish = accepted => {
+          menu.remove();
+          anchor.removeAttribute('aria-expanded');
+          document.removeEventListener('pointerdown', outside, true);
+          document.removeEventListener('keydown', keydown);
+          window.removeEventListener('scroll', dismiss, true);
+          window.removeEventListener('resize', dismiss);
+          if (anchor.isConnected) anchor.focus({preventScroll:true});
+          resolve(accepted);
+        };
+        const outside = event => { if (!menu.contains(event.target) && !anchor.contains(event.target)) finish(false); };
+        const keydown = event => { if (event.key === 'Escape' || event.key === 'Tab') { if (event.key === 'Escape') event.preventDefault(); finish(false); } };
+        const dismiss = () => finish(false);
+        action.onclick = () => finish(true);
+        document.addEventListener('pointerdown', outside, true);
+        document.addEventListener('keydown', keydown);
+        window.addEventListener('scroll', dismiss, true);
+        window.addEventListener('resize', dismiss);
+        action.focus({preventScroll:true});
+      });
+    }
+
+    async function toggleTutorAvailability(rowIndex, day, anchor) {
+      if (tutorAvailabilityBusy) return;
+      const row = subadminSchedules[rowIndex];
+      if (!row || !['mon','tue','wed','thu','fri','sat','sun'].includes(day)) return;
+      const current = String(row[day] || '').trim().toLowerCase();
+      if (current && current !== 'available') return;
+      const available = current !== 'available';
+      tutorAvailabilityBusy = true;
+      try {
+        if (!await showTutorAvailabilityMenu(anchor, available)) return;
+        const response = await fetch('api/schedules.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'set_availability', id:String(row.id), day, available})});
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Could not update availability.');
+        await loadSubadminSchedule(true);
+        showToast(available ? 'Marked available. Admin schedule updated.' : 'Availability removed. Admin schedule updated.');
+      } catch (error) {
+        showToast(error.message, 'error');
+        await loadSubadminSchedule(true);
+      } finally {
+        tutorAvailabilityBusy = false;
+        renderSubadminSchedule();
       }
+    }
+
+    async function loadSubadminStudents() {
+      await loadSubadminSchedule(true);
+    }
+
+    function subadminStudentStatus(student) {
+      return student.status === 'confirmed' && !student.archived_at ? 'Active' : 'Inactive';
     }
 
     function renderSubadminStudents() {
@@ -11480,17 +11683,15 @@
       if (!tbody) return;
 
       if (!subadminAssignedStudents.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--brown-light);font-size:13px;">No students assigned to you yet.<br><small style="color:#8D6A4E;">When the Head Admin assigns students to your account, they will appear here.</small></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:2.5rem;color:var(--brown-light);font-size:13px;">No students assigned to you yet.<br><small style="color:#8D6A4E;">When the Head Admin assigns students to your account, they will appear here.</small></td></tr>`;
         return;
       }
 
       tbody.innerHTML = subadminAssignedStudents.map(st => `
         <tr style="border-bottom:1px solid var(--cream-dark)">
           <td style="padding:12px 16px;font-weight:700;color:var(--brown-primary)">${escHtml(st.child_name || 'Student')}</td>
-          <td style="padding:12px 16px"><span class="badge badge-gold">Enrolled</span></td>
+          <td style="padding:12px 16px"><span class="badge ${subadminStudentStatus(st) === 'Active' ? 'badge-green' : 'badge-gold'}">${subadminStudentStatus(st)}</span></td>
           <td style="padding:12px 16px"><span class="badge badge-green">${escHtml(st.program || 'Academic Tutorial')}</span></td>
-          <td style="padding:12px 16px">${escHtml(st.guardian_name || '—')}</td>
-          <td style="padding:12px 16px">${escHtml(st.contact || '—')}</td>
           <td style="padding:12px 16px;font-weight:600;color:var(--brown-primary)">${escHtml(st.timeslot || 'Assigned')}</td>
         </tr>
       `).join('');
@@ -11502,17 +11703,15 @@
         return;
       }
 
-      const headers = ['Student Name', 'Role / Type', 'Program', 'Parent/Guardian', 'Contact', 'Schedule'];
+      const headers = ['Student Name', 'Status', 'Program', 'Schedule'];
       const csvCell = value => {
         const text = String(value ?? '').replace(/\r?\n|\r/g, ' ').trim();
         return `"${text.replace(/"/g, '""')}"`;
       };
       const rows = subadminAssignedStudents.map(st => [
         st.child_name || 'Student',
-        'Enrolled',
+        subadminStudentStatus(st),
         st.program || 'Academic Tutorial',
-        st.guardian_name || '—',
-        st.contact || '—',
         st.timeslot || 'Assigned'
       ]);
       const csv = [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
@@ -11558,43 +11757,44 @@
           <tr style="border-bottom:1px solid var(--cream-dark)">
             <td style="padding:12px 16px">${escHtml(s.date)}</td>
             <td style="padding:12px 16px;font-weight:700;color:var(--brown-primary)">${escHtml(s.student)}</td>
-            <td style="padding:12px 16px"><span class="badge badge-gold">Tutorial</span></td>
+            <td style="padding:12px 16px"><span class="badge badge-gold">${escHtml(s.program || 'Academic Tutorial')}</span></td>
             <td style="padding:12px 16px;font-weight:600">${escHtml(s.hours)} hrs</td>
             <td style="padding:12px 16px;font-size:12px;color:var(--text-dark)">${escHtml(s.notes || '—')}</td>
-            <td style="padding:12px 16px"><span class="badge ${s.is_verified === true || Number(s.is_verified) === 1 ? 'badge-green' : 'badge-gold'}">${s.is_verified === true || Number(s.is_verified) === 1 ? 'Verified' : 'Pending verification'}</span></td>
+            <td style="padding:12px 16px"><span class="badge badge-green">Logged</span></td>
           </tr>
         `).join('');
       }
 
       const monthKey = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Manila',year:'numeric',month:'2-digit'}).format(new Date());
-      const totalHrs = subadminSessions.filter(s => (s.is_verified === true || Number(s.is_verified) === 1) && String(s.date || '').slice(0, 7) === monthKey)
+      const totalHrs = subadminSessions.filter(s => String(s.date || '').slice(0, 7) === monthKey)
         .reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
       const statEl = document.getElementById('subadmin-stat-hours');
       if (statEl) statEl.textContent = subadminSessionsLive ? totalHrs.toFixed(1) : '—';
     }
 
+    function tutorSessionToday() {
+      const parts = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+      const value = type => parts.find(part => part.type === type).value;
+      return `${value('year')}-${value('month')}-${value('day')}`;
+    }
+
+    function tutorSessionStudentLabel(student) {
+      const base = `${student.child_name || 'Student'} (${student.program || 'Program'})`;
+      const duplicates = subadminAssignedStudents.filter(item => item.child_name === student.child_name && item.program === student.program);
+      return duplicates.length > 1 ? `${base} - ${student.reference_no || 'Enrollment #' + student.enrollment_id}` : base;
+    }
+
     function openLogHoursModal() {
       const dateEl = document.getElementById('log-date');
-      if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
-
-      // Dynamically fill student dropdown with only this tutor's assigned students
-      const sSelect = document.getElementById('log-student');
-      if (sSelect) {
-        sSelect.innerHTML = '<option value="">Select assigned student…</option>';
-        if (subadminAssignedStudents.length > 0) {
-          subadminAssignedStudents.forEach(st => {
-            const opt = document.createElement('option');
-            opt.value = st.child_name || 'Student';
-            opt.textContent = (st.child_name || 'Student') + (st.program ? ' (' + st.program + ')' : '');
-            sSelect.appendChild(opt);
-          });
-        } else {
-          const opt = document.createElement('option');
-          opt.disabled = true;
-          opt.textContent = 'No students assigned yet';
-          sSelect.appendChild(opt);
-        }
-      }
+      if (dateEl) dateEl.value = dateEl.min = dateEl.max = tutorSessionToday();
+      const input = document.getElementById('log-student');
+      input.value = '';
+      input.setCustomValidity('');
+      const suggestions = document.getElementById('log-student-suggestions');
+      suggestions.replaceChildren();
+      subadminAssignedStudents.filter(st => subadminStudentStatus(st) === 'Active').forEach(student => {
+        suggestions.append(new Option(tutorSessionStudentLabel(student), tutorSessionStudentLabel(student)));
+      });
       openModal('modal-log-hours');
     }
 
@@ -11604,12 +11804,33 @@
 
     async function submitLoggedHours(e) {
       e.preventDefault();
-      const student = document.getElementById('log-student')?.value.trim();
+      const input = document.getElementById('log-student');
+      const typed = input.value.trim().toLowerCase();
+      const assigned = subadminAssignedStudents.filter(st => subadminStudentStatus(st) === 'Active');
+      const exact = assigned.filter(st => tutorSessionStudentLabel(st).toLowerCase() === typed);
+      const matches = exact.length ? exact : assigned.filter(st => String(st.child_name || '').toLowerCase() === typed);
+      if (matches.length !== 1) {
+        input.setCustomValidity('Please choose an assigned student and program from the suggestions.');
+        input.reportValidity();
+        return;
+      }
+      const selectedStudent = matches[0];
+      const enrollmentId = selectedStudent.enrollment_id;
+      const student = selectedStudent?.child_name;
       const date = document.getElementById('log-date')?.value;
       const hours = document.getElementById('log-hours')?.value;
       const notes = document.getElementById('log-notes')?.value.trim();
 
       if (!student || !date || !hours) return;
+      const today = tutorSessionToday();
+      const dateInput = document.getElementById('log-date');
+      dateInput.min = dateInput.max = today;
+      if (date !== today) {
+        dateInput.value = today;
+        showToast('You can only log a session for today (Philippine time).', 'error');
+        return;
+      }
+
 
       const submitBtn = e.target.querySelector('button[type="submit"]');
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving...'; }
@@ -11621,6 +11842,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'log',
+            enrollment_id: Number(enrollmentId),
             student_name: student,
             session_date: date,
             duration_hours: hours,
@@ -11638,14 +11860,7 @@
         }
       } catch (err) {
         console.error('Error logging session to server:', err);
-        const newLog = { id: Date.now(), student, date, hours, notes };
-        subadminSessions.unshift(newLog);
-        try {
-          localStorage.setItem('tutor_logged_sessions', JSON.stringify(subadminSessions));
-        } catch (err) {}
-        renderSubadminHoursTable();
-        closeLogHoursModal();
-        showToast('Session logged locally.');
+        showToast('Session was not saved. Please check your connection and try again.', 'error');
       } finally {
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Save Session'; }
       }

@@ -65,7 +65,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             display: block;
             width: 22px;
             height: 2px;
-            background: rgba(255, 255, 255, .8);
+            background: #000;
             border-radius: 2px;
             transition: all .25s
         }
@@ -88,7 +88,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
             top: 0;
             width: 100%;
             z-index: 100;
-            background: var(--maroon);
+            background: #fff;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -101,16 +101,21 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         .nav-logo {
             font-family: 'Playfair Display', serif;
             font-size: 1.2rem;
-            color: var(--light-gold);
+            color: #000;
             letter-spacing: 0.04em;
         }
 
         .nav-logo > span {
-            color: #fff;
+            color: #000;
             font-weight: 300;
             font-size: 0.75rem;
             display: inline;
             letter-spacing: normal;
+        }
+
+        /* Keep the brand readable on the white header, including cached markup. */
+        nav .nav-logo span {
+            color: #000 !important;
         }
 
         nav ul {
@@ -121,7 +126,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         }
 
         nav ul a {
-            color: rgba(255, 255, 255, 0.8);
+            color: #000;
             text-decoration: none;
             font-size: 0.82rem;
             font-weight: 500;
@@ -134,11 +139,11 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         }
 
         nav ul a:hover {
-            color: var(--light-gold);
+            color: #000;
         }
 
         nav ul a.active {
-            color: var(--light-gold);
+            color: #000;
         }
 
         nav ul a.active::after {
@@ -200,6 +205,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
         }
 
         .login-btn img {
+            filter: brightness(0);
             width: 26px;
             height: 26px;
             object-fit: contain;
@@ -1140,7 +1146,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
                 right: 0;
                 max-height: calc(100vh - 100%);
                 overflow-y: auto;
-                background: rgba(61, 31, 10, .98);
+                background: #fff;
                 flex-direction: column;
                 gap: 0;
                 margin-left: 0;

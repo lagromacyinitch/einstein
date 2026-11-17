@@ -619,7 +619,7 @@
           </svg>
         </a>
         <div class="card-header-logo">
-          <span class="logo-mark">Academic Tutorial</span>
+          <span class="logo-mark" data-homepage-text="programs.academic.title">Academic Tutorial</span>
           <div class="logo-text">
             <span class="eyebrow">Einstein Center</span>
             <span class="name">For school-age children</span>
@@ -639,8 +639,8 @@
         <div class="card-body">
           <div class="services-grid">
             <div class="service-block full">
-              <h4>Tutoring</h4>
-              <ul>
+              <h4 data-homepage-text="programs.academic.tag">Tutoring</h4>
+              <ul data-homepage-list="programs.academic.details">
                 <li>One-on-one expert tutors</li>
                 <li>Structured lesson plans with progress tracking</li>
                 <li>Flexible learning for school-age students</li>
@@ -662,8 +662,8 @@
 
             <!-- Regular Package -->
             <div class="service-block">
-              <h4>Regular Package</h4>
-              <ul>
+              <h4 data-homepage-text="tutorial.regular.label">Regular Package</h4>
+              <ul data-homepage-list="tutorial.regular.features">
                 <li>One tutor for one child</li>
                 <li>15 sessions total</li>
                 <li>1 hour per session</li>
@@ -671,14 +671,14 @@
               </ul>
               <div class="pkg-price">
                 <span class="rate-price" data-tutorial="Regular Package">₱3,300</span>
-                <span class="rate-period">/One-time payment</span>
+                <span class="rate-period" data-homepage-text="tutorial.regular.period">/One-time payment</span>
               </div>
             </div>
 
             <!-- Daily Package -->
             <div class="service-block">
-              <h4>Daily Package</h4>
-              <ul>
+              <h4 data-homepage-text="tutorial.daily.label">Daily Package</h4>
+              <ul data-homepage-list="tutorial.daily.features">
                 <li>One tutor for one child</li>
                 <li>Daily sessions for one full month</li>
                 <li>1 hour per day</li>
@@ -686,14 +686,14 @@
               </ul>
               <div class="pkg-price">
                 <span class="rate-price" data-tutorial="Daily Package">₱5,500</span>
-                <span class="rate-period">/Per month</span>
+                <span class="rate-period" data-homepage-text="tutorial.daily.period">/Per month</span>
               </div>
             </div>
 
             <!-- Double Package -->
             <div class="service-block">
-              <h4>Double Package</h4>
-              <ul>
+              <h4 data-homepage-text="tutorial.double.label">Double Package</h4>
+              <ul data-homepage-list="tutorial.double.features">
                 <li>One tutor for 1 or 2 children</li>
                 <li>15 sessions total</li>
                 <li>2 hours per session</li>
@@ -701,14 +701,14 @@
               </ul>
               <div class="pkg-price">
                 <span class="rate-price" data-tutorial="Double Package">₱5,500</span>
-                <span class="rate-period">/One-time payment</span>
+                <span class="rate-period" data-homepage-text="tutorial.double.period">/One-time payment</span>
               </div>
             </div>
 
             <!-- Daily Double Package -->
             <div class="service-block">
-              <h4>Daily Double Package</h4>
-              <ul>
+              <h4 data-homepage-text="tutorial.daily_double.label">Daily Double Package</h4>
+              <ul data-homepage-list="tutorial.daily_double.features">
                 <li>One tutor for 1 or 2 children</li>
                 <li>Daily sessions for one full month</li>
                 <li>2 hours per day</li>
@@ -716,7 +716,7 @@
               </ul>
               <div class="pkg-price">
                 <span class="rate-price" data-tutorial="Daily Double Package">₱9,900</span>
-                <span class="rate-period">/Per month</span>
+                <span class="rate-period" data-homepage-text="tutorial.daily_double.period">/Per month</span>
               </div>
             </div>
 
@@ -730,13 +730,6 @@
             <p>All packages include guaranteed expert tutors and cover every subject and module. Flexible scheduling
               available.</p>
           </div>
-          <button class="enroll-btn" onclick="openEnrollmentFlow('Academic Tutorial')">
-            Enroll Now
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </button>
         </div>
 
       </div>
@@ -744,6 +737,7 @@
     </div><!-- end mad-card -->
 
     <script src="js/program-page.js"></script>
+    <script src="js/program-content.js?v=1"></script>
 
     <script>
       window.ENROLL_PACKAGES = [

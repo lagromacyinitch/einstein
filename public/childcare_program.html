@@ -626,7 +626,7 @@
           </svg>
         </a>
         <div class="card-header-logo">
-          <span class="logo-mark">Child Care</span>
+          <span class="logo-mark" data-homepage-text="programs.childcare.title">Child Care</span>
           <div class="logo-text">
             <span class="eyebrow">Einstein Center</span>
             <span class="name">Full-Day Care for Little Ones</span>
@@ -646,36 +646,14 @@
         <div class="card-body">
           <div class="services-grid">
 
-            <div class="service-block">
-              <h4>Care &amp; Supervision</h4>
-              <ul>
-                <li>Up to 12 hrs Nanny Care (7am • 7pm)</li>
-                <li>Open everyday except Sundays</li>
-                <li>Breakfast and lunch included</li>
-                <li>Video call with parents anytime</li>
-                <li>Outdoor safety &amp; security</li>
-              </ul>
-            </div>
-
-            <div class="service-block">
-              <h4>Learning &amp; Activities</h4>
-              <ul>
-                <li>Customized lesson plan</li>
-                <li>Life skills training</li>
-                <li>Toy room and nap room access</li>
-                <li>Story time and TV time</li>
-                <li>Student kit, utensils &amp; toiletries</li>
-              </ul>
-            </div>
-
             <div class="service-block full">
-              <h4>What to Bring on Admission Day</h4>
-              <ul>
-                <li>Feeding bottles &amp; formula milk</li>
-                <li>Diapers &amp; extra clothes</li>
-                <li>Favorite toy for comfort</li>
-                <li>Dinner optional • pre-order at ₱45 per meal</li>
-              </ul>
+              <h4 data-homepage-text="childcare.inclusions_label">Inclusions</h4>
+              <ul data-homepage-list="childcare.inclusions"><li>Up to 12 hrs of Nanny Care (7am - 7pm)</li><li>Everyday except Sundays</li><li>Breakfast and lunch included</li><li>Life skills training</li><li>Access to toy room and nap room</li><li>Video call anytime of the day</li><li>With story time and TV time</li><li>Student kit, utensils and toiletries</li></ul>
+            </div>
+            <div class="service-block full">
+              <h4 data-homepage-text="childcare.admission_label">What to Bring During Admission</h4>
+              <p data-homepage-text="childcare.admission_items">Feeding Bottles, Formula Milk, Diapers, Extra Clothes, Favorite Toy</p>
+              <p data-homepage-text="childcare.admission_note">Food for dinner is optional and can also be pre-ordered for only &#8369;45 per meal.</p>
             </div>
 
           </div>
@@ -722,22 +700,22 @@
 
             <!-- Daycare Rates • Toilet Trained -->
             <div class="service-block full">
-              <h4>Daycare Rates • Toilet Trained</h4>
+              <h4 data-homepage-text="childcare.toilet_trained_label">Daycare Rates • Toilet Trained</h4>
               <div class="dt-table">
                 <div class="dt-header">
                   <span></span>
-                  <span>Monthly</span>
-                  <span>Weekly</span>
-                  <span>Daily</span>
+                  <span data-homepage-text="childcare.monthly_label">Monthly</span>
+                  <span data-homepage-text="childcare.weekly_label">Weekly</span>
+                  <span data-homepage-text="childcare.daily_label">Daily</span>
                 </div>
                 <div class="dt-row">
-                  <span class="dt-label">Regular</span>
+                  <span class="dt-label" data-homepage-text="childcare.nonmember_label">Regular</span>
                   <span class="dt-price" data-childcare="tt-nonmember-monthly">₱12,250</span>
                   <span class="dt-price" data-childcare="tt-nonmember-weekly">₱3,600</span>
                   <span class="dt-price" data-childcare="tt-nonmember-daily">₱675</span>
                 </div>
                 <div class="dt-row vip-row">
-                  <span class="dt-label">VIP Member</span>
+                  <span class="dt-label" data-homepage-text="childcare.vip_label">VIP Member</span>
                   <span class="dt-price" data-childcare="tt-vip-monthly">₱10,320</span>
                   <span class="dt-price" data-childcare="tt-vip-weekly">₱3,000</span>
                   <span class="dt-price" data-childcare="tt-vip-daily">₱560</span>
@@ -747,22 +725,22 @@
 
             <!-- Daycare Rates • Non-Toilet Trained -->
             <div class="service-block full">
-              <h4>Daycare Rates • Non-Toilet Trained</h4>
+              <h4 data-homepage-text="childcare.non_toilet_trained_label">Daycare Rates • Non-Toilet Trained</h4>
               <div class="dt-table">
                 <div class="dt-header">
                   <span></span>
-                  <span>Monthly</span>
-                  <span>Weekly</span>
-                  <span>Daily</span>
+                  <span data-homepage-text="childcare.monthly_label">Monthly</span>
+                  <span data-homepage-text="childcare.weekly_label">Weekly</span>
+                  <span data-homepage-text="childcare.daily_label">Daily</span>
                 </div>
                 <div class="dt-row">
-                  <span class="dt-label">Regular</span>
+                  <span class="dt-label" data-homepage-text="childcare.nonmember_label">Regular</span>
                   <span class="dt-price" data-childcare="ntt-nonmember-monthly">₱13,500</span>
                   <span class="dt-price" data-childcare="ntt-nonmember-weekly">₱4,500</span>
                   <span class="dt-price" data-childcare="ntt-nonmember-daily">₱850</span>
                 </div>
                 <div class="dt-row vip-row">
-                  <span class="dt-label">VIP Member</span>
+                  <span class="dt-label" data-homepage-text="childcare.vip_label">VIP Member</span>
                   <span class="dt-price" data-childcare="ntt-vip-monthly">₱11,800</span>
                   <span class="dt-price" data-childcare="ntt-vip-weekly">₱3,800</span>
                   <span class="dt-price" data-childcare="ntt-vip-daily">₱700</span>
@@ -779,13 +757,6 @@
             <h3>Secure your child's spot today!</h3>
             <p>Limited slots available. VIP Members enjoy 20% off tuition every month.</p>
           </div>
-          <button class="enroll-btn" onclick="openEnrollmentFlow('Child Care Program')">
-            Enroll Now
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </button>
         </div>
 
       </div>
@@ -794,6 +765,7 @@
   </div><!-- end .page-wrap -->
 
   <script src="js/program-page.js"></script>
+    <script src="js/program-content.js?v=1"></script>
 
   <script>
     window.ENROLL_PACKAGES = [

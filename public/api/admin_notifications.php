@@ -6,9 +6,39 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 setSecurityHeaders();
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/admin_notifications.php';
+require_once __DIR__ . '/../includes/tutor_schedules.php';
 
 try {
     $db = getDB();
+    ensureAdminNotificationsSchema($db);
+    $adminKey = adminNotificationActorKey();
+    if (empty($_SESSION['is_head_admin'])) {
+        ensureTutorScheduleReads($db);
+        $tutorId = sessionScheduleTutorId($db);
+        $items = tutorScheduleNotifications($db, $tutorId);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+            $action = $input['action'] ?? '';
+            if (!in_array($action, ['mark_read', 'mark_all_read'], true)) throw new RuntimeException('Invalid notification action.');
+            foreach ($items as $item) {
+                if ($action === 'mark_read' && -$item['id'] !== (int)($input['notification_id'] ?? 0)) continue;
+                $db->prepare('INSERT IGNORE INTO tutor_schedule_reads (tutor_id, history_id) VALUES (?,?)')->execute([$tutorId, $item['id']]);
+            }
+            $items = tutorScheduleNotifications($db, $tutorId);
+            if ($action === 'mark_all_read') markAllAdminNotificationsRead($db, $adminKey);
+            elseif ((int)($input['notification_id'] ?? 0) > 0) markAdminNotificationRead($db, $adminKey, (int)$input['notification_id']);
+        } elseif ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            throw new RuntimeException('GET or POST required.');
+        }
+        $unread = array_sum(array_column($items, 'unread')) + countUnreadAdminNotifications($db, $adminKey);
+        // History IDs use a separate negative namespace from shared admin notices.
+        foreach ($items as &$item) $item['id'] = -$item['id'];
+        unset($item);
+        $items = array_merge($items, listAdminNotifications($db, $adminKey, 100));
+        usort($items, fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
+        echo json_encode(['success' => true, 'notifications' => array_slice($items, 0, 100), 'unread_count' => $unread]);
+        exit;
+    }
     ensureAdminNotificationsSchema($db);
     $adminKey = adminNotificationActorKey();
 

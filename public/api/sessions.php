@@ -14,6 +14,7 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/session_logging.php';
 setSecurityHeaders();
 startPortalSession();
 
@@ -80,6 +81,31 @@ try {
     };
 
     if ($method === 'GET') {
+
+        if ($action === 'activity_sessions') {
+            if (empty($_SESSION['is_head_admin'])) { http_response_code(403); throw new RuntimeException('Head Admin access required.'); }
+            $limit = max(1, min(100, (int)($_GET['limit'] ?? 25)));
+            $offset = max(0, (int)($_GET['offset'] ?? 0));
+            $date = trim($_GET['date'] ?? '');
+            $where = $date !== '' ? 'WHERE s.session_date=?' : '';
+            $params = $date !== '' ? [$date] : [];
+            $count = $db->prepare("SELECT COUNT(*) FROM sessions s $where");
+            $count->execute($params);
+            $query = $db->prepare("SELECT s.id, s.session_date, s.duration_hours, s.notes, s.created_at,
+                s.student_name, t.full_name AS tutor_name, e.child_name, e.program
+                FROM sessions s LEFT JOIN tutors t ON t.id=s.tutor_id
+                LEFT JOIN enrollments e ON e.id=s.enrollment_id $where
+                ORDER BY s.created_at DESC, s.id DESC LIMIT $limit OFFSET $offset");
+            $query->execute($params);
+            $rows = array_map(function ($row) {
+                $row = decryptRow($row, ['child_name']);
+                $row['child_name'] = $row['child_name'] ?: ($row['student_name'] ?: 'Student');
+                $row['status'] = 'Logged';
+                return $row;
+            }, $query->fetchAll(PDO::FETCH_ASSOC));
+            echo json_encode(['success'=>true, 'sessions'=>$rows, 'total'=>(int)$count->fetchColumn()]);
+            exit;
+        }
 
         if ($action === 'list') {
             $tid   = intval($_GET['tutor_id'] ?? 0);
@@ -184,35 +210,17 @@ try {
     }
 
     if ($action === 'log') {
-        $tid   = intval($body['tutor_id'] ?? 0);
-        if (!$tid) {
-            $tid = $resolveTutorId();
-        }
-        $eid   = intval($body['enrollment_id'] ?? 0);
-        $sName = trim($body['student_name'] ?? ($body['student'] ?? ''));
-        $date  = trim($body['session_date'] ?? ($body['date'] ?? ''));
-        $hrs   = floatval($body['duration_hours'] ?? ($body['hours'] ?? 1));
-        $notes = trim($body['notes'] ?? '');
-
-        if (!$tid) throw new Exception('Tutor ID required.');
-        if (!$date) throw new Exception('Session date required.');
-        if ($hrs <= 0) throw new Exception('Duration hours must be greater than 0.');
-
-        // If enrollment_id is not given but student_name is provided, attempt to lookup
-        if (!$eid && $sName) {
-            $eStmt = $db->query("SELECT id, child_name FROM enrollments ORDER BY id DESC LIMIT 100");
-            while ($erow = $eStmt->fetch(PDO::FETCH_ASSOC)) {
-                $dec = decryptRow($erow, ['child_name']);
-                if (strcasecmp(trim($dec['child_name'] ?? ''), $sName) === 0) {
-                    $eid = (int)$erow['id'];
-                    break;
-                }
-            }
-        }
-
-        $stmt = $db->prepare("INSERT INTO sessions (enrollment_id, student_name, tutor_id, session_date, duration_hours, notes) VALUES (?,?,?,?,?,?)");
-        $stmt->execute([$eid, $sName, $tid, $date, $hrs, $notes]);
-        $newId = $db->lastInsertId();
+        if ($method !== 'POST' || !in_array($role, ['admin', 'staff', 'sub_admin'], true)) throw new RuntimeException('Tutor or admin access required.');
+        $headAdmin = !empty($_SESSION['is_head_admin']);
+        $tid = $headAdmin ? (int)($body['tutor_id'] ?? $resolveTutorId()) : $resolveTutorId();
+        ensureActivityLogTable($db);
+        $newId = saveTutorSessionWithActivity(
+            $db, $tid, (int)($body['enrollment_id'] ?? 0),
+            trim($body['student_name'] ?? ($body['student'] ?? '')),
+            trim($body['session_date'] ?? ($body['date'] ?? '')),
+            (float)($body['duration_hours'] ?? ($body['hours'] ?? 1)), trim($body['notes'] ?? ''),
+            $headAdmin, $_SESSION['display_name'] ?? 'Head Admin', $_SERVER['REMOTE_ADDR'] ?? ''
+        );
 
         echo json_encode(['success' => true, 'message' => 'Session logged.', 'id' => $newId]);
 
@@ -245,6 +253,6 @@ try {
     }
 
 } catch (Exception $e) {
-    http_response_code(400);
+    if (http_response_code() < 400) http_response_code(400);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

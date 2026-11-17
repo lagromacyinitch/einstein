@@ -493,6 +493,39 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
       text-transform: uppercase;
     }
 
+    #page-my_schedule thead th { background: #3D2212; color: #F4E8D3; text-align: center; }
+    .tutor-availability-slot { display: block; width: 100%; min-height: 44px; padding: 8px 4px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+    .tutor-availability-slot span { color: #b3a18e; }
+    .tutor-availability-slot:hover, .tutor-availability-slot:focus-visible { background: #fff0c2; outline: 2px solid #b58a57; outline-offset: -2px; }
+    .tutor-availability-slot:disabled { cursor: wait; opacity: .6; }
+    .schedule-student-suggestions { position: fixed; z-index: 10000; width: 280px; max-width: calc(100vw - 16px); max-height: 230px; overflow-y: auto; padding: 5px; background: #fffaf3; border: 1px solid #dec6ac; border-radius: 8px; box-shadow: 0 5px 18px rgba(61,34,18,.18); }
+    .schedule-suggestion-heading { padding: 6px 9px; font-size: 11px; color: #8D6A4E; }
+    .schedule-student-suggestions button { display: block; width: 100%; border: 0; background: transparent; padding: 9px; text-align: left; color: #5c3317; cursor: pointer; font: inherit; font-size: 12px; border-radius: 4px; }
+    .schedule-student-suggestions button:hover, .schedule-student-suggestions button.selected { background: #f0e3cf; }
+    .tutor-availability-menu { position: fixed; z-index: 10000; padding: 5px; background: #fffaf3; border: 1px solid #dec6ac; border-radius: 8px; box-shadow: 0 5px 18px rgba(61,34,18,.18); }
+    .tutor-availability-menu button { min-height: 40px; padding: 8px 14px; border: 0; border-radius: 5px; background: transparent; color: #5c3317; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .tutor-availability-menu button:hover, .tutor-availability-menu button:focus-visible { background: #f0e3cf; outline: none; }
+    .tutor-schedule-legend { display: flex; gap: 16px; padding: 12px 18px; font-size: 11px; color: #5c3317; border-top: 1px solid var(--cream-dark); flex-wrap: wrap; }
+    .tutor-schedule-legend i { display: inline-block; width: 12px; height: 12px; border: 1px solid; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+    .activity-log-columns { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; align-items: start; }
+    .activity-log-columns > .card { min-width: 0; }
+    .activity-log-columns .card-header { min-height: 105px; box-sizing: border-box; }
+    .session-log-header { background: linear-gradient(135deg,#1a1a2e,#16213e); gap: 12px; flex-wrap: wrap; }
+    .session-log-header h3 { color: #e0c47a; font-size: 15px; margin: 0; }
+    .session-log-header span { color: #9b8ec4; font-size: 11px; }
+    .session-log-header button { color: #7ed4a0; border-color: rgba(126,212,160,.4); }
+    .session-log-filters { background: #f8f3ec; padding: 14px 18px; display: flex; align-items: end; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--cream-dark); }
+    .session-log-filters label { font-size: 11px; font-weight: 700; color: var(--brown-mid); }
+    .session-log-filters input { font-size: 12px; padding: 6px 10px; margin-top: 4px; }
+    #session-activity-count { margin-left: auto; font-size: 12px; color: var(--brown-mid); }
+    .session-log-scroll { max-height: 460px; overflow: auto; }
+    .session-activity-table { width: 100%; min-width: 570px; }
+    .session-activity-table thead { position: sticky; top: 0; z-index: 1; }
+    .session-activity-table thead th { background: #1a1a2e; color: #e0c47a; font-size: 10px; padding: 10px; }
+    .session-activity-table td { font-size: 12px; padding: 10px; vertical-align: top; }
+    .session-activity-table small { display: block; font-size: 11px; color: #8D6A4E; margin-top: 4px; }
+    .session-log-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px; background: #faf6f0; border-top: 1px solid var(--cream-dark); min-height: 54px; font-size: 12px; }
+    @media (max-width: 1199px) { .activity-log-columns { grid-template-columns: minmax(0,1fr); } }
     .card-body {
       padding: 20px;
       overflow-x: auto;
