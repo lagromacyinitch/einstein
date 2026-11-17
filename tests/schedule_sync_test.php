@@ -1,10 +1,6 @@
 <?php
 require __DIR__ . '/../public/includes/schedule_sync.php';
-// Load only the pure scheduling functions, without running the HTTP endpoint.
-$source = file_get_contents(__DIR__ . '/../public/api/schedules.php');
-$start = strpos($source, 'function formatSingleTime12Hour');
-$end = strpos($source, "\ntry {", $start);
-eval(substr($source, $start, $end - $start));
+require_once __DIR__ . '/../public/includes/schedule_format.php';
 function decryptRow($row, $fields) { return $row; }
 class ScheduleTestDB extends PDO {
     public function __construct() { parent::__construct('sqlite::memory:'); $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); }
@@ -16,6 +12,7 @@ function same($actual, $expected, $label) {
     if ($actual !== $expected) throw new Exception($label . ': ' . var_export($actual, true));
 }
 $db = new ScheduleTestDB();
+$db->exec('CREATE TABLE enrollment_schedule_history (id INTEGER PRIMARY KEY AUTOINCREMENT, enrollment_id INTEGER, program TEXT, previous_timeslot TEXT, new_timeslot TEXT, changed_at TEXT DEFAULT CURRENT_TIMESTAMP)');
 $db->exec('CREATE TABLE tutors (id INTEGER PRIMARY KEY); INSERT INTO tutors VALUES (1), (2);
 CREATE TABLE enrollments (id INTEGER PRIMARY KEY, child_name TEXT, timeslot TEXT, program TEXT, package_selected TEXT);
 CREATE TABLE tutor_assignments (enrollment_id INTEGER, tutor_id INTEGER);
@@ -77,7 +74,8 @@ INSERT INTO tutor_schedules (tutor_id,timeslot,slot_type,mon,tue,wed,thu,fri) VA
 $sassaRow = $db->lastInsertId();
 $db->exec('INSERT INTO tutor_schedules (tutor_id,timeslot,slot_type,fri) VALUES (3,"08:00-09:00","CB","Sassa, Another Child")');
 $duplicateRow = $db->lastInsertId();
-saveScheduleAndEnrollmentTimeslots($db, $sassaRow, ['fri'=>'']);
+// The consolidated Friday cell shows both names; remove Sassa while retaining the other child.
+saveScheduleAndEnrollmentTimeslots($db, $sassaRow, ['fri'=>'Another Child']);
 same(slot($db,5), 'Monday, Tuesday, Wednesday, Thursday 8:00 AM - 9:00 AM', 'Duplicate Friday must not restore Sassa');
 same($db->query('SELECT fri FROM tutor_schedules WHERE id=' . (int)$duplicateRow)->fetchColumn(), 'Another Child', 'Preserve other students in duplicate row');
 foreach (grid($db) as $r) {
@@ -118,3 +116,35 @@ foreach (grid($db) as $r) {
 }
 same(count($sherlDays), 5, 'Assigning Sherl produces all five saved weekdays');
 echo "PASS: newly assigned student appears in the chosen tutor schedule on the saved weekdays.\n";
+
+$db->exec('ALTER TABLE enrollments ADD COLUMN user_id INTEGER DEFAULT 10;
+ALTER TABLE tutors ADD COLUMN full_name TEXT DEFAULT "Teacher Ana";
+UPDATE enrollments SET user_id=20 WHERE id=2;');
+$changes = parentScheduleChanges($db, 10);
+same(count($changes) > 0, true, 'Changes persist for parents who were offline');
+foreach ($changes as $change) same((int)$change['enrollment_id'] === 2, false, 'Other parent history is private');
+$timeChange = array_values(array_filter($changes, fn($c) => $c['enrollment_id'] == 1 && $c['previous_timeslot'] === 'Tuesday, Thursday 11:00 AM - 12:00 PM'))[0];
+same($timeChange['new_timeslot'], 'Tuesday, Thursday 1:00 PM - 2:00 PM', 'Notification includes old and new schedule');
+same($timeChange['program'], 'Academic Tutorial', 'Notification names the specific program');
+same($timeChange['child_name'], 'Ethan', 'Notification names the child');
+$count = (int)$db->query('SELECT COUNT(*) FROM enrollment_schedule_history')->fetchColumn();
+recordScheduleChange($db, 1, 'Academic Tutorial', 'Monday 8:00 AM', 'Monday 8:00 AM');
+same((int)$db->query('SELECT COUNT(*) FROM enrollment_schedule_history')->fetchColumn(), $count, 'No-op does not notify');
+$db->beginTransaction();
+recordScheduleChange($db, 1, 'Academic Tutorial', 'Monday 8:00 AM', 'Monday 9:00 AM');
+$db->rollBack();
+same((int)$db->query('SELECT COUNT(*) FROM enrollment_schedule_history')->fetchColumn(), $count, 'Failed edit rolls back notification');
+foreach (parentScheduleRows($db, 10) as $row) same($row['enrollment_id'] === 2, false, 'Other parent schedule is private');
+same(parentScheduleRows($db, 999), [], 'Unknown parent has no schedules');
+same(parentScheduleChanges($db, 999), [], 'Unknown parent has no notifications');
+$db->exec('INSERT INTO student_archives VALUES (7,"2026-11-16 12:00:00")');
+foreach (parentScheduleRows($db, 10) as $row) same($row['enrollment_id'] === 7, false, 'Archived student hidden from parent schedule');
+echo "PASS: persistent schedule notifications, before/after/program/child details, no-op and rollback, parent privacy, archived schedules.\n";
+$current = parseScheduleTimePreference('Monday, Tuesday 10:00 AM - 11:00 AM', 'Academic Tutorial', 'Regular');
+same(parentScheduleUpdatedDays($current, null, 'Academic Tutorial', 'Regular')['mon'], false, 'Original schedule is normal');
+$highlight = parentScheduleUpdatedDays($current, 'Monday 10:00 AM - 11:00 AM; Tuesday 8:00 AM - 9:00 AM', 'Academic Tutorial', 'Regular');
+same($highlight['mon'], false, 'Unchanged day stays normal');
+same($highlight['tue'], true, 'Changed time is updated');
+same($highlight['wed'], false, 'Empty cells are never highlighted');
+same(parentScheduleUpdatedDays($current, 'Monday 10:00 AM - 11:00 AM', 'Academic Tutorial', 'Regular')['tue'], true, 'New day is updated');
+echo "PASS: normal schedules, changed time/day highlights, unchanged and empty cells.\n";

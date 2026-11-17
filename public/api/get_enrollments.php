@@ -15,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/vip_membership.php';
 require_once __DIR__ . '/../includes/balance_helpers.php';
+require_once __DIR__ . '/../includes/parent_schedules.php';
+require_once __DIR__ . '/../includes/student_archive_schema.php';
 setSecurityHeaders();
 
 startUserSession();
@@ -26,6 +28,8 @@ try {
 
     $userId = (int) $_SESSION['user_id'];
     $db = getDB();
+    ensureScheduleChangeHistory($db);
+    ensureStudentArchiveTable($db);
     require_once __DIR__ . '/../includes/enrollment_end_dates.php';
     ensureEnrollmentEndDateHistory($db);
 
@@ -58,6 +62,8 @@ try {
     echo json_encode([
         'success' => true,
         'enrollments' => $enrollments,
+        'schedules' => parentScheduleRows($db, $userId),
+        'schedule_changes' => parentScheduleChanges($db, $userId),
         'vip_membership' => vipState($db, (int)$_SESSION['user_id']),
         'stats' => [
             'active' => $active,

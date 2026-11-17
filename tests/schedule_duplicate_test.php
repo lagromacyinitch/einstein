@@ -1,0 +1,27 @@
+<?php
+require __DIR__ . '/tutor_schedule_test.php';
+$db->exec('INSERT INTO tutors (id,full_name) VALUES (20,"Duplicate Test"), (21,"Separate Tutor");
+INSERT INTO tutor_schedules (tutor_id,timeslot,slot_type,mon,sat) VALUES (20,"8:00 AM - 9:00 AM","CB","","Available");');
+$first = $db->lastInsertId();
+$db->exec('INSERT INTO tutor_schedules (tutor_id,timeslot,slot_type,tue,sat) VALUES (20,"08:00-09:00","CB","Another Child","Available");');
+$second = $db->lastInsertId();
+$db->exec('INSERT INTO tutor_schedules (tutor_id,timeslot,slot_type) VALUES (21,"8:00 AM - 9:00 AM","CB")');
+$rows = array_values(array_filter(grid($db), fn($r) => $r['tutor_id'] == 20));
+same(count($rows),1,'One row per tutor and normalized time');
+same($rows[0]['tue'],'Another Child','Student from second copy retained');
+same($rows[0]['sat'],'Available','Availability retained');
+saveScheduleAndEnrollmentTimeslots($db,(string)$first,['sat'=>'']);
+same($db->query('SELECT sat FROM tutor_schedules WHERE id='.(int)$first)->fetchColumn(),'Available','Admin blank edit restores Available');
+same(count(array_filter(grid($db), fn($r) => $r['tutor_id'] == 21)),1,'Another tutor stays separate');
+setTutorAvailability($db,20,(string)$first,'sat',false);
+same($db->query('SELECT sat FROM tutor_schedules WHERE id='.(int)$second)->fetchColumn(),'','Unmark clears hidden copies');
+saveScheduleAndEnrollmentTimeslots($db,(string)$first,['timeslot'=>'10:00 AM - 11:00 AM']);
+$rows = array_values(array_filter(grid($db), fn($r) => $r['tutor_id'] == 20));
+same(count($rows),1,'Time edits do not resurrect duplicate row');
+same($rows[0]['timeslot'],'10:00 AM - 11:00 AM','New time displayed');
+same($rows[0]['tue'],'Another Child','Time edit preserves merged student');
+same($db->query('SELECT timeslot FROM tutor_schedules WHERE id='.(int)$second)->fetchColumn(),'10:00 AM - 11:00 AM','Hidden copy uses new time');
+same(mergeScheduleCellValues('Tiya, James','tiya, Sassa'),'Tiya, James, Sassa','Student names deduplicated');
+same(mergeScheduleCellValues('Available','Tiya'),'Tiya','Booked class takes priority over availability');
+same(mergeScheduleCellValues('Available','N/A'),'N/A','Unavailable slot remains protected');
+echo "PASS: duplicate time consolidation, student/availability preservation, tutor isolation, and edits/unmark survive reload.\n";

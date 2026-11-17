@@ -72,9 +72,9 @@
     <nav>
         <a href="./" class="nav-logo" title="Back to top" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
             <img src="images/logo2.jpg" data-homepage-alt="brand.logo_alt" alt="Einstein Logo"
-                style="height: 45px; width: auto;" />
+                style="height: 60px; width: auto;" />
             <span
-                style="font-family:'Playfair Display',serif;font-size:clamp(.9rem,1.5vw,1.2rem);font-weight:700;line-height:1.3;letter-spacing:normal;text-transform:none;color:#fff"><span
+                style="font-family:'Playfair Display',serif;font-size:clamp(.9rem,1.5vw,1.2rem);font-weight:700;line-height:1.3;letter-spacing:normal;text-transform:none;color:#000"><span
                     data-homepage-text="brand.prefix">EINSTEIN-</span>
                 <span data-homepage-text="brand.name"
                     style="font-weight:400;letter-spacing:normal;text-transform:none">Center For Modern
@@ -121,7 +121,7 @@
                 and weekend workshops, we have a program for
                 every child's stage and interest.</p>
             <div class="programs-grid" style="margin-top:2.5rem;">
-                <a href="academic_tutorial" style="text-decoration:none;color:inherit;display:block;">
+                <a href="academic_tutorial?v=20261117-2" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3 data-homepage-text="programs.academic.title">Academic Tutorial</h3>
@@ -138,7 +138,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="workshop" style="text-decoration:none;color:inherit;display:block;">
+                <a href="workshop?v=20261117-2" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3 data-homepage-text="programs.workshop.title">Weekend Workshop</h3>
@@ -155,7 +155,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="playschool" style="text-decoration:none;color:inherit;display:block;">
+                <a href="playschool?v=20261117-2" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3 data-homepage-text="programs.playschool.title">PlaySchool</h3>
@@ -172,7 +172,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="childcare_program" style="text-decoration:none;color:inherit;display:block;">
+                <a href="childcare_program?v=20261117-2" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3 data-homepage-text="programs.childcare.title">Child Care Program</h3>
@@ -189,7 +189,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="mad" style="text-decoration:none;color:inherit;display:block;">
+                <a href="mad?v=20261117-2" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3 data-homepage-text="programs.madstudio.title">M.A.D. Studio</h3>
@@ -205,7 +205,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="summerblast" style="text-decoration:none;color:inherit;display:block;">
+                <a href="summerblast?v=20261117-2" style="text-decoration:none;color:inherit;display:block;">
                     <div class="program-card">
                         <div class="program-card-header">
                             <h3 data-homepage-text="programs.summerblast.title">Summer Blast</h3>
@@ -932,21 +932,23 @@
 
     <script>
         // Fetch server rates and settings, sync with localStorage & DOM
-        (async function () {
+        async function loadHomepageRates() {
             try {
+                let serverSettings = {};
                 try {
-                    const sRes = await fetch('api/api_settings.php');
+                    const sRes = await fetch('api/api_settings.php', {cache: 'no-store'});
                     const sData = await sRes.json();
                     if (sData && sData.success && sData.settings) {
                         let curSettings = {};
                         try { curSettings = JSON.parse(localStorage.getItem('einsteinSettings')) || {}; } catch (e) { }
-                        const merged = Object.assign({}, curSettings, sData.settings);
+                        serverSettings = sData.settings;
+                        const merged = Object.assign({}, curSettings, serverSettings);
                         if (Array.isArray(sData.settings.qrs)) merged.qrs = sData.settings.qrs;
                         try { localStorage.setItem('einsteinSettings', JSON.stringify(merged)); } catch (e) { }
                     }
                 } catch (se) { }
 
-                const r = await fetch('api/load_rates.php', { credentials: 'same-origin' });
+                const r = await fetch('api/load_rates.php', { credentials: 'same-origin', cache: 'no-store' });
                 const j = await r.json();
                 if (!j.success || !j.rates) {
                     if (typeof applySiteSettings === 'function') applySiteSettings();
@@ -956,19 +958,25 @@
 
                 let settings;
                 try { settings = JSON.parse(localStorage.getItem('einsteinSettings')) || {}; } catch (e) { settings = {}; }
+                settings = Object.assign({}, settings, serverSettings);
 
                 if (Array.isArray(rates.workshop) && rates.workshop.length) settings.workshops = rates.workshop;
                 if (Array.isArray(rates.playschool) && rates.playschool.length) settings.playschool = rates.playschool;
                 if (Array.isArray(rates.tutorial) && rates.tutorial.length) settings.tutorials = rates.tutorial;
                 if (Array.isArray(rates.childcare) && rates.childcare.length) settings.childcarePackages = rates.childcare;
+                if (Array.isArray(rates.madstudio)) settings.madstudio = rates.madstudio;
+                if (Array.isArray(rates.summerblast)) settings.summerblast = rates.summerblast;
 
                 try { localStorage.setItem('einsteinSettings', JSON.stringify(settings)); } catch (e) { }
 
                 if (typeof applySiteSettings === 'function') {
-                    applySiteSettings();
+                    applySiteSettings(settings);
                 }
             } catch (e) { console.warn('load rates failed', e); }
-        })();
+        }
+        window.addEventListener('DOMContentLoaded', loadHomepageRates);
+        window.addEventListener('focus', loadHomepageRates);
+        window.addEventListener('pageshow', event => { if (event.persisted) loadHomepageRates(); });
     </script>
 
     <!-- CONTACT -->
@@ -1572,9 +1580,11 @@
             return str;
         }
 
-        function applySiteSettings() {
-            var settings = null;
-            try { settings = JSON.parse(localStorage.getItem('einsteinSettings')); } catch (e) { }
+        function applySiteSettings(serverSettings = null) {
+            var settings = serverSettings;
+            if (!settings) {
+                try { settings = JSON.parse(localStorage.getItem('einsteinSettings')); } catch (e) { }
+            }
 
             // 1. Apply Child Care rates
             applyChildcareRates(getChildcareRatesMap(settings));
@@ -1674,19 +1684,16 @@
                 });
             }
 
-            // Fallbacks for prices object
+            // Legacy tutorial prices are only a fallback when no managed rates exist.
             if (settings.prices) {
-                const regPrice = document.querySelector('.pricing-card.regular .pricing-price');
-                if (regPrice && settings.prices.reg) regPrice.textContent = '₱' + parseInt(settings.prices.reg).toLocaleString();
-
-                const doubPrice = document.querySelector('.pricing-card.double .pricing-price');
-                if (doubPrice && settings.prices.doub) doubPrice.textContent = '₱' + parseInt(settings.prices.doub).toLocaleString();
-
-                const dailyPrice = document.querySelector('.pricing-card.daily .pricing-price');
-                if (dailyPrice && settings.prices.daily) dailyPrice.textContent = '₱' + parseInt(settings.prices.daily).toLocaleString();
-
-                const ddoubPrice = document.querySelector('.pricing-card.daily-double .pricing-price');
-                if (ddoubPrice && settings.prices.ddoub) ddoubPrice.textContent = '₱' + parseInt(settings.prices.ddoub).toLocaleString();
+                if (!Array.isArray(settings.tutorials) || !settings.tutorials.length) {
+                    const legacyPackages = {reg: 'regular', doub: 'double', daily: 'daily', ddoub: 'daily-double'};
+                    Object.entries(legacyPackages).forEach(([key, className]) => {
+                        const element = document.querySelector('#tutorial .pricing-card.' + className + ' .pricing-price');
+                        const formatted = formatPriceVal(settings.prices[key]);
+                        if (element && formatted) element.textContent = formatted;
+                    });
+                }
 
                 const vipPrice = document.querySelector('.membership-pricing .price');
                 if (vipPrice && settings.prices.vip) vipPrice.textContent = '₱' + parseInt(settings.prices.vip).toLocaleString();
@@ -1742,7 +1749,7 @@
 
         // Fetch Summer Blast rates from the server and apply them
         function fetchAndApplySummerblastRates() {
-            fetch('api/load_rates.php', { credentials: 'same-origin' })
+            fetch('api/load_rates.php', { credentials: 'same-origin', cache: 'no-store' })
                 .then(function (r) { return r.json(); })
                 .then(function (j) {
                     if (j.success && j.rates && Array.isArray(j.rates.summerblast) && j.rates.summerblast.length) {
@@ -1765,10 +1772,10 @@
         });
         window.addEventListener('storage', function (e) {
             if (e.key === 'einsteinSettings') {
-                applySiteSettings();
+                loadHomepageRates();
             }
         });
-        window.addEventListener('einsteinSettingsUpdated', applySiteSettings);
+        window.addEventListener('einsteinSettingsUpdated', () => loadHomepageRates());
     </script>
 
     <!-- Editable homepage copy loaded from the database -->

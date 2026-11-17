@@ -1,0 +1,22 @@
+﻿.parent-schedule-card { background: #fff; border: 1px solid #E8D5B7; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+main:has(#user-page-schedule.active) { padding-top: 16px; }
+.parent-schedule-header { padding: 16px 20px; border-bottom: 1px solid #E8D5B7; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.parent-schedule-header h3 { margin: 0; font-family: 'Playfair Display', serif; font-size: 16px; color: #5c3317; }
+.parent-schedule-header span { font-size: 12px; color: #8D6A4E; }
+.parent-schedule-scroll { overflow-x: auto; max-width: 100%; }
+.parent-schedule-grid { width: 100%; min-width: 850px; border-collapse: collapse; font-family: 'Lato', sans-serif; font-size: 13px; }
+.parent-schedule-grid thead { background: #3D2212; color: #F4E8D3; text-align: center; }
+.parent-schedule-grid thead th { padding: 10px 6px; min-width: 85px; border-right: 1.5px solid #6E4223; text-align: center; }
+.parent-schedule-grid thead th:first-child { min-width: 110px; padding: 10px 8px; }
+.parent-schedule-grid thead th:last-child { border-right: 0; }
+.parent-schedule-grid td { text-align: center; padding: 8px 4px; font-size: 12px; color: #4A2C18; border: 1px solid #D4B69B; border-right: 2px solid #A8815B; }
+.parent-schedule-grid .schedule-time { white-space: nowrap; font-weight: 600; padding: 8px; }
+.parent-schedule-grid .schedule-type { font-size: 11px; font-weight: 700; color: #7B5230; }
+.parent-schedule-grid .schedule-normal { background: #DCEEFF; font-weight: 700; }
+.parent-schedule-grid .schedule-updated { background: #D4EDDA; font-weight: 700; }
+.parent-schedule-grid .schedule-empty { background: #fff; }
+.parent-schedule-grid small { display: block; margin-top: 4px; font-size: 11px; line-height: 1.4; font-weight: 400; }
+.parent-schedule-legend { display: flex; gap: 16px; padding: 12px 18px; font-size: 11px; color: #5c3317; border-top: 1px solid #E8D5B7; flex-wrap: wrap; }
+.parent-schedule-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+.legend-normal { background: #DCEEFF; border: 1px solid #A9CDEB; }
+.legend-updated { background: #D4EDDA; border: 1px solid #A8D5B5; }

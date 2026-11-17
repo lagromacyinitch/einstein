@@ -15,6 +15,7 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="css/parent-schedule.css?v=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -1709,10 +1710,14 @@
 
             <button class="drawer-nav-item" id="drawer-nav-enrollments"
                 onclick="showUserPage('enrollments', this)">
-                My Enrollments
+                Enrollments
                 <span class="drawer-nav-badge" id="drawer-badge-enrollments" style="display:none;">0</span>
             </button>
             <div id="drawer-enrollments-mini" class="drawer-enrollments-mini" style="display:none;"></div>
+
+            <button class="drawer-nav-item" id="drawer-nav-schedule" onclick="showUserPage('schedule', this)">
+                Schedule
+            </button>
 
             <button class="drawer-nav-item" id="drawer-nav-vip" onclick="showUserPage('vip', this)">
                 VIP Section
@@ -1847,6 +1852,20 @@
         </div>
 
         <!-- ════════════════ PAGE: VIP SECTION ════════════════ -->
+        <div id="user-page-schedule" class="user-page">
+            <div class="parent-schedule-card">
+                <div class="parent-schedule-header"><h3>Schedule</h3></div>
+            <div class="parent-schedule-scroll" tabindex="0" role="region" aria-label="Weekly class schedule, scroll horizontally to see all days">
+                <table class="parent-schedule-grid">
+                    <thead><tr><th scope="col">TIMESLOT</th><th scope="col">MON</th><th scope="col">TUE</th><th scope="col">WED</th><th scope="col">THU</th><th scope="col">FRI</th><th scope="col">SAT</th><th scope="col">SUN</th></tr></thead>
+                    <tbody id="parent-schedule-body"><tr><td colspan="8" style="padding:24px">Loading schedule...</td></tr></tbody>
+                </table>
+            </div>
+                <div class="parent-schedule-legend"><span><i class="legend-normal"></i>Normal Schedule</span><span><i class="legend-updated"></i>Updated Schedule</span></div>
+            </div>
+            <p style="font-size:12px;color:#8D6A4E;margin-top:12px">CB = Center Based · HB = Home Based. Swipe or scroll the table to view all days.</p>
+        </div>
+
         <div id="user-page-vip" class="user-page">
             
 
@@ -2252,7 +2271,7 @@
         // Routes: /user is Programs (dashboard), /user/<tab> the other tabs.
         const userRouteMatch = location.pathname.match(/^(.*\/user)(?:\/|$)/i);
         const USER_ROOT = userRouteMatch ? userRouteMatch[1] : new URL('user', document.baseURI).pathname;
-        const USER_TABS = ['dashboard', 'enrollments', 'vip', 'balance', 'announcements'];
+        const USER_TABS = ['dashboard', 'enrollments', 'schedule', 'vip', 'balance', 'announcements'];
         function userPageUrl(pageId) {
             return (pageId === 'dashboard' ? USER_ROOT : USER_ROOT + '/' + pageId) + location.search;
         }
@@ -2296,6 +2315,8 @@
                 fetchUserAnnouncements();
             } else if (pageId === 'vip') {
                 renderVipMembership(allEnrollments);
+            } else if (pageId === 'schedule') {
+                renderParentSchedule();
             } else if (pageId === 'balance') {
                 renderMyBalance(allEnrollments);
             }
@@ -2474,6 +2495,7 @@
                 id: e.id,
                 status: e.status,
                 package_selected: e.package_selected,
+                timeslot: e.timeslot,
                 updated_at: e.updated_at,
                 created_at: e.created_at,
                 end_date_override: e.end_date_override,
@@ -2632,7 +2654,7 @@
 
                 window.clientVipState = data.vip_membership || null;
                 const list = data.enrollments || [];
-                const snapshot = enrollmentSnapshot(list);
+                const snapshot = enrollmentSnapshot(list) + JSON.stringify([data.schedules || [], data.schedule_changes || []]);
                 const vipStateSnapshot = JSON.stringify(data.vip_membership || null);
                 const changed = snapshot !== lastEnrollmentSnapshot || vipStateSnapshot !== lastVipStateSnapshot;
 
@@ -2644,6 +2666,10 @@
                 lastEnrollmentSnapshot = snapshot;
                 lastVipStateSnapshot = vipStateSnapshot;
                 allEnrollments = list;
+                window.parentSchedules = data.schedules || [];
+                window.parentScheduleChanges = data.schedule_changes || [];
+                renderParentSchedule();
+                if (userNotifOpen) renderUserNotifications();
 
                 const activeCount = data.stats.active || 0;
                 const pendingCount = data.stats.pending || 0;
@@ -4475,6 +4501,9 @@
                 const readKey = 'enrollment:' + e.id + ':' + e.status + ':' + stamp;
                 if (!readKeys.has(readKey)) unreadCount++;
             });
+            (window.parentScheduleChanges || []).forEach(change => {
+                if (!readKeys.has('schedule:' + change.id)) unreadCount++;
+            });
             dot.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
             dot.style.display = unreadCount > 0 ? 'flex' : 'none';
         }
@@ -4489,7 +4518,7 @@
             }
             updateUserNotificationBadge();
             closeUserNotif();
-            showUserPage(item.route === 'vip' ? 'vip' : 'enrollments');
+            showUserPage(item.route === 'schedule' ? 'schedule' : item.route === 'vip' ? 'vip' : 'enrollments');
         }
 
         function renderUserNotifications() {
@@ -4501,6 +4530,20 @@
             const daysLeft = window.clientVipState?.days_left;
             const expiryReminder = window.clientVipState?.active && daysLeft > 0 && daysLeft <= 15;
             const items = [];
+
+            (window.parentScheduleChanges || []).forEach(change => {
+                const readKey = 'schedule:' + change.id;
+                const describeSchedule = value => !String(value || '').trim() || /^unscheduled$/i.test(String(value).trim())
+                    ? 'No schedule assigned' : String(value).trim();
+                items.push({
+                    type: 'schedule', title: 'Schedule updated',
+                    message: `Admin updated ${change.child_name ? change.child_name + "'s" : "your child's"} schedule${change.program ? ' for ' + change.program : ''}.`,
+                    previousSchedule: describeSchedule(change.previous_timeslot),
+                    updatedSchedule: describeSchedule(change.new_timeslot),
+                    when: timeAgoUser(change.changed_at), route: 'schedule', readKey,
+                    unread: !readKeys.has(readKey)
+                });
+            });
 
             if (expiryReminder) {
                 const expiryKey = 'vip-expiry:' + String(window.clientVipState.expires_at || daysLeft);
@@ -4547,10 +4590,12 @@
             container.innerHTML = items.map((item, index) => `<div class="user-notif-item${item.unread ? ' unread' : ''}" onclick="openUserNotification(${index})" role="button" tabindex="0" style="cursor:pointer">
                 <h4>${escapeHTML(item.title)}</h4>
                 <p>${escapeHTML(item.message)}</p>
+                ${item.type === 'schedule' ? `<p style="margin-top:8px"><strong>From:</strong> ${escapeHTML(item.previousSchedule)}</p><p style="margin-top:4px"><strong>To:</strong> ${escapeHTML(item.updatedSchedule)}</p>` : ''}
                 ${item.when ? `<time>${escapeHTML(item.when)}</time>` : ''}
             </div>`).join('');
         }
     </script>
+    <script src="js/parent-schedule.js?v=1"></script>
     <script src="js/logout-modal.js?v=1"></script>
     <script src="js/security.js"></script>
 </body>

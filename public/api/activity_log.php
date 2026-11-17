@@ -26,22 +26,7 @@ $isHeadAdmin = !empty($_SESSION['is_head_admin']);
 $action = trim($_GET['action'] ?? $_POST['action'] ?? '');
 
 // ── Ensure table exists ───────────────────────────────────────────────────────
-function ensureActivityLogTable(PDO $db): void
-{
-    $db->exec("
-        CREATE TABLE IF NOT EXISTS admin_activity_log (
-            id           INT AUTO_INCREMENT PRIMARY KEY,
-            actor_name   VARCHAR(120) NOT NULL,
-            actor_role   VARCHAR(30)  NOT NULL,
-            action_type  VARCHAR(80)  NOT NULL,
-            description  TEXT         NOT NULL,
-            ip_address   VARCHAR(45)  DEFAULT NULL,
-            logged_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_aal_logged (logged_at),
-            INDEX idx_aal_actor  (actor_name)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ");
-}
+require_once __DIR__ . '/../includes/activity_log_schema.php';
 
 try {
     $db = getDB();
@@ -64,6 +49,7 @@ try {
 
         $where  = [];
         $params = [];
+        if (($_GET['scope'] ?? '') === 'general') $where[] = "action_type <> 'LOG_SESSION'";
 
         if ($search !== '') {
             $where[]  = '(description LIKE ? OR actor_name LIKE ?)';
@@ -108,8 +94,8 @@ try {
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $post  = array_merge($_POST, $input);
 
-        $actorName   = trim($post['actor_name']   ?? $_SESSION['display_name'] ?? $_SESSION['portal_username'] ?? 'Unknown');
-        $actorRole   = trim($post['actor_role']   ?? ($isHeadAdmin ? 'Head Admin' : 'Sub-Admin'));
+        $actorName   = trim($_SESSION['display_name'] ?? $_SESSION['portal_username'] ?? 'Unknown');
+        $actorRole   = $isHeadAdmin ? 'Head Admin' : 'Sub-Admin/Tutor';
         $actionType  = trim($post['action_type']  ?? '');
         $description = trim($post['description']  ?? '');
 

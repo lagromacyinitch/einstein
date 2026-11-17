@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/parent_schedules.php';
 function activeScheduleStudents(PDO $db) {
     $records = $db->query("SELECT e.id, e.child_name, e.program, e.package_selected, e.notes
         FROM enrollments e LEFT JOIN student_archives a ON a.enrollment_id=e.id
@@ -89,10 +90,15 @@ function saveScheduleAndEnrollmentTimeslots(PDO $db, $rowId, array $changes) {
         $rows = mergeSchedulesAndAssignments(filterScheduleRoster($manual->fetchAll(PDO::FETCH_ASSOC), $roster), $students);
         $index = null;
         foreach ($rows as $i => $row) {
-            if ((string)$row['id'] === (string)$rowId) { $index = $i; break; }
+            if ((string)$row['id'] === (string)$rowId || in_array((string)$rowId, array_map('strval', $row['source_ids'] ?? []), true)) { $index = $i; break; }
         }
         if ($index === null) throw new Exception('Schedule changed. Refresh and try again.');
         $before = $rows[$index];
+        foreach (['mon','tue','wed','thu','fri','sat','sun'] as $day) {
+            if (array_key_exists($day, $changes) && trim($changes[$day]) === '' && strcasecmp(trim($before[$day] ?? ''), 'Available') === 0) {
+                $changes[$day] = 'Available';
+            }
+        }
         $rows[$index] = array_replace($before, $changes);
         $after = $rows[$index];
         $days = ['mon','tue','wed','thu','fri','sat','sun'];
@@ -143,9 +149,11 @@ function saveScheduleAndEnrollmentTimeslots(PDO $db, $rowId, array $changes) {
         $values = [$after['timeslot'], $after['slot_type']];
         foreach ($days as $day) $values[] = $after[$day] ?? '';
         if (ctype_digit((string)$rowId)) {
-            $values[] = $rowId;
-            $db->prepare('UPDATE tutor_schedules SET timeslot=?,slot_type=?,mon=?,tue=?,wed=?,thu=?,fri=?,sat=?,sun=? WHERE id=?')->execute($values);
-            $savedId = (int)$rowId;
+            // Keep all legacy copies in sync so edits cannot resurrect an old time/day.
+            foreach ($before['source_ids'] ?? [$rowId] as $sourceId) {
+                $db->prepare('UPDATE tutor_schedules SET timeslot=?,slot_type=?,mon=?,tue=?,wed=?,thu=?,fri=?,sat=?,sun=? WHERE id=?')->execute(array_merge($values, [$sourceId]));
+            }
+            $savedId = (int)$before['id'];
         } else {
             $values[] = $tutorId;
             $db->prepare('INSERT INTO tutor_schedules (timeslot,slot_type,mon,tue,wed,thu,fri,sat,sun,tutor_id) VALUES (?,?,?,?,?,?,?,?,?,?)')->execute($values);
@@ -157,7 +165,14 @@ function saveScheduleAndEnrollmentTimeslots(PDO $db, $rowId, array $changes) {
             }
         }
         $update = $db->prepare('UPDATE enrollments SET timeslot=? WHERE id=?');
-        foreach ($updates as $id => $timeslot) $update->execute([$timeslot, $id]);
+        foreach ($updates as $id => $timeslot) {
+            foreach ($students as $student) {
+                if ((int)$student['enrollment_id'] !== (int)$id) continue;
+                recordScheduleChange($db, (int)$id, $student['program'] ?? '', $student['timeslot'] ?? '', $timeslot);
+                break;
+            }
+            $update->execute([$timeslot, $id]);
+        }
         $db->commit();
         return $savedId;
     } catch (Throwable $error) {
