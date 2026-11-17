@@ -38,7 +38,7 @@ function tutorScheduleNotifications(PDO $db, int $tutorId): array {
             'target_page' => 'my_schedule', 'entity_id' => (int)$record['enrollment_id'],
             'created_at' => $record['changed_at'], 'unread' => (int)$record['unread']
         ];
-    }, $query->fetchAll(PDO::FETCH_ASSOC));
+    }, scheduleNotificationPreviousSlots($db, $query->fetchAll(PDO::FETCH_ASSOC)));
 }
 
 function setTutorAvailability(PDO $db, int $tutorId, string $rowId, string $day, bool $available): void {
@@ -84,11 +84,15 @@ function setTutorAvailability(PDO $db, int $tutorId, string $rowId, string $day,
 }
 
 function addTutorScheduleHighlights(PDO $db, array $rows, array $students): array {
-    $history = $db->prepare('SELECT previous_timeslot FROM enrollment_schedule_history WHERE enrollment_id=? ORDER BY id DESC LIMIT 1');
+    $now = (string)$db->query('SELECT CURRENT_TIMESTAMP')->fetchColumn();
+    $history = $db->prepare('SELECT previous_timeslot, changed_at FROM enrollment_schedule_history WHERE enrollment_id=? ORDER BY id DESC LIMIT 1');
+    foreach ($rows as &$row) $row['updated_days'] = [];
+    unset($row);
     foreach ($students as $student) {
         $history->execute([$student['enrollment_id']]);
-        $previous = $history->fetchColumn();
-        if ($previous === false) continue;
+        $change = $history->fetch(PDO::FETCH_ASSOC);
+        if (!$change || !scheduleHighlightIsRecent($change['changed_at'], $now)) continue;
+        $previous = $change['previous_timeslot'];
         foreach ($rows as &$row) {
             if ((int)$row['tutor_id'] !== (int)$student['tutor_id']) continue;
             $days = [];

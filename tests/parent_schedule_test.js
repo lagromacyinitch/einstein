@@ -33,6 +33,21 @@ const executablePath = process.env.CHROME_PATH || ['C:/Program Files/Google/Chro
             return route.fulfill({body:fs.readFileSync(file),contentType});
         });
         await page.goto('http://einstein.test/user/schedule');
+        await page.evaluate(() => {
+            loadPrograms();
+            window.enrollmentClicks = [];
+            window.handleEnroll = name => window.enrollmentClicks.push(name);
+        });
+        assert.equal(await page.locator('.program-enroll-btn').count(), 6);
+        for (let i = 0; i < 6; i++) {
+            const card = page.locator('.program-card').nth(i);
+            await card.evaluate(el => el.click());
+            await card.locator('.program-enroll-btn').evaluate(el => el.click());
+        }
+        const clicks = await page.evaluate(() => window.enrollmentClicks);
+        assert.equal(clicks.length, 12, 'Button should not bubble into a second enrollment');
+        for (let i = 0; i < clicks.length; i += 2) assert.equal(clicks[i], clicks[i + 1]);
+
         await page.waitForFunction(() => document.getElementById('parent-schedule-body').textContent.includes('Maryo'));
         assert.equal(await page.locator('#user-page-schedule').isVisible(), true, 'Direct Schedule URL works');
         const labels = await page.locator('.drawer-nav-item').allTextContents();

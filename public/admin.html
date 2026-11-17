@@ -252,7 +252,7 @@
                 <th>Age</th>
                 <th>Program</th>
                 <th>Package</th>
-                <th>VIP</th>
+                <th class="student-vip-column">VIP</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -476,7 +476,7 @@
                 <th>Student Name</th>
                 <th>Age</th>
                 <th>Package</th>
-                <th>VIP</th>
+                <th class="student-vip-column">VIP</th>
                 <th>Status</th>
                 <th>Timeslot</th>
                 <th>Start Date</th>
@@ -533,14 +533,14 @@
                 <th>#</th>
                 <th>Student Name</th>
                 <th>Age</th>
-                <th>Parent/Guardian</th>
-                <th>Contact</th>
-                <th>Workshop Class</th>
+                <th>Package</th>
                 <th>Type</th>
-                <th>Timeslot</th>
+                <th class="student-vip-column">VIP</th>
                 <th>Status</th>
+                <th>Timeslot</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="workshop-body">
@@ -598,19 +598,18 @@
                 <th>#</th>
                 <th>Toddler Name</th>
                 <th>Age</th>
-                <th>Parent/Guardian</th>
-                <th>Contact</th>
-                <th>Section</th>
-                <th>Timeslot</th>
-                <th>Address</th>
+                <th>Package</th>
+                <th class="student-vip-column">VIP</th>
                 <th>Status</th>
+                <th>Timeslot</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="playschool-body">
               <tr>
-                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="10" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No PlaySchool enrollments yet</strong><br>
                   <span style="font-size:12px">Toddlers enrolled via the PlaySchool form will appear here
@@ -658,19 +657,18 @@
                 <th>#</th>
                 <th>Child Name</th>
                 <th>Age</th>
-                <th>Parent/Guardian</th>
-                <th>Contact</th>
-                <th>Address</th>
                 <th>Package</th>
-                <th>Timeslot</th>
+                <th class="student-vip-column">VIP</th>
                 <th>Status</th>
+                <th>Timeslot</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="childcare-body">
               <tr>
-                <td colspan="11" style="text-align:center;padding:48px;color:var(--brown-light)">
+                <td colspan="10" style="text-align:center;padding:48px;color:var(--brown-light)">
                   <div style="font-size:36px;margin-bottom:8px"></div>
                   <strong>No Child Care enrollments yet</strong><br>
                   <span style="font-size:12px">Children enrolled via the Child Care form will appear here
@@ -771,13 +769,13 @@
                 <th>#</th>
                 <th>Student Name</th>
                 <th>Age</th>
-                <th>Parent/Guardian</th>
-                <th>Contact</th>
-                <th id="mad-col-primary">Package / Class</th>
-                <th id="mad-col-secondary">Timeslot</th>
+                <th id="mad-col-primary">Package</th>
+                <th class="student-vip-column">VIP</th>
                 <th>Status</th>
+                <th id="mad-col-secondary">Timeslot</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="madstudio-body">
@@ -830,13 +828,13 @@
                 <th>#</th>
                 <th>Student Name</th>
                 <th>Age</th>
-                <th>Parent/Guardian</th>
-                <th>Contact</th>
-                <th>Package / Class</th>
-                <th>Timeslot</th>
+                <th>Package</th>
+                <th class="student-vip-column">VIP</th>
                 <th>Status</th>
+                <th>Timeslot</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="summerblast-body">
@@ -2780,6 +2778,7 @@
         <div class="tutor-schedule-legend">
           <span><i style="background:#DCEEFF;border-color:#A9CDEB"></i>Normal Schedule</span>
           <span><i style="background:#D4EDDA;border-color:#A8D5B5"></i>Updated Schedule</span>
+          <span>NOTE: Updated schedules turn light blue after 3 days.</span>
           <span>Click an empty slot to mark Available. Click Available to unmark it.</span>
         </div>
       </div>
@@ -6055,18 +6054,18 @@
           <td>${escHtml(e.child_age || '—')}</td>
           <td>${escHtml(e.program)}</td>
           <td>${escHtml(e.package_selected || '—')}</td>
-          <td>${isVip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
+          <td class="student-vip-column">${isVip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
           <td><span class="badge ${!endDate ? 'badge-gold' : inactive ? 'badge-brown' : 'badge-green'}">${!endDate ? 'Date unavailable' : inactive ? 'Inactive' : 'Active'}</span></td>
           <td>${studentRecordActions(e)}</td>
         </tr>`;
       }).join('');
     }
 
-    function studentRecordActions(e) {
+    function studentRecordActions(e, review = 'viewEnrollmentDetail') {
       const id = Number(e.id);
       return `<div style="display:flex;gap:6px;white-space:nowrap">
-        <button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();viewEnrollmentDetail(${id})">View</button>
-        ${isHeadAdminUser ? `<button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();setStudentArchived(${id},true,this)">Withdraw</button>` : ''}
+        <button type="button" class="btn btn-outline btn-sm student-view-btn" onclick="event.stopPropagation();${review}(${id})">View</button>
+        ${isHeadAdminUser ? `<button type="button" class="btn btn-outline btn-sm student-withdraw-btn" ${e.status !== 'confirmed' ? 'disabled title="Only confirmed enrollments can be withdrawn"' : ''} onclick="event.stopPropagation();setStudentArchived(${id},true,this)">Withdraw</button>` : ''}
       </div>`;
     }
 
@@ -6087,7 +6086,10 @@
         if (!response.ok || !data.success) throw new Error(data.message || 'Unable to update student.');
         await loadEnrollmentsFromServer();
         renderStudentsTable();
-        renderProgramPage(programKey(record.program));
+        const key = programKey(record.program);
+        if (key === 'summerblast') changeSummerBlastView(document.getElementById('sb-view-filter')?.value || 'students');
+        else if (key === 'madstudio' || key === 'studio_rental') changeMadStudioView(document.getElementById('mad-view-filter')?.value || 'madstudio');
+        else renderProgramPage(key);
         updateDashboardStats();
         refreshProgramCounters();
         showToast(archived ? 'Student withdrawn. Records preserved.' : 'Student restored.');
@@ -7828,7 +7830,7 @@
       if (titleEl) titleEl.textContent = isRental ? 'Studio Rental Bookings — M.A.D. Studio' : 'Enrolled Students — M.A.D. Studio';
       const primaryCol = document.getElementById('mad-col-primary');
       const secondaryCol = document.getElementById('mad-col-secondary');
-      if (primaryCol) primaryCol.textContent = isRental ? 'Studio Rental - Dates / Hrs' : 'Package / Class';
+      if (primaryCol) primaryCol.textContent = isRental ? 'Studio Rental - Dates / Hrs' : 'Package';
       if (secondaryCol) secondaryCol.textContent = isRental ? 'Studio Rental - Timeslot / Amount' : 'Timeslot';
       renderProgramPage(isRental ? 'studio_rental' : 'madstudio');
       const search = document.getElementById('mad-student-search');
@@ -7881,68 +7883,37 @@
     function buildProgramRow(prog, e, idx) {
       const rowAttrs = programRowAttributes(e, prog === 'studio_rental' ? 'openStudioRentalReview' : 'viewEnrollmentDetail');
       const dateCells = programDateCells(e, prog, prog !== 'studio_rental');
-      const baseInfo = `
-    <td>${idx}</td>
-    <td><strong style="color:#5c3317">${escHtml(e.child_name)}</strong></td>
-    <td>${escHtml(e.child_age)}</td>
-    <td>${escHtml(e.guardian_name)}</td>
-    <td>${escHtml(e.contact)}</td>
-  `;
       if (prog === 'tutoring') {
         const vip = (e.package_selected || '').toLowerCase().includes('(vip)') || isParentConfirmedVip(e);
         return `<tr ${rowAttrs}>
           <td>${idx}</td><td><strong>${escHtml(e.child_name)}</strong></td><td>${escHtml(e.child_age)}</td>
           <td>${escHtml(e.package_selected || '—')}</td>
-          <td>${vip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
+          <td class="student-vip-column">${vip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
           <td>${programEnrollmentBadge(e, prog)}</td>
           <td>${escHtml(e.timeslot || '—')}</td>
           ${dateCells}<td>${studentRecordActions(e)}</td>
         </tr>`;
       }
-      if (prog === 'workshop') {
-        return `<tr ${rowAttrs}>
-      ${baseInfo}
-      <td>${escHtml(e.workshop_class || e.package_selected || '—')}</td>
-      <td>${escHtml(e.session_type || 'Group')}</td>
-      <td>${escHtml(e.timeslot || '—')}</td>
-      <td>${programEnrollmentBadge(e, prog)}</td>
-      ${dateCells}
-    </tr>`;
-      }
-      if (prog === 'playschool') {
-        return `<tr ${rowAttrs}>
-      ${baseInfo}
-      <td>${escHtml(e.section || e.package_selected || '—')}</td>
-      <td>${escHtml(e.timeslot || '—')}</td>
-      <td>${escHtml(e.address || '—')}</td>
-      <td>${programEnrollmentBadge(e, prog)}</td>
-      ${dateCells}
-    </tr>`;
-      }
-      if (prog === 'childcare') {
-        return `<tr ${rowAttrs}>
-      ${baseInfo}
-      <td>${escHtml(e.address || '—')}</td>
-      <td>${escHtml(e.package_selected || '—')}</td>
-      <td>${escHtml(e.timeslot || '—')}</td>
-      <td>${programEnrollmentBadge(e, prog)}</td>
-      ${dateCells}
-    </tr>`;
-      }
-      if (prog === 'madstudio' || prog === 'studio_rental' || prog === 'summerblast') {
+      if (['workshop', 'playschool', 'childcare', 'madstudio', 'studio_rental', 'summerblast'].includes(prog)) {
         const rental = prog === 'studio_rental' ? getStudioRentalAdminData(e) : null;
-        const amount = rental && rental.total > 0
-          ? rental.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 })
-          : '—';
-        const firstRentalColumn = prog === 'studio_rental' ? formatStudioRentalDatesAdmin(e) : (e.package_selected || e.workshop_class || '—');
-        const secondRentalColumn = prog === 'studio_rental' ? `${e.timeslot || '—'} / ${amount}` : (e.timeslot || '—');
-        return `<tr ${rowAttrs}>
-      ${baseInfo}
-      <td>${escHtml(firstRentalColumn)}</td>
-      <td>${escHtml(secondRentalColumn)}</td>
-      <td>${programEnrollmentBadge(e, prog)}</td>
-      ${dateCells}
-    </tr>`;
+        const packageName = prog === 'studio_rental' ? formatStudioRentalDatesAdmin(e)
+          : e.package_selected || (prog === 'playschool' ? e.section : e.workshop_class) || '—';
+        const timeslot = prog === 'studio_rental'
+          ? `${e.timeslot || '—'} / ${rental && rental.total > 0 ? rental.total.toLocaleString('en-PH', {style:'currency',currency:'PHP'}) : '—'}`
+          : e.timeslot || '—';
+        const vip = (e.package_selected || '').toLowerCase().includes('(vip)') || isParentConfirmedVip(e);
+        const review = prog === 'studio_rental' ? 'openStudioRentalReview'
+          : isStandaloneSummerBlastRegistrationRecord(e) ? 'openSummerBlastRegistrationReview' : 'viewEnrollmentDetail';
+        return `<tr ${programRowAttributes(e, review)}>
+          <td>${idx}</td><td><strong>${escHtml(e.child_name || '—')}</strong></td><td>${escHtml(e.child_age || '—')}</td>
+          <td>${escHtml(packageName)}</td>
+          ${prog === 'workshop' ? `<td>${escHtml(e.session_type || 'Group')}</td>` : ''}
+          <td class="student-vip-column">${vip ? '<span class="badge badge-gold">VIP</span>' : '—'}</td>
+          <td>${programEnrollmentBadge(e, prog)}</td>
+          <td>${escHtml(timeslot)}</td>
+          ${isStandaloneSummerBlastRegistrationRecord(e) ? programDateCells(e, prog, false) : dateCells}
+          <td>${studentRecordActions(e, review)}</td>
+        </tr>`;
       }
       return '';
     }
@@ -8140,19 +8111,7 @@
         tbody.innerHTML = '<tr><td colspan="10" style="padding:32px;text-align:center;color:var(--brown-light)">No standalone Registration Fee submissions yet.</td></tr>';
         return;
       }
-      tbody.innerHTML = records.map((e, idx) => {
-        return `<tr ${programRowAttributes(e, 'openSummerBlastRegistrationReview')}>
-          <td>${idx + 1}</td>
-          <td><strong style="color:#5c3317">${escHtml(e.child_name || '—')}</strong></td>
-          <td>${escHtml(e.child_age || '—')}</td>
-          <td>${escHtml(e.guardian_name || '—')}</td>
-          <td>${escHtml(e.contact || '—')}</td>
-          <td>—</td>
-          <td>—</td>
-          <td>${statusBadge(e.status)}</td>
-          ${programDateCells(e, 'summerblast', false)}
-        </tr>`;
-      }).join('');
+      tbody.innerHTML = records.map((e, idx) => buildProgramRow('summerblast', e, idx + 1)).join('');
     }
 
     // changeSummerBlastView — toggles the main summerblast table between
@@ -8179,19 +8138,7 @@
           </td></tr>`;
           return;
         }
-        tbody.innerHTML = reserved.map((e, idx) => {
-          return `<tr ${programRowAttributes(e, 'viewEnrollmentDetail')}>
-            <td>${idx + 1}</td>
-            <td><strong style="color:#5c3317">${escHtml(e.child_name || '—')}</strong></td>
-            <td>${escHtml(e.child_age || '—')}</td>
-            <td>${escHtml(e.guardian_name || '—')}</td>
-            <td>${escHtml(e.contact || '—')}</td>
-            <td>${escHtml(e.package_selected || '—')}</td>
-            <td>${escHtml(e.timeslot || '—')}</td>
-            <td>${programEnrollmentBadge(e, 'summerblast')}</td>
-            ${programDateCells(e, 'summerblast', !isStandaloneSummerBlastRegistrationRecord(e))}
-          </tr>`;
-        }).join('');
+        tbody.innerHTML = reserved.map((e, idx) => buildProgramRow('summerblast', e, idx + 1)).join('');
       } else {
         // Restore enrolled students view
         if (titleEl) titleEl.textContent = 'Enrolled Students — Summer Blast';
@@ -9716,7 +9663,7 @@
         await showNoticeModal({ title: 'Review Re-enrollment Payment', message: 'Open each re-enrollment to review its receipt and enter the verified amount before approving.', icon: false });
         return;
       }
-      if (!confirm(`Approve ${ids.length} enrollment(s)?`)) return;
+      if (!await showAppConfirmation({ title: 'Approve Enrollments', message: `Approve ${ids.length} enrollment(s)?`, confirmText: 'Approve' })) return;
 
       try {
         const promises = ids.map(id => {
@@ -9758,7 +9705,7 @@
     async function bulkReject() {
       const ids = [...document.querySelectorAll('.pending-chk:checked')].map(cb => cb.dataset.id);
       if (!ids.length) return;
-      if (!confirm(`Reject ${ids.length} enrollment(s)?`)) return;
+      if (!await showAppConfirmation({ title: 'Reject Enrollments', message: `Reject ${ids.length} enrollment(s)?`, confirmText: 'Reject' })) return;
 
       try {
         const promises = ids.map(id => {

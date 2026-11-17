@@ -244,6 +244,16 @@
             flex-direction: column;
         }
 
+        .program-enroll-btn {
+            display: inline-flex; align-items: center; gap: 14px;
+            background: #d4a76a; color: #3d2212; border: 0; border-radius: 9px;
+            width: 50%; align-self: flex-end; justify-content: center;
+            padding: 12px 10px; margin-top: auto; font: inherit; font-weight: 700;
+            letter-spacing: .03em; cursor: pointer;
+        }
+        .program-enroll-btn:hover { background: #e0b87e; }
+        .program-enroll-btn:focus-visible, .program-card:focus-visible { outline: 3px solid #a77739; outline-offset: 3px; }
+
         .program-card:hover {
             box-shadow: 0 12px 40px rgba(94, 58, 33, 0.14);
             transform: translateY(-4px);
@@ -270,6 +280,7 @@
         }
 
         .program-card-body {
+            gap: 20px;
             padding: 1.4rem 1.5rem;
             flex: 1;
             display: flex;
@@ -1861,7 +1872,7 @@
                     <tbody id="parent-schedule-body"><tr><td colspan="8" style="padding:24px">Loading schedule...</td></tr></tbody>
                 </table>
             </div>
-                <div class="parent-schedule-legend"><span><i class="legend-normal"></i>Normal Schedule</span><span><i class="legend-updated"></i>Updated Schedule</span></div>
+                <div class="parent-schedule-legend"><span><i class="legend-normal"></i>Normal Schedule</span><span><i class="legend-updated"></i>Updated Schedule</span><span>NOTE: Updated schedules turn light blue after 3 days.</span></div>
             </div>
             <p style="font-size:12px;color:#8D6A4E;margin-top:12px">CB = Center Based · HB = Home Based. Swipe or scroll the table to view all days.</p>
         </div>
@@ -4104,7 +4115,7 @@
             }
 
             grid.innerHTML = PROGRAMS.map((prog, i) => `
-                <div class="program-card" onclick='handleEnroll(${JSON.stringify(prog.name)})' title="Click to Enroll in ${escapeHTML(prog.name)}">
+                <div class="program-card" tabindex="0" role="button" onkeydown="if(event.target === this && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); this.click(); }" onclick='handleEnroll(${JSON.stringify(prog.name)})' title="Click to Enroll in ${escapeHTML(prog.name)}">
                     <div class="program-card-header">
                         <h3>${prog.name}</h3>
                         <p>${prog.subtitle}</p>
@@ -4114,6 +4125,9 @@
                         <ul>
                             ${prog.features.map(f => `<li>${f}</li>`).join('')}
                         </ul>
+                        <button type="button" class="program-enroll-btn" onclick='event.stopPropagation();handleEnroll(${JSON.stringify(prog.name)})'>
+                            Enroll Now <span aria-hidden="true">&#8594;</span>
+                        </button>
                     </div>
                 </div>
             `).join('');

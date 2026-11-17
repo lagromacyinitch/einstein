@@ -48,7 +48,7 @@ const base = process.env.TEST_BASE_URL || 'http://localhost/EINSTEIN-WEB18/publi
             await page.waitForFunction(() => typeof window.loadProgramContent === 'function');
             await page.evaluate(() => window.loadProgramContent());
             assert.ok((await page.locator(selector).textContent()).includes(expected), name);
-            assert.equal(await page.locator('.enroll-btn').count(), 0);
+            assert.equal(await page.locator('.enroll-btn').count(), 1);
             if (name === 'playschool') assert.ok((await page.locator(selector).textContent()).includes(content['playschool.butterfly.morning']));
             // Parse each page's embedded scripts as an additional syntax check.
             const html = fs.readFileSync('public/' + name + '.html', 'utf8');

@@ -78,9 +78,37 @@ function createAdminNotification(PDO $db, array $notification): int
     return (int) $db->lastInsertId();
 }
 
+/** Restrict shared notices using the account's current sidebar permissions. */
+function adminNotificationScope(PDO $db, string $adminKey): array
+{
+    if (!preg_match('/^sub_admin:(\d+)$/', $adminKey, $match)) return ['1=1', []];
+    $query = $db->prepare('SELECT can_edit_prices, nav_permissions FROM admin_accounts WHERE id=? AND is_active=1');
+    $query->execute([(int)$match[1]]);
+    $account = $query->fetch(PDO::FETCH_ASSOC);
+    if (!$account) return ['1=0', []];
+    $sections = !empty($account['can_edit_prices'])
+        ? ['dashboard', 'students', 'programs', 'finance', 'admin']
+        : json_decode($account['nav_permissions'] ?? '[]', true);
+    if (!is_array($sections)) $sections = [];
+    $groups = [
+        'dashboard' => ['dashboard'],
+        'students' => ['enrollment', 'students', 'vipmembers'],
+        'programs' => ['tutoring', 'workshop', 'playschool', 'childcare', 'madstudio', 'summerblast'],
+        'finance' => ['payments', 'balancemonitoring'],
+        'admin' => ['staff', 'tutors', 'pricemanagement', 'schedule', 'announcements', 'settings'],
+    ];
+    $pages = [];
+    foreach ($groups as $section => $targets) {
+        if (in_array($section, $sections, true)) $pages = array_merge($pages, $targets);
+    }
+    if (!$pages) return ['1=0', []];
+    return ['n.target_page IN (' . implode(',', array_fill(0, count($pages), '?')) . ')', $pages];
+}
+
 function listAdminNotifications(PDO $db, string $adminKey, int $limit = 50): array
 {
     ensureAdminNotificationsSchema($db);
+    [$scope, $pages] = adminNotificationScope($db, $adminKey);
     $limit = max(1, min(100, $limit));
     $stmt = $db->prepare("SELECT n.id, n.event_key, n.type, n.title, n.message,
             n.entity_type, n.entity_id, n.target_page, n.target_view, n.target_ref,
@@ -88,26 +116,32 @@ function listAdminNotifications(PDO $db, string $adminKey, int $limit = 50): arr
         FROM admin_notifications n
         LEFT JOIN admin_notification_reads r
             ON r.notification_id = n.id AND r.admin_key = ?
+        WHERE {$scope}
         ORDER BY n.created_at DESC, n.id DESC
         LIMIT {$limit}");
-    $stmt->execute([$adminKey]);
+    $stmt->execute(array_merge([$adminKey], $pages));
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function countUnreadAdminNotifications(PDO $db, string $adminKey): int
 {
+    [$scope, $pages] = adminNotificationScope($db, $adminKey);
     ensureAdminNotificationsSchema($db);
     $stmt = $db->prepare("SELECT COUNT(*)
         FROM admin_notifications n
         LEFT JOIN admin_notification_reads r
             ON r.notification_id = n.id AND r.admin_key = ?
-        WHERE r.notification_id IS NULL");
-    $stmt->execute([$adminKey]);
+        WHERE r.notification_id IS NULL AND {$scope}");
+    $stmt->execute(array_merge([$adminKey], $pages));
     return (int) $stmt->fetchColumn();
 }
 
 function markAdminNotificationRead(PDO $db, string $adminKey, int $notificationId): void
 {
+    [$scope, $pages] = adminNotificationScope($db, $adminKey);
+    $allowed = $db->prepare("SELECT n.id FROM admin_notifications n WHERE n.id=? AND {$scope}");
+    $allowed->execute(array_merge([$notificationId], $pages));
+    if (!$allowed->fetchColumn()) throw new RuntimeException('Notification unavailable.');
     ensureAdminNotificationsSchema($db);
     $stmt = $db->prepare("INSERT INTO admin_notification_reads (notification_id, admin_key, read_at)
         VALUES (?, ?, NOW())
@@ -117,13 +151,14 @@ function markAdminNotificationRead(PDO $db, string $adminKey, int $notificationI
 
 function markAllAdminNotificationsRead(PDO $db, string $adminKey): void
 {
+    [$scope, $pages] = adminNotificationScope($db, $adminKey);
     ensureAdminNotificationsSchema($db);
     $stmt = $db->prepare("INSERT INTO admin_notification_reads (notification_id, admin_key, read_at)
         SELECT n.id, ?, NOW()
         FROM admin_notifications n
         LEFT JOIN admin_notification_reads r
             ON r.notification_id = n.id AND r.admin_key = ?
-        WHERE r.notification_id IS NULL
+        WHERE r.notification_id IS NULL AND {$scope}
         ON DUPLICATE KEY UPDATE read_at = read_at");
-    $stmt->execute([$adminKey, $adminKey]);
+    $stmt->execute(array_merge([$adminKey, $adminKey], $pages));
 }

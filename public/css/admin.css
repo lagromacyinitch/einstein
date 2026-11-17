@@ -1455,6 +1455,11 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     }
   #page-pricemanagement .btn { background:transparent !important; color:var(--brown-primary) !important; border:1px solid var(--brown-primary) !important; box-shadow:none !important; }
     #page-pricemanagement .btn:disabled { opacity:.45; cursor:not-allowed; }
+    table th.student-vip-column, table td.student-vip-column { text-align:center; vertical-align:middle; white-space:nowrap; }
+    .btn.student-view-btn { background:#fff3cd; border-color:#ffe08a; color:#664d03; }
+    .btn.student-view-btn:hover { background:#ffe69c; border-color:#e9c45b; color:#664d03; }
+    .btn.student-withdraw-btn { background:#f8d7da; border-color:#f1aeb5; color:#842029; }
+    .btn.student-withdraw-btn:hover { background:#f1bfc4; border-color:#df8e98; color:#842029; }
     .vip-section-columns { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start; }
     .vip-section-columns .card { min-width:0;min-height:360px; }
     .vip-section-columns table { width:100%; }
