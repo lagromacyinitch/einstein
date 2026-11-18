@@ -59,11 +59,33 @@ require_once __DIR__ . '/../includes/balance_helpers.php';
     ");
     $rawEnrollments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $recordsByReference = [];
+    foreach ($rawEnrollments as $record) $recordsByReference[$record['reference_no']] = $record;
+
     $enrollments = [];
     $counts = ['pending' => 0, 'confirmed' => 0, 'cancelled' => 0];
 
     foreach ($rawEnrollments as $row) {
         $decrypted = decryptRow($row, ['child_name', 'child_age', 'child_grade', 'child_school', 'guardian_name', 'guardian_age', 'address', 'contact', 'facebook_name', 'notes', 'user_email']);
+        // Older re-enrollment copies omitted guardian_age; recover it from the
+        // linked original enrollment belonging to this same parent account.
+        if (empty($decrypted['guardian_age'])) {
+            $source = $decrypted;
+            $visited = [];
+            while (true) {
+                $sourceNotes = json_decode($source['notes'] ?? '', true);
+                $reference = $sourceNotes['re_enrollment']['previous_reference'] ?? '';
+                if (!$reference || isset($visited[$reference])) break;
+                $visited[$reference] = true;
+                $original = $recordsByReference[$reference] ?? null;
+                if (!$original || (int)$original['user_id'] !== (int)$row['user_id']) break;
+                $source = decryptRow($original, ['guardian_age', 'notes']);
+                if (!empty($source['guardian_age'])) {
+                    $decrypted['guardian_age'] = $source['guardian_age'];
+                    break;
+                }
+            }
+        }
         if (!empty($row['u_email_enc'])) {
             $decrypted['user_email'] = decryptAES256($row['u_email_enc']);
         }

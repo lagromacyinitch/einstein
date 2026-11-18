@@ -312,8 +312,7 @@
                   <th style="width:32px"></th>
                   <th>Student</th>
                   <th>Programs</th>
-                  <th>Total Payable</th>
-                  <th>Payment</th>
+                  <th>Type</th>
                   <th>Date</th>
                 </tr>
               </thead>
@@ -2778,7 +2777,7 @@
         <div class="tutor-schedule-legend">
           <span><i style="background:#DCEEFF;border-color:#A9CDEB"></i>Normal Schedule</span>
           <span><i style="background:#D4EDDA;border-color:#A8D5B5"></i>Updated Schedule</span>
-          <span>NOTE: Updated schedules turn light blue after 3 days.</span>
+          <span style="color:#b91c1c;">NOTE: Updated schedules turn light blue after 3 days.</span>
           <span>Click an empty slot to mark Available. Click Available to unmark it.</span>
         </div>
       </div>
@@ -6829,7 +6828,7 @@
         && (e.status === 'pending' || combinedVipGroupKeys.has(getEnrollmentGroupKeyAdmin(e))));
 
       if (!childEnrollments.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:#8D6A4E">No pending enrollment applications.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:24px;text-align:center;color:#8D6A4E">No pending enrollment applications.</td></tr>';
         if (countEl) countEl.textContent = '0 New';
         return;
       }
@@ -6880,7 +6879,6 @@
           const summerLabel = formatSummerBlastAdmin(c);
           return '<div style="font-size:12px;padding:2px 0;color:#5c3317">' +
           escHtml(displayEnrollmentProgramAdmin(c.program)) +
-          (isReEnrollmentAdmin(c) ? ' <span style="font-size:10px;font-weight:700;color:#855800;background:#fef3c7;border-radius:4px;padding:2px 5px">Re-enrollment</span>' : '') +
           (c.timeslot ? ' &middot; ' + escHtml(c.timeslot) : '') +
           (c.start_date ? ' &middot; Start: ' + escHtml(c.start_date) : '') +
           (summerLabel ? '<div style="font-size:11px;color:#8b6f47;margin:1px 0 3px">' + escHtml(summerLabel) + '</div>' : '') +
@@ -6903,10 +6901,9 @@
             '</span></div>';
         }
 
-        const childrenTotal = grp.children.reduce((sum, c) => sum + parseEnrollmentFeeAdmin(c), 0);
-        const vipTotal = grp.vipRecord ? parseEnrollmentFeeAdmin(grp.vipRecord) : 0;
-        const combinedTotal = childrenTotal + vipTotal;
-        const totalStr = combinedTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0 });
+        const enrollmentTypes = [...new Set(grp.children.map(c => isReEnrollmentAdmin(c) ? 'Re-enroll' : 'Enroll'))];
+        const typesHtml = enrollmentTypes.map(type => '<span class="badge ' +
+          (type === 'Re-enroll' ? 'badge-gold' : 'badge-green') + '">' + type + '</span>').join('<br>');
 
         const checkboxes = actionIds.map(id =>
           '<input type="checkbox" class="pending-chk" data-id="' + id + '" onchange="updateBulkButtons()" style="width:14px;height:14px;accent-color:#5c3317;cursor:pointer;display:block;margin:2px auto">'
@@ -6918,8 +6915,7 @@
           '<td onclick="event.stopPropagation()" style="padding:8px;text-align:center">' + checkboxes + '</td>' +
           '<td style="color:#5c3317;font-weight:bold">' + (studentNames.map(escHtml).join('<br>') || '—') + '</td>' +
           '<td>' + childrenHtml + '</td>' +
-          '<td style="font-weight:700;color:#2e7d32;white-space:nowrap">' + escHtml(totalStr) + '</td>' +
-          '<td>' + ([...new Set(grp.records.map(paymentMethodLabelAdmin))].map(escHtml).join('<br>') || '—') + '</td>' +
+          '<td style="white-space:nowrap">' + typesHtml + '</td>' +
           '<td>' + escHtml(fmtDate(grp.date)) + '</td>' +
           '</tr>';
       });
@@ -7515,7 +7511,7 @@
             const rentalSelectionHtml = formatStudioRentalAdminHtml(r);
             const assignTutorButton = isStandaloneStudioRentalRecord(r) || isSummerBlastRegistrationRecord(r)
               ? ''
-              : '<button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 10px" onclick="openAssignTutorForChild(' + safeId + ')">Assign Tutor</button>';
+              : '<button class="btn btn-outline btn-sm assign-tutor-btn" style="font-size:11px;padding:3px 10px" onclick="openAssignTutorForChild(' + safeId + ')">Assign Tutor</button>';
             return '<div style="background:#f9f5f0;border:1px solid #e0d4c8;border-radius:8px;padding:10px 14px">' +
               '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">' +
               '<div style="font-size:11px;color:#8b6f47;text-transform:uppercase;font-weight:700">Child ' + (i + 1) + '</div>' +
@@ -7942,7 +7938,7 @@
         <div class="detail-item"><label>Grade</label><strong>${escHtml(e.child_grade || '—')}</strong></div>
         <div class="detail-item"><label>School</label><strong>${escHtml(e.child_school || '—')}</strong></div>
       </div>
-      ${!e.student_archived_at && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px"><span id="detail-assigned-tutor-name">Loading tutor assignment…</span><button type="button" id="btn-view-assign-tutor" class="btn btn-outline btn-sm" onclick="openAssignTutorForChild(${Number(e.id)})">Assign Tutor</button></div>` : ''}
+      ${!e.student_archived_at && !isStandaloneStudioRentalRecord(e) && !isStandaloneSummerBlastRegistrationRecord(e) ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px"><span id="detail-assigned-tutor-name">Loading tutor assignment…</span><button type="button" id="btn-view-assign-tutor" class="btn btn-outline btn-sm assign-tutor-btn" onclick="openAssignTutorForChild(${Number(e.id)})">Assign Tutor</button></div>` : ''}
     </div>
     <div class="enrollment-detail-section">
       <h4>Parent/Guardian Information</h4>

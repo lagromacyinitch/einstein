@@ -1456,6 +1456,8 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   #page-pricemanagement .btn { background:transparent !important; color:var(--brown-primary) !important; border:1px solid var(--brown-primary) !important; box-shadow:none !important; }
     #page-pricemanagement .btn:disabled { opacity:.45; cursor:not-allowed; }
     table th.student-vip-column, table td.student-vip-column { text-align:center; vertical-align:middle; white-space:nowrap; }
+    .btn.assign-tutor-btn { background:#d4edda; border-color:#a8d5b5; color:#155724; }
+    .btn.assign-tutor-btn:hover { background:#bfe2c9; border-color:#82bd92; color:#155724; }
     .btn.student-view-btn { background:#fff3cd; border-color:#ffe08a; color:#664d03; }
     .btn.student-view-btn:hover { background:#ffe69c; border-color:#e9c45b; color:#664d03; }
     .btn.student-withdraw-btn { background:#f8d7da; border-color:#f1aeb5; color:#842029; }

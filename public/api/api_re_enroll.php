@@ -38,9 +38,12 @@ try {
 
     $enrollmentId = (int) ($_POST['enrollment_id'] ?? 0);
     $paymentMethod = trim((string) ($_POST['payment_method'] ?? ''));
-    if ($paymentMethod === '' || strlen($paymentMethod) > 64 || strcasecmp($paymentMethod, 'Walk-in') === 0) {
-        throw new RuntimeException('Choose an online payment method.');
+    if ($paymentMethod === '' || strlen($paymentMethod) > 64) {
+        throw new RuntimeException('Choose a payment method.');
     }
+    $isWalkIn = strcasecmp($paymentMethod, 'Walk-in') === 0;
+    if ($isWalkIn) $paymentMethod = 'Walk-in';
+    if (!$isWalkIn) {
     $file = $_FILES['receipt'] ?? null;
     if (!$file || $file['error'] !== UPLOAD_ERR_OK || $file['size'] <= 0 || $file['size'] > MAX_FILE_SIZE) {
         throw new RuntimeException('Upload a payment receipt up to 5 MB.');
@@ -49,6 +52,8 @@ try {
     $types = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
     if (!isset($types[$mime]) || !@getimagesize($file['tmp_name'])) {
         throw new RuntimeException('Use a valid JPG, PNG, or WEBP receipt.');
+    }
+
     }
 
     if ($enrollmentId <= 0) {
@@ -95,8 +100,12 @@ try {
     }
 
     $ref = generateRef($db);
+    $screenshotPath = null;
+    if (!$isWalkIn) {
     $filename = 'reenroll_' . bin2hex(random_bytes(16)) . '.' . $types[$mime];
     $screenshotPath = uploadToLocal($file['tmp_name'], $filename);
+
+    }
 
     // Decrypt child name for readable notes
     $decryptedChild = decryptAES256($prev['child_name']) ?: 'Student';
@@ -109,9 +118,9 @@ try {
     $sql = "INSERT INTO enrollments
         (reference_no, user_id, program, package_selected, start_date, timeslot,
          child_name, child_age, child_grade, child_school,
-         guardian_name, address, contact, facebook_name,
+         guardian_name, guardian_age, address, contact, facebook_name,
          payment_method, payment_screenshot, payment_status, status, notes, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending', ?, NOW(), NOW())";
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending', ?, NOW(), NOW())";
 
     $insertStmt = $db->prepare($sql);
     $insertStmt->execute([
@@ -126,6 +135,7 @@ try {
         $prev['child_grade'],
         $prev['child_school'],
         $prev['guardian_name'],
+        $prev['guardian_age'] ?? null,
         $prev['address'],
         $prev['contact'],
         $prev['facebook_name'],

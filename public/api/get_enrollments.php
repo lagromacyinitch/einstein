@@ -64,6 +64,7 @@ try {
         'enrollments' => $enrollments,
         'schedules' => parentScheduleRows($db, $userId),
         'schedule_changes' => parentScheduleChanges($db, $userId),
+        'end_date_changes' => parentEndDateChanges($db, $userId),
         'vip_membership' => vipState($db, (int)$_SESSION['user_id']),
         'stats' => [
             'active' => $active,
