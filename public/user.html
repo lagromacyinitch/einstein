@@ -1848,10 +1848,11 @@
 
             <div class="enrollments-header">
                 <div class="filters">
-                    <select id="enrollment-child-filter" class="child-filter" aria-label="Filter enrollments by child" onchange="filterEnrollments('all')">
+                    <select id="enrollment-child-filter" class="child-filter" aria-label="Filter enrollments by child" onchange="applyEnrollmentFilters()">
                         <option value="">All children</option>
                     </select>
                     <button class="filter-btn" data-status="confirmed" onclick="filterEnrollments('confirmed')">Active</button>
+                    <button class="filter-btn" data-status="inactive" onclick="filterEnrollments('inactive')">Inactive</button>
                     <button class="filter-btn" data-status="pending" onclick="filterEnrollments('pending')">Pending</button>
                 </div>
                 <div class="enrollments-count-pill" id="enrollmentsCountPill">0 Total</div>
@@ -1872,7 +1873,7 @@
                     <tbody id="parent-schedule-body"><tr><td colspan="8" style="padding:24px">Loading schedule...</td></tr></tbody>
                 </table>
             </div>
-                <div class="parent-schedule-legend"><span><i class="legend-normal"></i>Normal Schedule</span><span><i class="legend-updated"></i>Updated Schedule</span><span>NOTE: Updated schedules turn light blue after 3 days.</span></div>
+                <div class="parent-schedule-legend"><span><i class="legend-normal"></i>Normal Schedule</span><span><i class="legend-updated"></i>Updated Schedule</span><span style="color:#b91c1c;">NOTE: Updated schedules turn light blue after 3 days.</span></div>
             </div>
             <p style="font-size:12px;color:#8D6A4E;margin-top:12px">CB = Center Based · HB = Home Based. Swipe or scroll the table to view all days.</p>
         </div>
@@ -2599,14 +2600,17 @@
                 return { eligible: false, reason: e.status };
             }
 
-            const isAlreadyPending = (allEnrollments || []).some(item => 
-                item.status === 'pending' && 
-                String(item.program || '').trim().toLowerCase() === String(e.program || '').trim().toLowerCase() && 
-                String(item.child_name || '').trim().toLowerCase() === String(e.child_name || '').trim().toLowerCase()
-            );
-            if (isAlreadyPending) {
-                return { eligible: false, reason: 'pending_request' };
-            }
+            const isAlreadyPending = (allEnrollments || []).some(item => {
+                if (item.status !== 'pending') return false;
+                if (String(item.program || '').trim().toLowerCase() !== String(e.program || '').trim().toLowerCase()
+                    || String(item.child_name || '').trim().toLowerCase() !== String(e.child_name || '').trim().toLowerCase()) return false;
+                let notes = {};
+                try { notes = typeof item.notes === 'object' ? item.notes : JSON.parse(item.notes || '{}'); } catch (_) {}
+                const previousRef = notes?.re_enrollment?.previous_reference;
+                // A child can have several enrollments for the same program.
+                // Show the pending renewal only on its original enrollment.
+                return previousRef ? previousRef === e.reference_no : true;
+            });
 
             const pKey = getProgramKeyFromEnrollment(e.program);
             const spanCfg = clientProgramSpans[pKey] || { value: 1, unit: 'months' };
@@ -2642,9 +2646,9 @@
             });
 
             return {
-                eligible: isSpanElapsed,
+                eligible: isSpanElapsed && !isAlreadyPending,
                 isSpanElapsed,
-                reason: isSpanElapsed ? 'eligible' : 'active_span',
+                reason: isAlreadyPending ? 'pending_request' : isSpanElapsed ? 'eligible' : 'active_span',
                 expDate,
                 expDateStr,
                 spanVal,
@@ -2665,7 +2669,7 @@
 
                 window.clientVipState = data.vip_membership || null;
                 const list = data.enrollments || [];
-                const snapshot = enrollmentSnapshot(list) + JSON.stringify([data.schedules || [], data.schedule_changes || []]);
+                const snapshot = enrollmentSnapshot(list) + JSON.stringify([data.schedules || [], data.schedule_changes || [], data.end_date_changes || []]);
                 const vipStateSnapshot = JSON.stringify(data.vip_membership || null);
                 const changed = snapshot !== lastEnrollmentSnapshot || vipStateSnapshot !== lastVipStateSnapshot;
 
@@ -2679,12 +2683,13 @@
                 allEnrollments = list;
                 window.parentSchedules = data.schedules || [];
                 window.parentScheduleChanges = data.schedule_changes || [];
+                window.parentEndDateChanges = data.end_date_changes || [];
                 renderParentSchedule();
                 if (userNotifOpen) renderUserNotifications();
 
                 const activeCount = data.stats.active || 0;
                 const pendingCount = data.stats.pending || 0;
-                const totalCount = allEnrollments.length;
+                const totalCount = visibleUserEnrollments(allEnrollments).length;
 
                 const sAct = document.getElementById('statActive');
                 if (sAct) sAct.textContent = activeCount;
@@ -2706,7 +2711,7 @@
                 // Update enrollments count pill
                 const countPill = document.getElementById('enrollmentsCountPill');
                 if (countPill) {
-                    countPill.textContent = `${allEnrollments.filter(e => !String(e.program || '').toLowerCase().includes('vip')).length} Total`;
+                    countPill.textContent = `${visibleUserEnrollments(allEnrollments).length} Total`;
                 }
 
                 // Update dashboard preview banner text
@@ -2746,8 +2751,31 @@
             return raw;
         }
 
+        function userReEnrollmentInfo(record) {
+            try {
+                const notes = typeof record.notes === 'object' ? record.notes : JSON.parse(record.notes || '{}');
+                return notes?.re_enrollment || null;
+            } catch (_) {
+                return /^Re-enrollment for /i.test(record.notes || '') ? {} : null;
+            }
+        }
+
+        function visibleUserEnrollments(records) {
+            const source = allEnrollments || records;
+            const replaced = new Set();
+            source.forEach(renewal => {
+                if (!['pending', 'confirmed'].includes(renewal.status)) return;
+                const reference = userReEnrollmentInfo(renewal)?.previous_reference;
+                if (!reference) return;
+                const original = source.find(item => item.reference_no === reference);
+                if (original && original.program === renewal.program && original.child_name === renewal.child_name) replaced.add(reference);
+            });
+            return records.filter(record => !replaced.has(record.reference_no)
+                && !String(record.program || '').toLowerCase().includes('vip'));
+        }
+
         function renderEnrollments(list) {
-            list = list.filter(e => !String(e.program || '').toLowerCase().includes('vip'));
+            list = visibleUserEnrollments(list);
             const listContainer = document.getElementById('enrollmentList');
             if (list.length === 0) {
                 listContainer.innerHTML = `<div style="text-align: center; padding: 2.5rem; background: #fff; border-radius: 10px; color: var(--muted); border: 1px dashed rgba(94, 58, 33, 0.2)">No enrollments found for these filters.</div>`;
@@ -2760,10 +2788,12 @@
                 });
 
                 let statusClass = 'status-pending';
-                let statusText = 'Pending Review';
+                const isRenewal = !!userReEnrollmentInfo(e);
+                let statusText = isRenewal ? 'Re-enrollment Pending' : 'Pending Review';
                 if (e.status === 'confirmed') {
-                    statusClass = 'status-confirmed';
-                    statusText = 'Active / Confirmed';
+                    const expired = getEnrollmentSpanStatus(e).isSpanElapsed;
+                    statusClass = expired ? 'status-cancelled' : 'status-confirmed';
+                    statusText = expired ? 'Inactive' : 'Active / Confirmed';
                 } else if (e.status === 'cancelled') {
                     statusClass = 'status-cancelled';
                     statusText = 'Cancelled';
@@ -2787,7 +2817,7 @@
                                 ${pkg}
                                 ${schedule}
                                 ${start}
-                                <span>Date Enrolled: <strong>${dateStr}</strong></span>
+                                <span>${isRenewal ? 'Date Re-enrolled' : 'Date Enrolled'}: <strong>${dateStr}</strong></span>
                             </div>
                         </div>
                         <div class="enrollment-status" style="display:flex;flex-direction:column;align-items:flex-end;gap:0.45rem;min-width:140px;">
@@ -3877,6 +3907,10 @@
             balancePaymentMethod=method;
             document.querySelectorAll('#balance-methods button').forEach(b=>b.style.border=b.dataset.method===method?'2px solid #4c2b16':'1px solid #decbb7');
             document.getElementById('balance-upload').hidden=method==='Walk-in';
+            if (reEnrollmentPaymentMode) {
+                document.getElementById('balance-submit-message').textContent = method === 'Walk-in'
+                    ? 'Submit your request, then pay at the center. Your re-enrollment stays pending until admin approval.' : '';
+            }
             if(method!=='Walk-in') {
                 let dialog=document.getElementById('balance-qr-dialog');
                 if(!dialog){dialog=document.createElement('dialog');dialog.id='balance-qr-dialog';dialog.style.cssText='border:0;border-radius:14px;padding:20px;max-width:90vw';dialog.innerHTML='<button type="button" onclick="this.closest(\'dialog\').close()" aria-label="Close QR code" style="display:block;margin-left:auto;background:none;border:0;font-size:22px;cursor:pointer;padding:6px 10px">X</button><img style="display:block;max-width:75vw;max-height:75vh" alt="Payment QR code">';document.body.append(dialog);}
@@ -4075,16 +4109,26 @@
             select.value = names.includes(selected) ? selected : '';
         }
 
+        function userEnrollmentMatchesStatus(enrollment, status) {
+            if (status === 'all') return true;
+            if (status === 'confirmed' || status === 'inactive') {
+                if (enrollment.status !== 'confirmed') return false;
+                const expired = !!getEnrollmentSpanStatus(enrollment).isSpanElapsed;
+                return status === 'inactive' ? expired : !expired;
+            }
+            return enrollment.status === status;
+        }
+
         function applyEnrollmentFilters() {
             const child = document.getElementById('enrollment-child-filter')?.value || '';
             renderEnrollments(allEnrollments.filter(e =>
-                (enrollmentStatusFilter === 'all' || e.status === enrollmentStatusFilter) &&
+                userEnrollmentMatchesStatus(e, enrollmentStatusFilter) &&
                 (!child || String(e.child_name || '').trim() === child)
             ));
         }
 
         function filterEnrollments(status) {
-            enrollmentStatusFilter = status !== 'all' && enrollmentStatusFilter === status ? 'all' : status;
+            enrollmentStatusFilter = status;
             document.querySelectorAll('#user-page-enrollments .filter-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.status === enrollmentStatusFilter);
             });
@@ -4115,7 +4159,7 @@
             }
 
             grid.innerHTML = PROGRAMS.map((prog, i) => `
-                <div class="program-card" tabindex="0" role="button" onkeydown="if(event.target === this && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); this.click(); }" onclick='handleEnroll(${JSON.stringify(prog.name)})' title="Click to Enroll in ${escapeHTML(prog.name)}">
+                <div class="program-card" tabindex="0" role="button" onkeydown="if(event.target === this && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); this.click(); }" onclick='handleEnroll(${JSON.stringify(prog.name)})' title="Click">
                     <div class="program-card-header">
                         <h3>${prog.name}</h3>
                         <p>${prog.subtitle}</p>
@@ -4287,7 +4331,6 @@
             document.getElementById('balance-submit-button').textContent = 'Pay & Submit';
             document.getElementById('balance-reference-label').textContent = 'Previous Ref';
             document.getElementById('balance-amount-label').textContent = 'Program Fee';
-            document.querySelector('#balance-methods [data-method="Walk-in"]')?.remove();
             const box = document.getElementById('modal-balance-ref-box');
             box.style.display = 'block';
             document.getElementById('modal-balance-ref-name').textContent = `${displayUserProgramName(enrollment.program)} - ${enrollment.child_name || 'Student'}`;
@@ -4308,7 +4351,7 @@
             const input = document.getElementById('balance-receipt-file');
             if (reEnrollmentDemoPreview) { message.textContent = 'Demo preview only: this student already has a pending request.'; return; }
             if (!balancePaymentMethod) { message.textContent = 'Choose a payment method.'; return; }
-            if (!input.files[0] || input.dataset.receiptValidationState !== 'valid') {
+            if (balancePaymentMethod !== 'Walk-in' && (!input.files[0] || input.dataset.receiptValidationState !== 'valid')) {
                 message.textContent = input.dataset.receiptValidationState === 'pending' ? 'Please wait while the receipt is verified.' : 'Upload a valid payment receipt before submitting.';
                 return;
             }
@@ -4324,7 +4367,7 @@
                 const body = new FormData();
                 body.append('enrollment_id', selectedReEnrollId);
                 body.append('payment_method', balancePaymentMethod);
-                body.append('receipt', input.files[0]);
+                if (balancePaymentMethod !== 'Walk-in') body.append('receipt', input.files[0]);
                 const res = await fetch('api/api_re_enroll.php', {
                     method: 'POST',
                     credentials: 'same-origin',
@@ -4515,6 +4558,10 @@
                 const readKey = 'enrollment:' + e.id + ':' + e.status + ':' + stamp;
                 if (!readKeys.has(readKey)) unreadCount++;
             });
+            (window.parentEndDateChanges || []).forEach(change => {
+                if (!readKeys.has('end-date:' + change.id)) unreadCount++;
+            });
+
             (window.parentScheduleChanges || []).forEach(change => {
                 if (!readKeys.has('schedule:' + change.id)) unreadCount++;
             });
@@ -4544,6 +4591,24 @@
             const daysLeft = window.clientVipState?.days_left;
             const expiryReminder = window.clientVipState?.active && daysLeft > 0 && daysLeft <= 15;
             const items = [];
+
+            (window.parentEndDateChanges || []).forEach(change => {
+                const readKey = 'end-date:' + change.id;
+                const describeDate = value => value
+                    ? new Date(value + 'T00:00:00').toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})
+                    : 'Default program end date';
+                items.push({
+                    type: 'end-date', title: 'Enrollment end date updated',
+                    message: `Admin updated ${change.child_name ? change.child_name + "'s" : "your child's"} enrollment end date${change.program ? ' for ' + change.program : ''}.`,
+                    previousSchedule: describeDate(change.previous_override),
+                    updatedSchedule: describeDate(change.new_override),
+                    reason: change.reason || 'No reason provided.',
+                    when: timeAgoUser(change.changed_at), route: 'enrollments', readKey,
+                    unread: !readKeys.has(readKey)
+                });
+            });
+
+
 
             (window.parentScheduleChanges || []).forEach(change => {
                 const readKey = 'schedule:' + change.id;
@@ -4604,7 +4669,8 @@
             container.innerHTML = items.map((item, index) => `<div class="user-notif-item${item.unread ? ' unread' : ''}" onclick="openUserNotification(${index})" role="button" tabindex="0" style="cursor:pointer">
                 <h4>${escapeHTML(item.title)}</h4>
                 <p>${escapeHTML(item.message)}</p>
-                ${item.type === 'schedule' ? `<p style="margin-top:8px"><strong>From:</strong> ${escapeHTML(item.previousSchedule)}</p><p style="margin-top:4px"><strong>To:</strong> ${escapeHTML(item.updatedSchedule)}</p>` : ''}
+                ${['schedule', 'end-date'].includes(item.type) ? `<p style="margin-top:8px"><strong>From:</strong> ${escapeHTML(item.previousSchedule)}</p><p style="margin-top:4px"><strong>To:</strong> ${escapeHTML(item.updatedSchedule)}</p>` : ''}
+                ${item.type === 'end-date' ? `<p style="margin-top:4px"><strong>Reason:</strong> ${escapeHTML(item.reason)}</p>` : ''}
                 ${item.when ? `<time>${escapeHTML(item.when)}</time>` : ''}
             </div>`).join('');
         }
