@@ -149,7 +149,7 @@ function mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tuto
         $ms['source_ids'] = [$ms['id']];
         $duplicateIndex = null;
         foreach ($tutorRows[$tId] as $index => $existing) {
-            if (normalizeTimeSlotKey($existing['timeslot']) === normalizeTimeSlotKey($ms['timeslot'])) {
+            if (normalizeTimeSlotKey($existing['timeslot']) === normalizeTimeSlotKey($ms['timeslot']) && ($existing['slot_type'] ?? 'CB') === ($ms['slot_type'] ?? 'CB')) {
                 $duplicateIndex = $index;
                 break;
             }
@@ -179,7 +179,7 @@ function mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tuto
 
         $matchedIndex = -1;
         foreach ($tutorRows[$tId] as $idx => $r) {
-            if (normalizeTimeSlotKey($r['timeslot']) === $targetNormKey) {
+            if (normalizeTimeSlotKey($r['timeslot']) === $targetNormKey && ($r['slot_type'] ?? 'CB') === $slotType) {
                 $matchedIndex = $idx;
                 break;
             }

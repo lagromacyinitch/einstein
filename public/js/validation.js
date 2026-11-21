@@ -68,6 +68,11 @@
             return 'name';
         }
 
+        // A timeslot is a time range, not a numeric slot count.
+        if (type !== 'number' && (id.includes('timeslot') || name.includes('timeslot'))) {
+            return 'schedule';
+        }
+
         // Phone / Contact / Numbers / Capacity / Slots / Prices
         if (
             type === 'number' || type === 'tel' ||
@@ -176,8 +181,8 @@
                 break;
 
             case 'schedule':
-                // Schedules: Letters and numbers allowed
-                val = val.replace(/[^A-Za-z0-9\s:-]/g, '');
+                // Keep time punctuation and AM/PM text while typing or pasting.
+                val = val.replace(/[^A-Za-z0-9\s:;.\-\u2013\u2014]/g, '');
                 break;
 
             case 'address':

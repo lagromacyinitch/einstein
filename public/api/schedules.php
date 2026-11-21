@@ -214,7 +214,16 @@ try {
             echo json_encode([
                 'success' => true,
                 'tutor_id' => $tutorId,
-                'schedules' => addTutorScheduleHighlights($db, $merged, $assignedStudents),
+                'schedules' => array_map(function ($row) use ($manualSchedules, $assignedStudents, $tutorMap) {
+                    $row['can_delete'] = ctype_digit((string)$row['id']);
+                    foreach (mergeSchedulesAndAssignments($manualSchedules, $assignedStudents, $tutorMap) as $raw) {
+                        if ((string)$raw['id'] !== (string)$row['id']) continue;
+                        foreach (['mon','tue','wed','thu','fri','sat','sun'] as $day) {
+                            if (!in_array(strtolower(trim($raw[$day] ?? '')), ['', 'available'], true)) $row['can_delete'] = false;
+                        }
+                    }
+                    return $row;
+                }, addTutorScheduleHighlights($db, $merged, $assignedStudents)),
                 'assigned_students' => $allAssignedStudents
             ]);
 
@@ -240,6 +249,19 @@ try {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($body['available']) || !is_bool($body['available'])) throw new RuntimeException('Invalid availability request.');
         setTutorAvailability($db, sessionScheduleTutorId($db), (string)($body['id'] ?? ''), (string)($body['day'] ?? ''), $body['available']);
         echo json_encode(['success' => true]);
+        exit;
+    }
+    if ($action === 'create_mine' || $action === 'delete_mine') {
+        if ($method !== 'POST') throw new RuntimeException('POST required.');
+        $tutorId = sessionScheduleTutorId($db);
+        if (!$tutorId) throw new RuntimeException('Tutor account not identified.');
+        if ($action === 'create_mine') {
+            $id = createScheduleRow($db, $tutorId, (string)($body['timeslot'] ?? ''), (string)($body['slot_type'] ?? 'CB'));
+            echo json_encode(['success' => true, 'id' => $id]);
+        } else {
+            deleteTutorScheduleRow($db, $tutorId, (string)($body['id'] ?? ''));
+            echo json_encode(['success' => true]);
+        }
         exit;
     }
     if (!$isHeadAdmin) {
@@ -278,24 +300,7 @@ try {
 
         if (!$tutor_id || !$timeslot) throw new Exception('Tutor and timeslot are required.');
 
-        // Format timeslot to 12-hour format
-        $timeslot = formatTimeslot12Hour($timeslot) ?: $timeslot;
-
-        // Get max sort_order for this tutor
-        $maxSort = $db->prepare("SELECT COALESCE(MAX(sort_order),0)+1 FROM tutor_schedules WHERE tutor_id=?");
-        $maxSort->execute([$tutor_id]);
-        $sortVal = $maxSort->fetchColumn();
-
-        $stmt = $db->prepare(
-            "INSERT INTO tutor_schedules (tutor_id,timeslot,slot_type,mon,tue,wed,thu,fri,sat,sun,sort_order)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?)"
-        );
-        $days = ['mon','tue','wed','thu','fri','sat','sun'];
-        $vals = [$tutor_id, $timeslot, $slot_type];
-        foreach ($days as $d) $vals[] = trim($body[$d] ?? '');
-        $vals[] = $sortVal;
-        $stmt->execute($vals);
-        $newId = $db->lastInsertId();
+        $newId = createScheduleRow($db, $tutor_id, $timeslot, $slot_type, $body);
 
         $logStmt = $db->prepare("INSERT INTO admin_activity_log (actor_name,actor_role,action_type,description,ip_address) VALUES (?,'Head Admin','CREATE_SCHEDULE',?,?)");
         $logStmt->execute([$actorName,"Created schedule row: $timeslot for tutor ID $tutor_id", $ip]);
@@ -332,15 +337,15 @@ try {
 
         if (is_numeric($idRaw)) {
             $id = intval($idRaw);
-            $rStmt = $db->prepare("SELECT tutor_id, timeslot FROM tutor_schedules WHERE id=?");
+            $rStmt = $db->prepare("SELECT tutor_id, timeslot, slot_type FROM tutor_schedules WHERE id=?");
             $rStmt->execute([$id]);
             $rRow = $rStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($rRow) {
-                $copies = $db->prepare('SELECT id, timeslot FROM tutor_schedules WHERE tutor_id=?');
+                $copies = $db->prepare('SELECT id, timeslot, slot_type FROM tutor_schedules WHERE tutor_id=?');
                 $copies->execute([$rRow['tutor_id']]);
                 foreach ($copies->fetchAll(PDO::FETCH_ASSOC) as $copy) {
-                    if (normalizeTimeSlotKey($copy['timeslot']) === normalizeTimeSlotKey($rRow['timeslot'])) {
+                    if (normalizeTimeSlotKey($copy['timeslot']) === normalizeTimeSlotKey($rRow['timeslot']) && $copy['slot_type'] === $rRow['slot_type']) {
                         $db->prepare('DELETE FROM tutor_schedules WHERE id=?')->execute([$copy['id']]);
                     }
                 }
@@ -357,7 +362,8 @@ try {
                 $aStmt->execute([$rRow['tutor_id']]);
                 foreach ($aStmt->fetchAll(PDO::FETCH_ASSOC) as $ta) {
                     $p = parseScheduleTimePreference($ta['timeslot'], $ta['program'], $ta['package_selected']);
-                    if (normalizeTimeSlotKey($p['timeslot']) === $tKey) {
+                    $assignmentType = stripos($ta['program'] ?? '', 'Home') !== false || stripos($ta['package_selected'] ?? '', 'Home') !== false ? 'HB' : 'CB';
+                    if (normalizeTimeSlotKey($p['timeslot']) === $tKey && $assignmentType === $rRow['slot_type']) {
                         $db->prepare("DELETE FROM tutor_assignments WHERE id=?")->execute([$ta['id']]);
                     }
                 }
@@ -388,14 +394,7 @@ try {
             $stmt->execute([$eid, $tutor_id, $actorName]);
         } else {
             if (!$tutor_id || !$timeslot) throw new Exception('Tutor ID and timeslot required to restore.');
-            $stmt = $db->prepare(
-                "INSERT INTO tutor_schedules (tutor_id,timeslot,slot_type,mon,tue,wed,thu,fri,sat,sun,sort_order)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?)"
-            );
-            $vals = [$tutor_id, $timeslot, $slot_type];
-            foreach ($days as $d) $vals[] = trim($row[$d] ?? '');
-            $vals[] = intval($row['sort_order'] ?? 50);
-            $stmt->execute($vals);
+            createScheduleRow($db, $tutor_id, $timeslot, $slot_type, $row);
         }
 
         $logStmt = $db->prepare("INSERT INTO admin_activity_log (actor_name,actor_role,action_type,description,ip_address) VALUES (?,'Head Admin','RESTORE_SCHEDULE',?,?)");
