@@ -985,7 +985,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Timeslot * <span style="font-size:10px;font-weight:400">(e.g. 4:50 - 5:50)</span></label>
-              <input type="text" id="schedule-timeslot" class="form-control" placeholder="e.g. 4:50 - 5:50">
+              <input type="text" id="schedule-timeslot" data-validate="schedule" class="form-control" placeholder="e.g. 4:50 - 5:50">
             </div>
             <div class="form-group" style="max-width:100px">
               <label>Type *</label>
@@ -1000,6 +1000,36 @@
         <div class="modal-footer">
           <button class="btn btn-outline" onclick="closeModal('modal-add-schedule')">Cancel</button>
           <button class="btn btn-primary" onclick="saveScheduleRow()">Add Row</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-add-tutor-schedule">
+      <div class="modal" style="width:460px">
+        <div class="modal-header">
+          <h3>Add Timeslot Row</h3>
+          <button class="modal-close" onclick="closeModal('modal-add-tutor-schedule')">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:0.83rem;color:#8D6A4E;margin-bottom:14px">Add a custom timeslot to your schedule. After adding it, click an empty day (Mon&ndash;Sun) to mark yourself Available.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Timeslot * <span style="font-size:10px;font-weight:400">(e.g. 7:00 AM - 8:00 AM)</span></label>
+              <input type="text" id="tutor-schedule-timeslot" data-validate="schedule" class="form-control" placeholder="e.g. 7:00 AM - 8:00 AM">
+            </div>
+            <div class="form-group" style="max-width:100px">
+              <label>Type *</label>
+              <select id="tutor-schedule-slot-type" class="form-control">
+                <option value="CB">CB</option>
+                <option value="HB">HB</option>
+              </select>
+            </div>
+          </div>
+          <p style="font-size:0.78rem;color:#8D6A4E;margin-top:4px"><strong>CB</strong> = Center Based &nbsp;|&nbsp; <strong>HB</strong> = Home Based</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('modal-add-tutor-schedule')">Cancel</button>
+          <button id="tutor-schedule-save" class="btn btn-primary" onclick="saveTutorScheduleRow()">Add Row</button>
         </div>
       </div>
     </div>
@@ -2032,7 +2062,6 @@
       <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;font-size:11px;color:#5c3317">
         <span><span style="display:inline-block;width:14px;height:14px;background:#D4EDDA;border:1px solid #A8D5B5;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Available</span>
         <span><span style="display:inline-block;width:14px;height:14px;background:#F5E6D0;border:1px solid #D4A76A;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Student assigned</span>
-        <span><span style="display:inline-block;width:14px;height:14px;background:#F0E0E0;border:1px solid #C9A0A0;border-radius:2px;vertical-align:middle;margin-right:4px"></span>N/A</span>
         <span><span style="display:inline-block;width:14px;height:14px;background:#EEF2FF;border:1px solid #B0BCEE;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Empty slot</span>
         <span style="margin-left:auto;font-style:italic" id="sched-permission-note"></span>
       </div>
@@ -2726,33 +2755,10 @@
 
     <!-- ════════ SUB-ADMIN: VIEW 1: MY SCHEDULE ════════ -->
     <div class="page" id="page-my_schedule">
-      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px">
-        <div class="stat-card">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Today's Assigned Slots</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-today">—</h3>
-          <small style="color:var(--brown-light)">Occupied schedule slots today</small>
-        </div>
-        <div class="stat-card">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Hours Logged (Month)</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-hours">—</h3>
-          <small style="color:var(--brown-light)">Logged tutoring hours</small>
-        </div>
-        <div class="stat-card">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Assigned Enrollments</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0" id="subadmin-stat-students">—</h3>
-          <small style="color:var(--brown-light)">Assigned enrollment records</small>
-        </div>
-        <div class="stat-card">
-          <p style="font-size:11px;color:var(--brown-light);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Tutor Status</p>
-          <h3 style="font-size:26px;color:var(--brown-primary);margin:4px 0">—</h3>
-          <small style="color:var(--brown-light)">Status not tracked here</small>
-        </div>
-      </div>
-
       <div class="card">
         <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
           <h3>Schedule</h3>
-          <span style="font-size:12px;color:var(--brown-light)">Live center schedule (Updated by Head Admin)</span>
+          <button type="button" class="btn btn-primary" onclick="openTutorScheduleModal()">+ Add Timeslot</button>
         </div>
         <div class="card-body" style="padding:0;overflow-x:auto">
           <table class="data-table" style="width:100%;border-collapse:collapse;min-width:850px;font-size:13px">
@@ -2767,6 +2773,7 @@
                 <th style="padding:10px 6px;min-width:85px;border-right:1.5px solid #6E4223">FRI</th>
                 <th style="padding:10px 6px;min-width:85px;border-right:1.5px solid #6E4223">SAT</th>
                 <th style="padding:10px 6px;min-width:85px">SUN</th>
+              <th style="padding:10px 6px">ACTIONS</th>
               </tr>
             </thead>
             <tbody id="subadmin-schedule-table-body">
@@ -5101,7 +5108,7 @@
         if (document.hidden || tutorAvailabilityBusy || document.activeElement?.isContentEditable) return;
         if (document.getElementById('page-my_schedule')?.classList.contains('active')) loadSubadminSchedule(true);
         if (document.getElementById('page-schedule')?.classList.contains('active')) loadScheduleGrid();
-      }, 20000);
+      }, 5000);
     });
 
     // ══════════════════════════════════════════════════════════════════════
@@ -9430,8 +9437,6 @@
       if (!tutorName) { alert('Please enter or select a tutor.'); return; }
       if (!timeslot) { alert('Please enter a timeslot.'); return; }
 
-      const cleanTimeslot = timeslot.replace(/[a-zA-Z]/g, '').replace(/\s*-\s*/g, '-').trim();
-      const finalTimeslot = cleanTimeslot || timeslot;
 
       const matched = (schedTutorsList || []).find(t => (t.full_name || '').toLowerCase() === tutorName.toLowerCase());
       const tutor_id = matched ? matched.id : 0;
@@ -9444,12 +9449,13 @@
             action: 'create',
             tutor_id: parseInt(tutor_id) || 0,
             tutor_name: tutorName,
-            timeslot: finalTimeslot,
+            timeslot,
             slot_type
           })
         });
         const d = await r.json();
         if (!d.success) throw new Error(d.message);
+        notifyScheduleChange();
         closeModal('modal-add-schedule');
         showToast('Row added ✓');
         await loadScheduleGrid();
@@ -11464,6 +11470,15 @@
     let subadminSchedules = [];
     let subadminAssignedStudents = [];
     let tutorAvailabilityBusy = false;
+    function notifyScheduleChange() {
+      try { localStorage.setItem('schedule-changed', String(Date.now())); } catch (_) {}
+    }
+    window.addEventListener('storage', event => {
+      if (event.key !== 'schedule-changed' || document.hidden || tutorAvailabilityBusy || document.activeElement?.isContentEditable) return;
+      if (document.getElementById('page-schedule')?.classList.contains('active')) loadScheduleGrid();
+      if (document.getElementById('page-my_schedule')?.classList.contains('active')) loadSubadminSchedule(true);
+    });
+
 
     function subadminCellBg(val, updated = false) {
       const v = (val || '').trim().toUpperCase();
@@ -11482,7 +11497,7 @@
 
     async function loadSubadminSchedule(silent = false) {
       const tbody = document.getElementById('subadmin-schedule-table-body');
-      if (tbody && !silent) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--brown-light)">Loading your schedule…</td></tr>`;
+      if (tbody && !silent) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--brown-light)">Loading your schedule…</td></tr>`;
 
       let scheduleLoaded = false;
       try {
@@ -11527,7 +11542,7 @@
       const tbody = document.getElementById('subadmin-schedule-table-body');
       if (!tbody) return;
       if (!subadminSchedules.length) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2.5rem;color:var(--brown-light);font-size:13px;">No schedule entries assigned yet.<br><small style="color:#8D6A4E;">When the Head Admin assigns students or schedule slots to you, they will appear here.</small></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:var(--brown-light);font-size:13px;">No schedule entries assigned yet.<br><small style="color:#8D6A4E;">Click + Add Timeslot to create a row and mark your available days.</small></td></tr>`;
         return;
       }
 
@@ -11546,8 +11561,53 @@
           <td style="text-align:center;font-weight:600;font-size:12px;color:#4A2C18;padding:8px;border:1px solid #D4B69B;border-right:2px solid #A8815B">${escHtml(formatTimeslotDigits(s.timeslot))}</td>
           <td style="text-align:center;font-weight:700;font-size:11px;color:#7B5230;padding:6px;border:1px solid #D4B69B;border-right:2px solid #A8815B">${escHtml(s.slot_type || 'CB')}</td>
           ${dayCells}
+          <td style="text-align:center;border:1px solid #D4B69B"><button type="button" style="background:#c82333;color:white;border:0;border-radius:4px;padding:3px 10px;cursor:pointer" onclick="deleteTutorScheduleRow(${rowIndex})" aria-label="Delete timeslot" title="${s.can_delete === false || !days.every(day => ['', 'available'].includes(String(s[day] || '').trim().toLowerCase())) ? 'Assigned or unavailable rows cannot be deleted' : 'Delete timeslot'}" ${tutorAvailabilityBusy || s.can_delete === false || !/^\d+$/.test(String(s.id)) || !days.every(day => ['', 'available'].includes(String(s[day] || '').trim().toLowerCase())) ? 'disabled' : ''}>&times;</button></td>
         </tr>`;
       }).join('');
+    }
+
+    function openTutorScheduleModal() {
+      document.getElementById('tutor-schedule-timeslot').value = '';
+      document.getElementById('tutor-schedule-slot-type').value = 'CB';
+      openModal('modal-add-tutor-schedule');
+      document.getElementById('tutor-schedule-timeslot').focus();
+    }
+
+    async function saveTutorScheduleRow() {
+      if (tutorAvailabilityBusy) return;
+      const timeslot = document.getElementById('tutor-schedule-timeslot').value.trim();
+      const slot_type = document.getElementById('tutor-schedule-slot-type').value;
+      if (!timeslot) { showToast('Please enter a timeslot.', 'error'); return; }
+      tutorAvailabilityBusy = true;
+      const button = document.getElementById('tutor-schedule-save');
+      button.disabled = true;
+      try {
+        const response = await fetch('api/schedules.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'create_mine', timeslot, slot_type})});
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Could not add timeslot.');
+        notifyScheduleChange();
+        closeModal('modal-add-tutor-schedule');
+        await loadSubadminSchedule(true);
+        showToast('Timeslot added. Mark your available days.');
+      } catch (error) { showToast(error.message, 'error'); }
+      finally { tutorAvailabilityBusy = false; button.disabled = false; renderSubadminSchedule(); }
+    }
+
+    async function deleteTutorScheduleRow(rowIndex) {
+      if (tutorAvailabilityBusy) return;
+      const row = subadminSchedules[rowIndex];
+      if (!row || row.can_delete === false || !['mon','tue','wed','thu','fri','sat','sun'].every(day => ['', 'available'].includes(String(row[day] || '').trim().toLowerCase()))) return;
+      tutorAvailabilityBusy = true;
+      try {
+        if (!await showAppConfirmation({title:'Delete Timeslot', message:'Delete ' + row.timeslot + ' (' + row.slot_type + ')?', confirmText:'Delete'})) return;
+        const response = await fetch('api/schedules.php', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'delete_mine', id:String(row.id)})});
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Could not delete timeslot.');
+        await loadSubadminSchedule(true);
+        notifyScheduleChange();
+        showToast('Timeslot deleted.');
+      } catch (error) { showToast(error.message, 'error'); await loadSubadminSchedule(true); }
+      finally { tutorAvailabilityBusy = false; renderSubadminSchedule(); }
     }
 
     function showTutorAvailabilityMenu(anchor, available) {
@@ -11603,6 +11663,7 @@
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.message || 'Could not update availability.');
         await loadSubadminSchedule(true);
+        if (typeof notifyScheduleChange === 'function') notifyScheduleChange();
         showToast(available ? 'Marked available. Admin schedule updated.' : 'Availability removed. Admin schedule updated.');
       } catch (error) {
         showToast(error.message, 'error');
@@ -12362,24 +12423,37 @@
     }
 
     function updateBalanceSummaryCards(data) {
-      const incomplete = data.some(d => {
+      // Summarize complete records without substituting guessed deposits or fees.
+      const complete = data.filter(d => {
         const record = d.adminRec;
-        return !record || record.paid_amount === null || record.paid_amount === '' || !Object.prototype.hasOwnProperty.call(record, 'paid_amount') || !Number.isFinite(Number(record.paid_amount)) || !Number.isFinite(Number(record.total_fee)) || Number(record.total_fee) <= 0 || Math.abs(Number(record.total_fee) - d.totalFee) > 0.009;
+        if (!record || record.paid_amount == null || String(record.paid_amount).trim() === '' || record.total_fee == null || String(record.total_fee).trim() === '') return false;
+        const paid = Number(record.paid_amount), fee = Number(record.total_fee);
+        return Number.isFinite(paid) && paid >= 0 && Number.isFinite(fee) && fee >= 0
+          && Number.isFinite(d.totalFee) && Math.abs(fee - d.totalFee) <= 0.009;
       });
+      const excluded = data.length - complete.length;
+      const money = amount => '\u20b1' + amount.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+      const balance = d => Math.max(0, Number(d.adminRec.total_fee) - Number(d.adminRec.paid_amount));
       const values = {
-        'bm-total-receivables': '₱' + data.reduce((sum, d) => sum + d.balanceDue, 0).toLocaleString(),
-        'bm-total-collected': '₱' + data.reduce((sum, d) => sum + d.paidAmount, 0).toLocaleString(),
-        'bm-count-with-balance': data.filter(d => d.balanceDue > 0).length,
-        'bm-count-settled': data.filter(d => d.isSettled && d.status !== 'cancelled').length
+        'bm-total-receivables': money(complete.reduce((sum, d) => sum + balance(d), 0)),
+        'bm-total-collected': money(complete.reduce((sum, d) => sum + Number(d.adminRec.paid_amount), 0)),
+        'bm-count-with-balance': complete.filter(d => balance(d) > 0.009).length,
+        'bm-count-settled': complete.filter(d => balance(d) <= 0.009 && d.status !== 'cancelled').length
       };
+      const scope = excluded ? `Partial totals: ${complete.length} of ${data.length} records included. ${excluded} need fee/payment review and are excluded.` : `Totals for ${data.length} confirmed enrollment records.`;
+      const freshness = balanceSummaryLive ? '' : 'Saved data; refresh to get the latest payments. ';
       Object.entries(values).forEach(([id, value]) => {
         const element = document.getElementById(id);
         if (!element) return;
-        element.textContent = incomplete || !balanceSummaryLive ? '—' : value;
-        element.title = !balanceSummaryLive ? 'Live balance data unavailable.' : incomplete ? 'Unavailable: recorded fees or paid amounts are missing or inconsistent.' : 'Based on recorded fees and paid amounts for the displayed confirmed enrollment records.';
+        // An unknown amount must not look like an actual zero balance.
+        element.textContent = !data.length && !balanceSummaryLive ? 'Loading' : excluded && !complete.length ? 'Needs review' : value;
+        element.style.fontSize = typeof element.textContent === 'string' && /[A-Za-z]/.test(element.textContent) ? '1.25rem' : '';
+        element.title = freshness + scope;
+        const caption = element.nextElementSibling;
+        if (caption) caption.textContent = excluded ? `${complete.length} complete records; ${excluded} excluded` : 'Confirmed enrollment records';
       });
       const status = document.getElementById('bm-summary-status');
-      if (status) status.textContent = !balanceSummaryLive ? 'Live balance summary unavailable; the list may show cached records.' : incomplete ? 'Summary unavailable: recorded fees or paid amounts are missing or inconsistent for at least one displayed enrollment. Review payment details before relying on the ledger.' : 'Summary uses recorded fees and paid amounts for the displayed confirmed enrollment records.';
+      if (status) status.textContent = !data.length && !balanceSummaryLive ? 'Loading payment records. If this continues, click Refresh Data.' : freshness + scope;
     }
 
     function _renderBalanceMonitoringFromCache() {
@@ -12987,7 +13061,7 @@
     }
 
   </script>
-  <script src="js/validation.js?v=15"></script>
+  <script src="js/validation.js?v=16"></script>
 
 </body>
 

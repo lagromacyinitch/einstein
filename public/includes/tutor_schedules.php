@@ -1,5 +1,67 @@
 <?php
 require_once __DIR__ . '/schedule_sync.php';
+require_once __DIR__ . '/schedule_format.php';
+
+// Call inside a transaction after locking the tutor, as with availability edits.
+function lockedTutorScheduleRows(PDO $db, int $tutorId): array {
+    $lock = $db->prepare('SELECT id FROM tutors WHERE id=? FOR UPDATE');
+    $lock->execute([$tutorId]);
+    if (!$lock->fetchColumn()) throw new RuntimeException('Tutor not found.');
+    $manual = $db->prepare('SELECT * FROM tutor_schedules WHERE tutor_id=? ORDER BY sort_order, id FOR UPDATE');
+    $manual->execute([$tutorId]);
+    $assigned = $db->prepare('SELECT e.*, e.id AS enrollment_id, ta.tutor_id FROM tutor_assignments ta JOIN enrollments e ON e.id=ta.enrollment_id WHERE ta.tutor_id=? FOR UPDATE');
+    $assigned->execute([$tutorId]);
+    $roster = activeScheduleStudents($db);
+    $students = array_values(array_filter(array_map(fn($r) => decryptRow($r, ['child_name']), $assigned->fetchAll(PDO::FETCH_ASSOC)), fn($r) => isset($roster[(int)$r['enrollment_id']])));
+    // Preserve raw manual cells: even a name outside the current roster prevents deletion.
+    return mergeSchedulesAndAssignments($manual->fetchAll(PDO::FETCH_ASSOC), $students);
+}
+
+function createScheduleRow(PDO $db, int $tutorId, string $timeslot, string $type, array $cells = []): int {
+    $type = strtoupper(trim($type));
+    $timeslot = formatTimeslot12Hour(trim($timeslot));
+    if (!in_array($type, ['CB', 'HB'], true)) throw new RuntimeException('Choose CB or HB.');
+    if (!preg_match('/^(1[0-2]|[1-9]):([0-5][0-9]) (AM|PM) - (1[0-2]|[1-9]):([0-5][0-9]) (AM|PM)$/', $timeslot)) throw new RuntimeException('Enter a valid time range, such as 7:00 AM - 8:00 AM.');
+    [$start, $end] = explode('-', normalizeTimeSlotKey($timeslot));
+    if ($start >= $end) throw new RuntimeException('End time must be after start time.');
+    $db->beginTransaction();
+    try {
+        $rows = lockedTutorScheduleRows($db, $tutorId);
+        foreach ($rows as $row) {
+            if (normalizeTimeSlotKey($row['timeslot']) === normalizeTimeSlotKey($timeslot) && $row['slot_type'] === $type) throw new RuntimeException('This tutor already has that timeslot and class type.');
+        }
+        $sort = $db->prepare('SELECT COALESCE(MAX(sort_order),0)+1 FROM tutor_schedules WHERE tutor_id=?');
+        $sort->execute([$tutorId]);
+        $values = [$tutorId, $timeslot, $type];
+        foreach (['mon','tue','wed','thu','fri','sat','sun'] as $day) $values[] = trim($cells[$day] ?? '');
+        $values[] = (int)$sort->fetchColumn();
+        $db->prepare('INSERT INTO tutor_schedules (tutor_id,timeslot,slot_type,mon,tue,wed,thu,fri,sat,sun,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?)')->execute($values);
+        $id = (int)$db->lastInsertId();
+        $db->commit();
+        return $id;
+    } catch (Throwable $error) {
+        if ($db->inTransaction()) $db->rollBack();
+        throw $error;
+    }
+}
+
+function deleteTutorScheduleRow(PDO $db, int $tutorId, string $rowId): void {
+    $db->beginTransaction();
+    try {
+        $rows = lockedTutorScheduleRows($db, $tutorId);
+        $selected = null;
+        foreach ($rows as $row) if ((string)$row['id'] === $rowId) $selected = $row;
+        if (!$selected || !ctype_digit($rowId)) throw new RuntimeException('This row cannot be deleted from your schedule.');
+        foreach (['mon','tue','wed','thu','fri','sat','sun'] as $day) {
+            if (!in_array(strtolower(trim($selected[$day] ?? '')), ['', 'available'], true)) throw new RuntimeException('Only empty or Available rows can be deleted. Assigned classes must be managed by Admin.');
+        }
+        foreach ($selected['source_ids'] ?? [$rowId] as $id) $db->prepare('DELETE FROM tutor_schedules WHERE id=? AND tutor_id=?')->execute([$id, $tutorId]);
+        $db->commit();
+    } catch (Throwable $error) {
+        if ($db->inTransaction()) $db->rollBack();
+        throw $error;
+    }
+}
 
 function sessionScheduleTutorId(PDO $db): int {
     if (!empty($_SESSION['tutor_id'])) return (int)$_SESSION['tutor_id'];
@@ -59,7 +121,7 @@ function setTutorAvailability(PDO $db, int $tutorId, string $rowId, string $day,
         $selected = null;
         foreach ($rows as $row) if ((string)$row['id'] === $rowId) $selected = $row;
         if (!$selected) throw new RuntimeException('This slot is not in your schedule. Refresh and try again.');
-        $matching = array_values(array_filter($rows, fn($row) => normalizeTimeSlotKey($row['timeslot']) === normalizeTimeSlotKey($selected['timeslot'])));
+        $matching = array_values(array_filter($rows, fn($row) => normalizeTimeSlotKey($row['timeslot']) === normalizeTimeSlotKey($selected['timeslot']) && $row['slot_type'] === $selected['slot_type']));
         foreach ($matching as $row) {
             if (!in_array(strtolower(trim($row[$day] ?? '')), ['', 'available'], true)) throw new RuntimeException('This slot is booked or unavailable. Refresh your schedule.');
         }

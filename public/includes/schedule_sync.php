@@ -109,6 +109,13 @@ function saveScheduleAndEnrollmentTimeslots(PDO $db, $rowId, array $changes) {
         }
         $rows[$index] = array_replace($before, $changes);
         $after = $rows[$index];
+        if (isset($changes['timeslot']) || isset($changes['slot_type'])) {
+            if (!in_array($after['slot_type'], ['CB', 'HB'], true)) throw new RuntimeException('Choose CB or HB.');
+            foreach ($rows as $i => $row) {
+                if ($i !== $index && normalizeTimeSlotKey($row['timeslot']) === normalizeTimeSlotKey($after['timeslot']) && $row['slot_type'] === $after['slot_type']) throw new RuntimeException('This tutor already has that timeslot and class type.');
+            }
+        }
+
         $days = ['mon','tue','wed','thu','fri','sat','sun'];
         // Legacy edits could create duplicate rows for the same tutor/time.
         // Removing a student from a day must clear that same booking in every
