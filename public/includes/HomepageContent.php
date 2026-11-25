@@ -105,7 +105,7 @@ final class HomepageContent
 
             // Weekend Workshop
             $f('workshop.label', 'Weekend Workshop', 'Section label', 'Weekend Workshop'),
-            $f('workshop.title', 'Weekend Workshop', 'Section heading', 'Saturdays Only\nAugust to January', 'textarea'),
+            $f('workshop.title', 'Weekend Workshop', 'Section heading', "Saturdays Only\nAugust to January", 'textarea'),
             $f('workshop.description', 'Weekend Workshop', 'Section description', "Enrich your child's weekends with music, arts, and sports led by dedicated instructors. Limited slots available.", 'textarea'),
             $f('workshop.activities_label', 'Weekend Workshop', 'Activities label', 'Available Activities'),
             $f('workshop.activities', 'Weekend Workshop', 'Available activities', ['Drum', 'Guitar', 'Piano', 'Voice', 'Violin', 'Basketball', 'Gymnastics', 'Taekwondo', 'Ballet', 'Drawing & Painting', 'Swimming'], 'list'),
@@ -141,7 +141,7 @@ final class HomepageContent
 
             // Child care
             $f('childcare.label', 'Child Care', 'Section label', 'Child Care Program'),
-            $f('childcare.title', 'Child Care', 'Section heading', 'Full-Day Care\nfor Little Ones', 'textarea'),
+            $f('childcare.title', 'Child Care', 'Section heading', "Full-Day Care\nfor Little Ones", 'textarea'),
             $f('childcare.description', 'Child Care', 'Section description', 'For kids 1.6 to 4.5 years old. Slots are limited and few are already taken.'),
             $f('childcare.inclusions_label', 'Child Care', 'Inclusions label', 'Inclusions'),
             $f('childcare.inclusions', 'Child Care', 'Inclusions', ['Up to 12 hrs of Nanny Care (7am • 7pm)', 'Everyday except Sundays', 'Breakfast and lunch included', 'Life skills training', 'Access to toy room and nap room', 'Video call anytime of the day', 'With story time and TV time', 'Student kit, utensils and toiletries'], 'list'),
@@ -159,7 +159,7 @@ final class HomepageContent
 
             // M.A.D. Studio
             $f('mad.label', 'M.A.D. Studio', 'Section label', 'M.A.D. Studio'),
-            $f('mad.title', 'M.A.D. Studio', 'Section heading', 'Fitness and\nAfter School Programs', 'textarea'),
+            $f('mad.title', 'M.A.D. Studio', 'Section heading', "Fitness and\nAfter School Programs", 'textarea'),
             $f('mad.services_label', 'M.A.D. Studio', 'Services heading', 'Our Services'),
             $f('mad.fitness.heading', 'M.A.D. Studio', 'Fitness Training heading', 'Fitness Training'),
             $f('mad.fitness.items', 'M.A.D. Studio', 'Fitness Training services', ['Hiphop Aerobics', 'Kickboxing'], 'list'),
@@ -279,7 +279,7 @@ final class HomepageContent
             return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
-        return trim((string)$value);
+        return trim(self::normalizeTextValue((string)$value, $type));
     }
 
     private static function decodeValue(string $value, string $type)
@@ -289,7 +289,13 @@ final class HomepageContent
             return is_array($decoded) ? array_values($decoded) : [];
         }
 
-        return $value;
+        return self::normalizeTextValue($value, $type);
+    }
+
+    private static function normalizeTextValue(string $value, string $type): string
+    {
+        // Older textarea defaults stored literal newline escapes.
+        return $type === 'textarea' ? str_replace(['\r\n', '\n'], "\n", $value) : $value;
     }
 
     public static function seed(PDO $db): void
